@@ -1,10 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import useSocket from './api/useSocket'
+import useNotification from './api/useNotification'
 
 function App() {
   const [count, setCount] = useState(0)
+  const socket = useSocket();
+  const notification = useNotification();
+
+  useEffect(() => {
+    socket.on('notification', (msg) => {
+      console.log('Socket notification received:', msg);
+      notification.success(`Socket: ${msg}`);
+    });
+    return () => socket.off('notification');
+  }, [socket, notification]);
 
   return (
     <>
