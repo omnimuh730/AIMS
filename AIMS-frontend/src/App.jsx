@@ -1,7 +1,5 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import { createTheme } from '@mui/material/styles';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -11,6 +9,10 @@ import LayersIcon from '@mui/icons-material/Layers';
 import { AppProvider } from '@toolpad/core/AppProvider';
 import { DashboardLayout } from '@toolpad/core/DashboardLayout';
 import { DemoProvider, useDemoRouter } from '@toolpad/core/internal';
+
+import DashboardPage from './pages/DashboardPage';
+import NotFoundPage from './pages/NotFoundPage';
+import TestPage from './pages/TestPage';
 
 const NAVIGATION = [
   {
@@ -56,6 +58,11 @@ const NAVIGATION = [
     title: 'Integrations',
     icon: <LayersIcon />,
   },
+  {
+    segment: 'test',
+    title: 'Test',
+    icon: <DescriptionIcon />,
+  }
 ];
 
 const demoTheme = createTheme({
@@ -75,19 +82,14 @@ const demoTheme = createTheme({
 });
 
 function PageContent({ pathname }) {
-  return (
-    <Box
-      sx={{
-        py: 4,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-      }}
-    >
-      <Typography>Dashboard content for {pathname}</Typography>
-    </Box>
-  );
+  switch (pathname) {
+    case '/dashboard':
+      return <DashboardPage />;
+    case '/test':
+      return <TestPage />;
+    default:
+      return <NotFoundPage />;
+  }
 }
 
 PageContent.propTypes = {
