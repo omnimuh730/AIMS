@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 
 import PropTypes from 'prop-types';
 import { createTheme } from '@mui/material/styles';
@@ -8,8 +8,7 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import DescriptionIcon from '@mui/icons-material/Description';
 import { AppProvider } from '@toolpad/core/AppProvider';
 import { DashboardLayout } from '@toolpad/core/DashboardLayout';
-import { DemoProvider, useDemoRouter } from '@toolpad/core/internal';
-
+import { DemoProvider } from '@toolpad/core/internal';
 
 import DashboardPage from './pages/DashboardPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -96,6 +95,19 @@ const demoTheme = createTheme({
   },
 });
 
+// Custom router that bridges React Router with Toolpad
+function useCustomRouter() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  return {
+    pathname: location.pathname,
+    push: (path) => navigate(path),
+    replace: (path) => navigate(path, { replace: true }),
+    navigate: (path) => navigate(path), // Add navigate function that Toolpad expects
+  };
+}
+
 function AppContent() {
   return (
     <Routes>
@@ -111,7 +123,7 @@ function AppContent() {
 
 function App(props) {
   const { window } = props;
-  const router = useDemoRouter('/dashboard');
+  const router = useCustomRouter();
   const demoWindow = window !== undefined ? window() : undefined;
 
   return (
