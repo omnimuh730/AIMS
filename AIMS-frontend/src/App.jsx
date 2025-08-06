@@ -13,6 +13,14 @@ import { DemoProvider, useDemoRouter } from '@toolpad/core/internal';
 import DashboardPage from './pages/DashboardPage';
 import NotFoundPage from './pages/NotFoundPage';
 import TestPage from './pages/TestPage';
+import MailPage from './pages/MailPage';
+
+import {
+  Mail,
+  AutoAwesome,
+  Settings,
+  Visibility,
+} from '@mui/icons-material'
 
 const NAVIGATION = [
   {
@@ -25,9 +33,14 @@ const NAVIGATION = [
     icon: <DashboardIcon />,
   },
   {
-    segment: 'orders',
-    title: 'Orders',
-    icon: <ShoppingCartIcon />,
+    segment: 'mail',
+    title: 'Mail',
+    icon: <Mail />,
+  },
+  {
+    segment: 'automation',
+    title: 'Automation',
+    icon: <AutoAwesome />,
   },
   {
     kind: 'divider',
@@ -54,14 +67,14 @@ const NAVIGATION = [
     ],
   },
   {
-    segment: 'integrations',
-    title: 'Integrations',
-    icon: <LayersIcon />,
+    segment: 'settings',
+    title: 'Settings',
+    icon: <Settings />,
   },
   {
-    segment: 'test',
-    title: 'Test',
-    icon: <DescriptionIcon />,
+    segment: 'logs',
+    title: 'Logs',
+    icon: <Visibility />,
   }
 ];
 
@@ -85,7 +98,9 @@ function PageContent({ pathname }) {
   switch (pathname) {
     case '/dashboard':
       return <DashboardPage />;
-    case '/test':
+    case '/mail':
+      return <MailPage />;
+    case '/logs':
       return <TestPage />;
     default:
       return <NotFoundPage />;
