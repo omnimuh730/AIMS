@@ -25,7 +25,7 @@ io.on('connection', (socket) => {
 setInterval(() => {
   io.emit('notification', 'This is a periodic notification from the server.');
   console.log('Sent notification');
-}, 10000);
+}, 2000);
 
 app.get('/', (req, res) => {
   res.send('Hello, World!');
