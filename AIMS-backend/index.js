@@ -104,44 +104,96 @@ app.get('/emails', async (req, res) => {
     const oAuth2Client = await getOAuth2Client();
     oAuth2Client.setCredentials(tokens);
     const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+    
+    // Get message IDs first (this is fast)
     let nextPageToken = null;
     const allMessages = [];
     do {
       const resp = await gmail.users.messages.list({
         userId: 'me',
-        maxResults: 10,
+        maxResults: 20, // Increased for better performance
         pageToken: nextPageToken,
       });
       const messages = resp.data.messages || [];
       allMessages.push(...messages);
       nextPageToken = resp.data.nextPageToken;
-    } while (nextPageToken && allMessages.length < 10); // Limit to 10 for demo
+    } while (nextPageToken && allMessages.length < 20); // Limit to 20 for demo
+
+    // Batch fetch detailed messages (much faster than one by one)
+    const batchSize = 5; // Process 5 emails concurrently
     const detailedMessages = [];
-    for (const message of allMessages) {
-      try {
-        const msg = await gmail.users.messages.get({
-          userId: 'me',
-          id: message.id,
-          format: 'full',
-        });
-        const headers = msg.data.payload.headers;
-        const emailData = {
-          id: msg.data.id,
-          threadId: msg.data.threadId,
-          labelIds: msg.data.labelIds,
-          snippet: msg.data.snippet,
-          from: headers.find(h => h.name === 'From')?.value || '',
-          subject: headers.find(h => h.name === 'Subject')?.value || '',
-          body: extractBody(msg.data.payload),
-        };
-        detailedMessages.push(emailData);
-      } catch (error) {
-        console.error(`Error fetching message ${message.id}:`, error.message);
+    
+    for (let i = 0; i < allMessages.length; i += batchSize) {
+      const batch = allMessages.slice(i, i + batchSize);
+      
+      // Fetch batch of emails concurrently
+      const batchPromises = batch.map(async (message) => {
+        try {
+          const msg = await gmail.users.messages.get({
+            userId: 'me',
+            id: message.id,
+            format: 'full',
+          });
+          
+          const headers = msg.data.payload.headers;
+          const emailData = {
+            id: msg.data.id,
+            threadId: msg.data.threadId,
+            labelIds: msg.data.labelIds,
+            snippet: msg.data.snippet,
+            from: headers.find(h => h.name === 'From')?.value || '',
+            subject: headers.find(h => h.name === 'Subject')?.value || '',
+            date: headers.find(h => h.name === 'Date')?.value || '',
+            body: extractBody(msg.data.payload),
+          };
+          return emailData;
+        } catch (error) {
+          console.error(`Error fetching message ${message.id}:`, error.message);
+          return null;
+        }
+      });
+      
+      // Wait for current batch to complete
+      const batchResults = await Promise.all(batchPromises);
+      detailedMessages.push(...batchResults.filter(Boolean)); // Filter out null results
+      
+      // Small delay to avoid rate limiting
+      if (i + batchSize < allMessages.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
+    
     res.json(detailedMessages);
   } catch (error) {
+    console.error('Error fetching emails:', error);
     res.status(500).json({ error: 'Failed to fetch emails' });
+  }
+});
+
+// Route to fetch Gmail labels
+app.get('/labels', async (req, res) => {
+  try {
+    const tokens = await loadSavedCredentials();
+    if (!tokens) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    const oAuth2Client = await getOAuth2Client();
+    oAuth2Client.setCredentials(tokens);
+    const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+    const resp = await gmail.users.labels.list({ userId: 'me' });
+    const labels = (resp.data.labels || []).map(label => ({
+      id: label.id,
+      name: label.name,
+      color: label.color,
+      type: label.type,
+      labelListVisibility: label.labelListVisibility,
+      messageListVisibility: label.messageListVisibility,
+      // Add more fields if needed
+    }));
+    res.json(labels);
+  } catch (error) {
+    console.error('Error fetching labels:', error);
+    res.status(500).json({ error: 'Failed to fetch labels' });
   }
 });
 
