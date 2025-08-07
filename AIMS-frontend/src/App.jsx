@@ -15,6 +15,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import TestPage from "./pages/TestPage";
 import MailPage from "./pages/MailPage";
 import MailDetailPage from "./pages/MailPage/MailDetailPage";
+import SettingsPage from "./pages/SettingsPage";
 
 import { Mail, AutoAwesome, Settings, Visibility } from "@mui/icons-material";
 
@@ -111,6 +112,7 @@ function AppContent() {
 			<Route path="/mail/:id" element={<MailDetailPage />} />
 			<Route path="/logs" element={<TestPage />} />
 			<Route path="/test" element={<TestPage />} />
+			<Route path="/settings" element={<SettingsPage />} />
 			<Route path="*" element={<NotFoundPage />} />
 		</Routes>
 	);
