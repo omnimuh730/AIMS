@@ -1,150 +1,145 @@
-import * as React from 'react';
-import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import * as React from "react";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 
-import PropTypes from 'prop-types';
-import { createTheme } from '@mui/material/styles';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import DescriptionIcon from '@mui/icons-material/Description';
-import { AppProvider } from '@toolpad/core/AppProvider';
-import { DashboardLayout } from '@toolpad/core/DashboardLayout';
-import { DemoProvider } from '@toolpad/core/internal';
+import PropTypes from "prop-types";
+import { createTheme } from "@mui/material/styles";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import DescriptionIcon from "@mui/icons-material/Description";
+import { AppProvider } from "@toolpad/core/AppProvider";
+import { DashboardLayout } from "@toolpad/core/DashboardLayout";
+import { DemoProvider } from "@toolpad/core/internal";
 
-import DashboardPage from './pages/DashboardPage';
-import NotFoundPage from './pages/NotFoundPage';
-import TestPage from './pages/TestPage';
-import MailPage from './pages/MailPage';
-import MailDetailPage from './pages/MailDetailPage';
+import DashboardPage from "./pages/DashboardPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import TestPage from "./pages/TestPage";
+import MailPage from "./pages/MailPage";
+import MailDetailPage from "./pages/MailPage/MailDetailPage";
 
-import {
-  Mail,
-  AutoAwesome,
-  Settings,
-  Visibility,
-} from '@mui/icons-material'
+import { Mail, AutoAwesome, Settings, Visibility } from "@mui/icons-material";
 
 const NAVIGATION = [
-  {
-    kind: 'header',
-    title: 'Main items',
-  },
-  {
-    segment: 'dashboard',
-    title: 'Dashboard',
-    icon: <DashboardIcon />,
-  },
-  {
-    segment: 'mail',
-    title: 'Mail',
-    icon: <Mail />,
-  },
-  {
-    segment: 'automation',
-    title: 'Automation',
-    icon: <AutoAwesome />,
-  },
-  {
-    kind: 'divider',
-  },
-  {
-    kind: 'header',
-    title: 'Analytics',
-  },
-  {
-    segment: 'reports',
-    title: 'Reports',
-    icon: <BarChartIcon />,
-    children: [
-      {
-        segment: 'sales',
-        title: 'Sales',
-        icon: <DescriptionIcon />,
-      },
-      {
-        segment: 'traffic',
-        title: 'Traffic',
-        icon: <DescriptionIcon />,
-      },
-    ],
-  },
-  {
-    segment: 'settings',
-    title: 'Settings',
-    icon: <Settings />,
-  },
-  {
-    segment: 'logs',
-    title: 'Logs',
-    icon: <Visibility />,
-  }
+	{
+		kind: "header",
+		title: "Main items",
+	},
+	{
+		segment: "dashboard",
+		title: "Dashboard",
+		icon: <DashboardIcon />,
+	},
+	{
+		segment: "mail",
+		title: "Mail",
+		icon: <Mail />,
+	},
+	{
+		segment: "automation",
+		title: "Automation",
+		icon: <AutoAwesome />,
+	},
+	{
+		kind: "divider",
+	},
+	{
+		kind: "header",
+		title: "Analytics",
+	},
+	{
+		segment: "reports",
+		title: "Reports",
+		icon: <BarChartIcon />,
+		children: [
+			{
+				segment: "sales",
+				title: "Sales",
+				icon: <DescriptionIcon />,
+			},
+			{
+				segment: "traffic",
+				title: "Traffic",
+				icon: <DescriptionIcon />,
+			},
+		],
+	},
+	{
+		segment: "settings",
+		title: "Settings",
+		icon: <Settings />,
+	},
+	{
+		segment: "logs",
+		title: "Logs",
+		icon: <Visibility />,
+	},
 ];
 
 const demoTheme = createTheme({
-  cssVariables: {
-    colorSchemeSelector: 'data-toolpad-color-scheme',
-  },
-  colorSchemes: { light: true, dark: true },
-  breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 600,
-      lg: 1200,
-      xl: 1536,
-    },
-  },
+	cssVariables: {
+		colorSchemeSelector: "data-toolpad-color-scheme",
+	},
+	colorSchemes: { light: true, dark: true },
+	breakpoints: {
+		values: {
+			xs: 0,
+			sm: 600,
+			md: 600,
+			lg: 1200,
+			xl: 1536,
+		},
+	},
 });
 
 // Custom router that bridges React Router with Toolpad
 function useCustomRouter() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  
-  return {
-    pathname: location.pathname,
-    push: (path) => navigate(path),
-    replace: (path) => navigate(path, { replace: true }),
-    navigate: (path) => navigate(path), // Add navigate function that Toolpad expects
-  };
+	const location = useLocation();
+	const navigate = useNavigate();
+
+	return {
+		pathname: location.pathname,
+		push: (path) => navigate(path),
+		replace: (path) => navigate(path, { replace: true }),
+		navigate: (path) => navigate(path), // Add navigate function that Toolpad expects
+	};
 }
 
 function AppContent() {
-  return (
-    <Routes>
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/mail" element={<MailPage />} />
-      <Route path="/mail/:id" element={<MailDetailPage />} />
-      <Route path="/logs" element={<TestPage />} />
-      <Route path="/test" element={<TestPage />} />
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
-  );
+	return (
+		<Routes>
+			<Route path="/dashboard" element={<DashboardPage />} />
+			<Route path="/mail" element={<MailPage />} />
+			<Route path="/mail/:id" element={<MailDetailPage />} />
+			<Route path="/logs" element={<TestPage />} />
+			<Route path="/test" element={<TestPage />} />
+			<Route path="*" element={<NotFoundPage />} />
+		</Routes>
+	);
 }
 
 function App(props) {
-  const { window } = props;
-  const router = useCustomRouter();
-  const demoWindow = window !== undefined ? window() : undefined;
+	const { window } = props;
+	const router = useCustomRouter();
+	const demoWindow = window !== undefined ? window() : undefined;
 
-  return (
-    <DemoProvider window={demoWindow}>
-      <AppProvider
-        navigation={NAVIGATION}
-        router={router}
-        theme={demoTheme}
-        window={demoWindow}
-      >
-        <DashboardLayout>
-          {/* Only the content area is routed */}
-          <AppContent />
-        </DashboardLayout>
-      </AppProvider>
-    </DemoProvider>
-  );
+	return (
+		<DemoProvider window={demoWindow}>
+			<AppProvider
+				navigation={NAVIGATION}
+				router={router}
+				theme={demoTheme}
+				window={demoWindow}
+			>
+				<DashboardLayout>
+					{/* Only the content area is routed */}
+					<AppContent />
+				</DashboardLayout>
+			</AppProvider>
+		</DemoProvider>
+	);
 }
 
 App.propTypes = {
-  window: PropTypes.func,
+	window: PropTypes.func,
 };
 
 export default App;

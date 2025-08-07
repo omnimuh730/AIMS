@@ -5,7 +5,7 @@ const DashboardPage = () => {
 		<Box>
 			<Typography>Dashboard</Typography>
 		</Box>
-	)
-}
+	);
+};
 
 export default DashboardPage;
