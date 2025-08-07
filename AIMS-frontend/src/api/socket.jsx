@@ -1,28 +1,28 @@
-import React, { createContext, useRef, useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
+import React, { createContext, useRef, useEffect, useState } from "react";
+import { io } from "socket.io-client";
 
 const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children, url }) => {
-  const socketRef = useRef();
-  const [ready, setReady] = useState(false);
+	const socketRef = useRef();
+	const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    socketRef.current = io(url);
-    setReady(true);
-    return () => {
-      socketRef.current.disconnect();
-      setReady(false);
-    };
-  }, [url]);
+	useEffect(() => {
+		socketRef.current = io(url);
+		setReady(true);
+		return () => {
+			socketRef.current.disconnect();
+			setReady(false);
+		};
+	}, [url]);
 
-  if (!ready) return null;
+	if (!ready) return null;
 
-  return (
-    <SocketContext.Provider value={socketRef.current}>
-      {children}
-    </SocketContext.Provider>
-  );
+	return (
+		<SocketContext.Provider value={socketRef.current}>
+			{children}
+		</SocketContext.Provider>
+	);
 };
 
 export { SocketContext };
