@@ -18,8 +18,10 @@ function App() {
 		return () => socket.off("notification");
 	}, [socket, notification]);
 
+	/* global chrome */
 	const highlightComponents = () => {
 		notification.info("Highlighting components...");
+		chrome.runtime.sendMessage({ action: "highlight" });
 	};
 
 	return (
