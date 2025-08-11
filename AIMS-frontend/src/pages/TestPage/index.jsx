@@ -325,6 +325,29 @@ const demoResponseData = {
 	},
 };
 
+// Transform demoResponseData.ActionPlan.element_manifest into tree structure
+const buildTreeFromManifest = (manifest) => {
+	const typeGroups = {};
+	manifest.forEach((el) => {
+		if (!typeGroups[el.type]) typeGroups[el.type] = [];
+		typeGroups[el.type].push({
+			id: el.id,
+			label: el.description,
+			fileType: el.type,
+		});
+	});
+	return Object.entries(typeGroups).map(([type, children], idx) => ({
+		id: `type-${type}-id- ${idx}`,
+		label: type.charAt(0).toUpperCase() + type.slice(1) + "s",
+		fileType: "folder",
+		children,
+	}));
+};
+
+const treeItemsFromDemo = buildTreeFromManifest(
+	demoResponseData.ActionPlan.element_manifest
+);
+
 function DotIcon() {
 	return (
 		<Box
@@ -635,9 +658,9 @@ const TestPage = () => {
 			<Button onClick={handleSubmit}>Submit</Button>
 
 			<RichTreeView
-				items={ITEMS}
-				defaultExpandedItems={["1", "1.1"]}
-				defaultSelectedItems="1.1"
+				items={treeItemsFromDemo}
+				defaultExpandedItems={["type-input", "type-button"]}
+				defaultSelectedItems="type-input"
 				sx={{
 					height: "fit-content",
 					flexGrow: 1,
