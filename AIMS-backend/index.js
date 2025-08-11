@@ -1,11 +1,17 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const { google } = require("googleapis");
-const fs = require("fs").promises;
-const path = require("path");
-const cors = require("cors");
-const dotenv = require("dotenv");
+import express from "express";
+import http from "http";
+
+import { Server } from "socket.io";
+import { google } from "googleapis";
+import fs from "fs/promises";
+import path from "path";
+import cors from "cors";
+import dotenv from "dotenv";
+
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+import { core_process } from "./core/test.js";
 
 dotenv.config();
 
@@ -24,20 +30,31 @@ io.on("connection", (socket) => {
 	console.log("A user connected:", socket.id);
 	socket.emit("notification", "Welcome to the Socket.IO server!");
 
+	socket.on("test-event", async (data) => {
+		console.log("Received test-event with data:");
+		socket.emit("notification", `Server received your data`);
+
+		const json_Parsed = JSON.parse(data);
+		const system_Prompt = json_Parsed.systemInstruction;
+		const user_Prompt = json_Parsed.userInput;
+		const result = await core_process(system_Prompt, user_Prompt);
+
+		socket.emit("bid-plan", result);
+		console.log("Processed result was returned");
+	});
+
 	socket.on("disconnect", () => {
 		console.log("User disconnected:", socket.id);
 	});
 });
 
-setInterval(() => {
-	io.emit("notification", "This is a periodic notification from the server.");
-	console.log("Sent notification");
-}, 5000);
-
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173"; // Vite default
 
 app.use(cors({ origin: CLIENT_URL }));
 app.use(express.json());
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"];
 const TOKEN_PATH = path.join(__dirname, "token.json");
