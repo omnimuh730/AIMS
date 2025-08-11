@@ -18,10 +18,19 @@ function App() {
 		return () => socket.off("notification");
 	}, [socket, notification]);
 
+	const [highlightOn, setHighlightOn] = useState(false);
+
 	/* global chrome */
 	const highlightComponents = () => {
-		notification.info("Highlighting components...");
-		chrome.runtime.sendMessage({ action: "highlight" });
+		if (!highlightOn) {
+			notification.info("Highlighting components...");
+			setHighlightOn(true);
+			chrome.runtime.sendMessage({ action: "highlight" });
+		} else {
+			notification.info("Clearing highlights...");
+			chrome.runtime.sendMessage({ action: "clearHighlight" });
+		}
+		setHighlightOn(false);
 	};
 
 	return (
@@ -50,7 +59,9 @@ function App() {
 			<p className="read-the-docs">
 				Click on the Vite and React logos to learn more
 			</p>
-			<button onClick={highlightComponents}>Highlight</button>
+			<button onClick={highlightComponents} disabled={highlightOn}>
+				Highlight
+			</button>
 		</>
 	);
 }
