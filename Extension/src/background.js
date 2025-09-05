@@ -6,7 +6,7 @@ chrome.sidePanel
 // Listen for messages from the UI and forward them to the content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	// Actions that need to be sent to the content script
-	const actionsToForward = ["highlightByPattern", "clearHighlight"];
+	const actionsToForward = ["highlightByPattern", "clearHighlight", "executeAction"];
 
 	if (actionsToForward.includes(message.action)) {
 		chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
