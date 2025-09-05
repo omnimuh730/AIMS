@@ -112,7 +112,7 @@ const JobCardDetails = ({ details }) => (
 	</Grid>
 );
 
-const JobCardActions = ({ applicants, onViewDetails, onAskOrion }) => (
+const JobCardActions = ({ applicants, onViewDetails, onAskgllama }) => (
 	<Box
 		sx={{
 			display: "flex",
@@ -144,7 +144,7 @@ const JobCardActions = ({ applicants, onViewDetails, onAskOrion }) => (
 				variant="outlined"
 				size="small"
 				startIcon={<FlashOnIcon />}
-				onClick={onAskOrion}
+				onClick={onAskgllama}
 				sx={{
 					textTransform: "none",
 					borderRadius: "20px",
@@ -152,7 +152,7 @@ const JobCardActions = ({ applicants, onViewDetails, onAskOrion }) => (
 					borderColor: "grey.400",
 				}}
 			>
-				Ask Orion
+				Ask gllama
 			</Button>
 			<Button
 				variant="contained"
@@ -171,7 +171,7 @@ const JobCardActions = ({ applicants, onViewDetails, onAskOrion }) => (
 );
 
 // --- Main Exported Component ---
-const JobCard = ({ job, onViewDetails, onAskOrion }) => (
+const JobCard = ({ job, onViewDetails, onAskgllama }) => (
 	<Card
 		variant="outlined"
 		sx={{
@@ -195,7 +195,7 @@ const JobCard = ({ job, onViewDetails, onAskOrion }) => (
 			<JobCardActions
 				applicants={job.applicants}
 				onViewDetails={() => onViewDetails(job)}
-				onAskOrion={onAskOrion}
+				onAskgllama={onAskgllama}
 			/>
 		</CardContent>
 	</Card>

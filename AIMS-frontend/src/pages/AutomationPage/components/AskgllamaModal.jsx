@@ -7,7 +7,7 @@ import {
 	Button,
 } from "@mui/material";
 
-const AskOrionModal = ({ open, onClose }) => {
+const AskgllamaModal = ({ open, onClose }) => {
 	const [isAnalyzing, setIsAnalyzing] = useState(true);
 
 	useEffect(() => {
@@ -42,7 +42,7 @@ const AskOrionModal = ({ open, onClose }) => {
 							Analyzing Job Description...
 						</Typography>
 						<Typography variant="body2" color="text.secondary">
-							Orion is checking your profile against the job
+							gllama is checking your profile against the job
 							requirements.
 						</Typography>
 					</>
@@ -77,4 +77,4 @@ const AskOrionModal = ({ open, onClose }) => {
 	);
 };
 
-export default AskOrionModal;
+export default AskgllamaModal;

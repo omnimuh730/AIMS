@@ -7,7 +7,7 @@ import { mockJobs } from "./data/mockJobs";
 // Component Imports
 import JobCard from "./components/JobCard";
 import JobDetailDrawer from "./components/JobDetailDrawer";
-import AskOrionModal from "./components/AskOrionModal";
+import AskgllamaModal from "./components/AskgllamaModal";
 
 function JobListingsPage() {
 	const [jobs] = useState(mockJobs);
@@ -22,7 +22,7 @@ function JobListingsPage() {
 		setSelectedJob(null);
 	};
 
-	const handleAskOrion = () => {
+	const handleAskgllama = () => {
 		setIsModalOpen(true);
 	};
 
@@ -49,7 +49,7 @@ function JobListingsPage() {
 						key={job.id}
 						job={job}
 						onViewDetails={handleViewDetails}
-						onAskOrion={handleAskOrion}
+						onAskgllama={handleAskgllama}
 					/>
 				))}
 			</Stack>
@@ -58,10 +58,10 @@ function JobListingsPage() {
 				job={selectedJob}
 				open={!!selectedJob}
 				onClose={handleCloseDrawer}
-				onAskOrion={handleAskOrion}
+				onAskgllama={handleAskgllama}
 			/>
 
-			<AskOrionModal open={isModalOpen} onClose={handleCloseModal} />
+			<AskgllamaModal open={isModalOpen} onClose={handleCloseModal} />
 		</Container>
 	);
 }

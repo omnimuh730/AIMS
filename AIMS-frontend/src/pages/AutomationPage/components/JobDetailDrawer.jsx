@@ -11,7 +11,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
 
-const JobDetailDrawer = ({ job, open, onClose, onAskOrion }) => {
+const JobDetailDrawer = ({ job, open, onClose, onAskgllama }) => {
 	if (!job) return null;
 
 	return (
@@ -65,7 +65,7 @@ const JobDetailDrawer = ({ job, open, onClose, onAskOrion }) => {
 						<Button
 							variant="outlined"
 							startIcon={<FlashOnIcon />}
-							onClick={onAskOrion}
+							onClick={onAskgllama}
 							size="small"
 							sx={{
 								textTransform: "none",
@@ -74,7 +74,7 @@ const JobDetailDrawer = ({ job, open, onClose, onAskOrion }) => {
 								borderColor: "grey.400",
 							}}
 						>
-							Ask Orion
+							Ask gllama
 						</Button>
 						<Button
 							variant="contained"
