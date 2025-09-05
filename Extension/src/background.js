@@ -4,7 +4,7 @@ chrome.sidePanel
 	.catch((error) => console.error(error));
 
 // Listen for messages from the UI and forward them to the content script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message/*, sender, sendResponse*/) => {
 	// Actions that need to be sent to the content script
 	const actionsToForward = ["highlightByPattern", "clearHighlight", "executeAction"];
 

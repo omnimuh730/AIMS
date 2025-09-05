@@ -1,36 +1,5 @@
 let highlightCounter = 1;
 let highlightLabels = [];
-// buildDOMTree function remains the same...
-function buildDOMTree(node) {
-	if (node.nodeType !== Node.ELEMENT_NODE) {
-		return null;
-	}
-	const obj = {};
-	const tagName = node.tagName.toLowerCase();
-	obj.tag = tagName;
-	const highlighterId = node.getAttribute("data-highlighter-id");
-	if (highlighterId) {
-		obj.highlightId = parseInt(highlighterId, 10);
-	}
-	if (node.attributes.length > 0) {
-		obj.attributes = {};
-		for (let attr of node.attributes) {
-			obj.attributes[attr.name] = attr.value;
-		}
-	}
-	const text = node.textContent.trim();
-	if (text && text.length > 0 && node.children.length === 0) {
-		obj.text = text;
-	}
-	if (node.children.length > 0) {
-		obj.children = [];
-		for (let child of node.children) {
-			const childObj = buildDOMTree(child);
-			if (childObj) obj.children.push(childObj);
-		}
-	}
-	return obj;
-}
 
 function clearHighlights() {
 	highlightLabels.forEach((label) => label.remove());
