@@ -15,7 +15,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import TestPage from "./pages/TestPage";
 import MailPage from "./pages/MailPage";
 import MailDetailPage from "./pages/MailPage/MailDetailPage";
-
+import AutomationPage from "./pages/AutomationPage/indes";
 import { Mail, AutoAwesome, Settings, Visibility } from "@mui/icons-material";
 
 const NAVIGATION = [
@@ -111,6 +111,7 @@ function AppContent() {
 			<Route path="/mail/:id" element={<MailDetailPage />} />
 			<Route path="/logs" element={<TestPage />} />
 			<Route path="/test" element={<TestPage />} />
+			<Route path="/automation" element={<AutomationPage />} />
 			<Route path="*" element={<NotFoundPage />} />
 		</Routes>
 	);
