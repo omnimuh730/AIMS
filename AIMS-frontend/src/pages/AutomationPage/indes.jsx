@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 // MUI Imports
 import {
@@ -14,6 +14,9 @@ import {
 	Button,
 	IconButton,
 	Divider,
+	Drawer,
+	Modal,
+	CircularProgress,
 } from "@mui/material";
 
 // MUI Icon Imports
@@ -23,17 +26,16 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import LeaderboardIcon from "@mui/icons-material/Leaderboard";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import BlockIcon from "@mui/icons-material/Block";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import FlashOnIcon from "@mui/icons-material/FlashOn"; // For "Ask Orion"
+import FlashOnIcon from "@mui/icons-material/FlashOn";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import CloseIcon from "@mui/icons-material/Close";
 
 // Mock Data
 import { mockJobs } from "./mockJobs";
 
 // --- Reusable Sub-Components ---
-
-// A small component for icon + text pairs
 const DetailItem = ({ icon, text }) =>
 	text ? (
 		<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -44,9 +46,168 @@ const DetailItem = ({ icon, text }) =>
 		</Box>
 	) : null;
 
-// --- Job Card Components ---
+// --- New "Ask Orion" Modal Component ---
+const AskOrionModal = ({ open, onClose }) => {
+	const [isAnalyzing, setIsAnalyzing] = useState(true);
 
-const JobCardHeader = ({ company, postedAgo, tags }) => (
+	useEffect(() => {
+		if (open) {
+			setIsAnalyzing(true);
+			const timer = setTimeout(() => {
+				setIsAnalyzing(false);
+			}, 2000); // Simulate 2-second analysis
+			return () => clearTimeout(timer);
+		}
+	}, [open]);
+
+	const style = {
+		position: "absolute",
+		top: "50%",
+		left: "50%",
+		transform: "translate(-50%, -50%)",
+		width: 400,
+		bgcolor: "background.paper",
+		border: "1px solid #ddd",
+		boxShadow: 24,
+		p: 4,
+		borderRadius: 2,
+		textAlign: "center",
+	};
+
+	return (
+		<Modal open={open} onClose={onClose}>
+			<Box sx={style}>
+				{isAnalyzing ? (
+					<>
+						<CircularProgress sx={{ mb: 2 }} />
+						<Typography variant="h6">
+							Analyzing Job Description...
+						</Typography>
+						<Typography variant="body2" color="text.secondary">
+							Orion is checking your profile against the job
+							requirements.
+						</Typography>
+					</>
+				) : (
+					<>
+						<Typography variant="h6" color="primary">
+							Analysis Complete!
+						</Typography>
+						<Typography variant="body1" sx={{ mt: 2 }}>
+							You are a <strong>strong match</strong> for this
+							role.
+						</Typography>
+						<Typography
+							variant="body2"
+							color="text.secondary"
+							sx={{ mt: 1 }}
+						>
+							Highlight your experience in Java EE and
+							microservices.
+						</Typography>
+						<Button
+							variant="contained"
+							onClick={onClose}
+							sx={{ mt: 3 }}
+						>
+							Close
+						</Button>
+					</>
+				)}
+			</Box>
+		</Modal>
+	);
+};
+
+// --- New Job Detail Drawer Component ---
+const JobDetailDrawer = ({ job, open, onClose, onAskOrion }) => {
+	if (!job) return null;
+
+	return (
+		<Drawer anchor="right" open={open} onClose={onClose}>
+			<Box
+				sx={{
+					width: { xs: "100vw", sm: 500, md: 600 },
+					p: 3,
+					position: "relative",
+					height: "100%",
+				}}
+			>
+				<IconButton
+					onClick={onClose}
+					sx={{ position: "absolute", top: 16, right: 16 }}
+				>
+					<CloseIcon />
+				</IconButton>
+
+				<Typography variant="h5" fontWeight="bold">
+					{job.title}
+				</Typography>
+				<Typography variant="body1" color="text.secondary" gutterBottom>
+					{job.company.name} &middot; {job.details.location}
+				</Typography>
+
+				<Divider sx={{ my: 2 }} />
+
+				<Box
+					sx={{ overflowY: "auto", height: "calc(100% - 150px)" }}
+					dangerouslySetInnerHTML={{ __html: job.description }}
+				/>
+
+				{/* Sticky Footer */}
+				<Box
+					sx={{
+						position: "absolute",
+						bottom: 0,
+						left: 0,
+						right: 0,
+						p: 2,
+						bgcolor: "background.paper",
+						borderTop: "1px solid",
+						borderColor: "divider",
+					}}
+				>
+					<Stack
+						direction="row"
+						spacing={2}
+						justifyContent="flex-end"
+					>
+						<Button
+							variant="outlined"
+							startIcon={<FlashOnIcon />}
+							onClick={onAskOrion}
+							size="small"
+							sx={{
+								textTransform: "none",
+								borderRadius: "20px",
+								color: "black",
+								borderColor: "grey.400",
+							}}
+						>
+							Ask Orion
+						</Button>
+						<Button
+							variant="contained"
+							color="primary"
+							size="small"
+							sx={{
+								textTransform: "none",
+								bgcolor: "#00C853",
+								"&:hover": { bgcolor: "#00B843" },
+								borderRadius: "20px",
+							}}
+						>
+							Apply Now
+						</Button>
+					</Stack>
+				</Box>
+			</Box>
+		</Drawer>
+	);
+};
+
+// --- Job Card Components (with updates) ---
+const JobCardHeader = ({ company, postedAgo, tags } /* Unchanged */) => (
 	<Box sx={{ display: "flex", alignItems: "start", mb: 1.5 }}>
 		<Avatar
 			src={company.logo}
@@ -55,7 +216,11 @@ const JobCardHeader = ({ company, postedAgo, tags }) => (
 			sx={{ width: 56, height: 56, mr: 2 }}
 		/>
 		<Box sx={{ flexGrow: 1 }}>
-			<Stack direction="row" spacing={1} sx={{ mb: 0.5 }}>
+			<Stack
+				direction="row"
+				spacing={1}
+				sx={{ mb: 0.5, flexWrap: "wrap", gap: 0.5 }}
+			>
 				<Chip
 					label={postedAgo}
 					size="small"
@@ -78,14 +243,10 @@ const JobCardHeader = ({ company, postedAgo, tags }) => (
 				{company.name}
 			</Typography>
 		</Box>
-		<IconButton size="small">
-			<MoreVertIcon />
-		</IconButton>
 	</Box>
 );
-
-const JobCardDetails = ({ details }) => (
-	<Grid container spacing={2} sx={{ my: 1 }}>
+const JobCardDetails = ({ details } /* Unchanged */) => (
+	<Grid container spacing={{ xs: 1, sm: 2 }} sx={{ my: 1 }}>
 		<Grid item xs={6} sm={4}>
 			<DetailItem
 				icon={<LocationOnIcon fontSize="small" />}
@@ -127,13 +288,17 @@ const JobCardDetails = ({ details }) => (
 	</Grid>
 );
 
-const JobCardActions = ({ applicants }) => (
+const JobCardActions = (
+	{ applicants, onViewDetails, onAskOrion }, // Updated with new props
+) => (
 	<Box
 		sx={{
 			display: "flex",
 			alignItems: "center",
 			justifyContent: "space-between",
 			mt: 2,
+			flexWrap: "wrap",
+			gap: 1,
 		}}
 	>
 		<Typography variant="caption" color="text.secondary">
@@ -147,15 +312,17 @@ const JobCardActions = ({ applicants }) => (
 				<BlockIcon fontSize="small" />
 			</IconButton>
 			<IconButton
+				onClick={onViewDetails}
 				size="small"
 				sx={{ border: "1px solid", borderColor: "grey.300" }}
 			>
-				<FavoriteBorderIcon fontSize="small" />
+				<VisibilityIcon fontSize="small" />
 			</IconButton>
 			<Button
 				variant="outlined"
 				size="small"
 				startIcon={<FlashOnIcon />}
+				onClick={onAskOrion}
 				sx={{
 					textTransform: "none",
 					borderRadius: "20px",
@@ -163,7 +330,7 @@ const JobCardActions = ({ applicants }) => (
 					borderColor: "grey.400",
 				}}
 			>
-				Ask g9-llama
+				Ask Orion
 			</Button>
 			<Button
 				variant="contained"
@@ -181,17 +348,15 @@ const JobCardActions = ({ applicants }) => (
 	</Box>
 );
 
-const JobCard = ({ job }) => (
+const JobCard = (
+	{ job, onViewDetails, onAskOrion }, // Updated with new props
+) => (
 	<Card
 		variant="outlined"
 		sx={{
 			borderRadius: 3,
-			transition:
-				"box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out",
-			"&:hover": {
-				boxShadow: "0 8px 16px 0 rgba(0,0,0,0.1)",
-				transform: "translateY(-2px)",
-			},
+			transition: "box-shadow 0.3s",
+			"&:hover": { boxShadow: "0 8px 16px 0 rgba(0,0,0,0.1)" },
 		}}
 	>
 		<CardContent>
@@ -206,15 +371,38 @@ const JobCard = ({ job }) => (
 			/>
 			<Divider sx={{ my: 1 }} />
 			<JobCardDetails details={job.details} />
-			<JobCardActions applicants={job.applicants} />
+			<JobCardActions
+				applicants={job.applicants}
+				onViewDetails={() => onViewDetails(job)}
+				onAskOrion={onAskOrion}
+			/>
 		</CardContent>
 	</Card>
 );
 
-// --- Main Page Component ---
-
+// --- Main Page Component with State Management ---
 function JobListingsPage() {
-	const jobs = mockJobs;
+	const [jobs] = useState(mockJobs);
+	const [selectedJob, setSelectedJob] = useState(null);
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	const handleViewDetails = (job) => {
+		setSelectedJob(job);
+	};
+
+	const handleCloseDrawer = () => {
+		setSelectedJob(null);
+	};
+
+	const handleAskOrion = () => {
+		setIsModalOpen(true);
+		// If the drawer is open, we can keep it open or close it.
+		// For a better UX, let's keep it open.
+	};
+
+	const handleCloseModal = () => {
+		setIsModalOpen(false);
+	};
 
 	return (
 		<Container
@@ -231,16 +419,29 @@ function JobListingsPage() {
 					Recommended Jobs
 				</Typography>
 				{jobs.map((job) => (
-					<JobCard key={job.id} job={job} />
+					<JobCard
+						key={job.id}
+						job={job}
+						onViewDetails={handleViewDetails}
+						onAskOrion={handleAskOrion}
+					/>
 				))}
 			</Stack>
+
+			<JobDetailDrawer
+				job={selectedJob}
+				open={!!selectedJob}
+				onClose={handleCloseDrawer}
+				onAskOrion={handleAskOrion}
+			/>
+
+			<AskOrionModal open={isModalOpen} onClose={handleCloseModal} />
 		</Container>
 	);
 }
 
-// In your main App file, you would just render this page
-function AutomationPage() {
+function App() {
 	return <JobListingsPage />;
 }
 
-export default AutomationPage;
+export default App;
