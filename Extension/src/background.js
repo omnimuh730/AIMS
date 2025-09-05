@@ -3,11 +3,16 @@ chrome.sidePanel
 	.setPanelBehavior({ openPanelOnActionClick: true })
 	.catch((error) => console.error(error));
 
+// Listen for messages from the UI and forward them to the content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-	if (message.action === "highlight") {
+	// Actions that need to be sent to the content script
+	const actionsToForward = ["highlightByPattern", "clearHighlight", "executeAction"];
+
+	if (actionsToForward.includes(message.action)) {
 		chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 			if (tabs[0]?.id) {
-				chrome.tabs.sendMessage(tabs[0].id, { action: "highlight" });
+				// Forward the entire message object to the active tab
+				chrome.tabs.sendMessage(tabs[0].id, message);
 			}
 		});
 	}
