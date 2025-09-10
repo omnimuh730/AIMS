@@ -14,7 +14,7 @@ import DashboardPage from "./pages/DashboardPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import TestPage from "./pages/TestPage";
 import AutomationPage from "./pages/AutomationPage";
-import { Mail, AutoAwesome, Settings, Visibility } from "@mui/icons-material";
+import { AutoAwesome, Settings, Visibility } from "@mui/icons-material";
 
 const NAVIGATION = [
 	{

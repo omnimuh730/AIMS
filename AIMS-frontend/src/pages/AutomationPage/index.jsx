@@ -37,12 +37,6 @@ function AutomationPage() {
 					notification.info(String(message));
 				}
 			};
-
-			// Listen for generic server notifications...
-			socket.on("notification", handleNotification);
-
-			// ...and also listen for the automation channel the backend emits when
-			// the `order` event arrives (backend uses data.Position as the event name).
 			socket.on(POS_AUTOMATION, handleNotification);
 
 			// Cleanup on unmount
