@@ -69,15 +69,30 @@ const SetupComponent = () => {
 				},
 				timestamp: new Date().toISOString()
 			})
-			// Level 2
+			// Level 2 Connection Check
+			socket.emit(SOCKET_PROTOCOL.TYPE.CONNECTION, {
+				src: SOCKET_PROTOCOL.LOCATION.EXTENSION,
+				tgt: SOCKET_PROTOCOL.LOCATION.FRONTEND,
+				purpose: SOCKET_PROTOCOL.IDENTIFIER.PURPOSE.CHECK_CONNECTIONS,
+				body: {
+					level: 2,
+					message: 'SetupComponent mounted and checking connections for level2'
+				},
+				timestamp: new Date().toISOString()
+			});
+
 			socket.on(SOCKET_PROTOCOL.TYPE.CONNECTION, (data) => {
 				console.log(data);
-				switch (data.purpose) {
+				switch (data.payload.purpose) {
 					case SOCKET_PROTOCOL.IDENTIFIER.PURPOSE.CHECK_CONNECTIONS:
 						// Handle the check_connections purpose
-						if (data.payload.body.level === 1 && data.status === SOCKET_PROTOCOL.STATUS.CONNECTED) {
+						if (data.payload.src === SOCKET_PROTOCOL.LOCATION.EXTENSION && data.payload.tgt === SOCKET_PROTOCOL.LOCATION.EXTENSION) {
 							setIsLevel1Connected(true);
 							notification.success(SOCKET_MESSAGE.LEVEL1_CONNECTED);
+						}
+						if (data.payload.src === SOCKET_PROTOCOL.LOCATION.FRONTEND && data.payload.tgt === SOCKET_PROTOCOL.LOCATION.EXTENSION) {
+							setIsLevel2Connected(true);
+							notification.success(SOCKET_MESSAGE.LEVEL2_CONNECTED);
 						}
 						break;
 					// Add more cases as needed
