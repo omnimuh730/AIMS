@@ -14,15 +14,13 @@ import {
 
 import SetupComponent from './Setup';
 import ScrapComponent from './Scrap';
-import ErrorHandling from './ErrorHandling';
 import CompleteComponent from './Completion';
 
-const steps = ['Set Up', 'Scrap', 'Error', 'Complete'];
+const steps = ['Set Up', 'Scrap', 'Complete'];
 
 const SETUP_STEP = 0;
 const SCRAP_STEP = 1;
-const ERROR_STEP = 2;
-const COMPLETE_STEP = 3;
+const COMPLETE_STEP = 2;
 
 const getStepContent = (step) => {
 	switch (step) {
@@ -30,8 +28,6 @@ const getStepContent = (step) => {
 			return <SetupComponent />;
 		case SCRAP_STEP:
 			return <ScrapComponent />;
-		case ERROR_STEP:
-			return <ErrorHandling />;
 		case COMPLETE_STEP:
 			return <CompleteComponent />;
 		default:
