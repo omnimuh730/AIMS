@@ -8,7 +8,7 @@ What it does:
 - Checkout if Jobright website is opened for scrapping
 */
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
 	Card,
 	CardContent,
@@ -21,6 +21,9 @@ import {
 
 import useNotification from '../../../api/useNotification';
 import useSocket from '../../../api/useSocket';
+
+import { SOCKET_PROTOCOL } from '../../../../../configs/socket_protocol';
+import { SOCKET_MESSAGE } from '../../../../../configs/message_template';
 
 const StatusRow = ({ label, isConnected, successText, failText }) => (
 	<Stack direction="row" alignItems="center" spacing={2}>
@@ -56,9 +59,10 @@ const SetupComponent = () => {
 			// Emit a connection event to check Level 1 connection
 			// The backend should respond with a 'connection' event
 			// indicating the status of the connection
-			socket.emit('connection', {
-				location: 'extension',
-				purpose: 'check_connections',
+			socket.emit(SOCKET_PROTOCOL.TYPE.CONNECTION, {
+				src: SOCKET_PROTOCOL.LOCATION.EXTENSION,
+				tgt: SOCKET_PROTOCOL.LOCATION.EXTENSION,
+				purpose: SOCKET_PROTOCOL.IDENTIFIER.PURPOSE.CHECK_CONNECTIONS,
 				body: {
 					level: 1,
 					message: 'SetupComponent mounted and checking connections for level1'
@@ -66,14 +70,14 @@ const SetupComponent = () => {
 				timestamp: new Date().toISOString()
 			})
 			// Level 2
-			socket.on('connection', (data) => {
+			socket.on(SOCKET_PROTOCOL.TYPE.CONNECTION, (data) => {
 				console.log(data);
 				switch (data.purpose) {
-					case 'check_connections':
+					case SOCKET_PROTOCOL.IDENTIFIER.PURPOSE.CHECK_CONNECTIONS:
 						// Handle the check_connections purpose
-						if (data.payload.body.level === 1 && data.status === 'connected') {
+						if (data.payload.body.level === 1 && data.status === SOCKET_PROTOCOL.STATUS.CONNECTED) {
 							setIsLevel1Connected(true);
-							notification.success('Level 1 connection established.');
+							notification.success(SOCKET_MESSAGE.LEVEL1_CONNECTED);
 						}
 						break;
 					// Add more cases as needed
@@ -82,14 +86,15 @@ const SetupComponent = () => {
 				}
 			});
 
-			socket.on('disconnect', (reason) => {
+			socket.on(SOCKET_PROTOCOL.STATUS.DISCONNECTED, (reason) => {
 				console.log('Socket disconnected:', reason);
 				setIsLevel1Connected(false);
 			});
 
 			// Cleanup on unmount
 			return () => {
-				socket.off('connection_status');
+				socket.off(SOCKET_PROTOCOL.TYPE.CONNECTION);
+				socket.off(SOCKET_PROTOCOL.STATUS.DISCONNECTED);
 			};
 		}
 	}, [socket]);
