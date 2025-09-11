@@ -39,7 +39,26 @@ io.on("connection", (socket) => {
 	socket.on("order", (data) => {
 		console.log("Order event received from client:", socket.id);
 		console.log(data);
+		// Notify sender that order was received
 		socket.emit(data.Position, "Order event received. Processing...");
+
+		// Broadcast to any connected extension clients
+		// Use a dedicated event name so extension background can listen for it
+		io.emit("to-extension", { fromSocketId: socket.id, order: data });
+	});
+
+	// Handle messages coming from extension clients
+	// Extensions should emit 'from-extension' with a payload containing { position, payload }
+	// The backend will forward that to frontend clients by emitting to the `position` event
+	socket.on("from-extension", (msg) => {
+		try {
+			console.log("Received from-extension:", msg);
+			const position = msg.position || msg.Position || "automation";
+			// Emit to all connected frontend clients listening on this position/event
+			io.emit(position, msg.payload || msg);
+		} catch (err) {
+			console.error("Error handling from-extension message:", err);
+		}
 	});
 
 	socket.on("disconnect", () => {

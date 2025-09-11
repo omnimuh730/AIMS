@@ -50,7 +50,7 @@ function AutomationPage() {
 	const OpenDetails = () => {
 		if (socket && typeof socket.emit === "function") {
 			socket.emit("order", {
-				Level: LEVEL_ONE,
+				Level: LEVEL_TWO,
 				Position: POS_AUTOMATION,
 				Message: "Open Details button clicked",
 			});
