@@ -2,14 +2,7 @@ import express from "express";
 import http from "http";
 
 import { Server } from "socket.io";
-import { google } from "googleapis";
-import fs from "fs/promises";
-import path from "path";
-import cors from "cors";
 import dotenv from "dotenv";
-
-import { fileURLToPath } from "url";
-import { dirname } from "path";
 
 import { core_process } from "./core/test.js";
 
@@ -43,204 +36,34 @@ io.on("connection", (socket) => {
 		console.log("Processed result was returned");
 	});
 
+	socket.on("order", (data) => {
+		console.log("Order event received from client:", socket.id);
+		console.log(data);
+		// Notify sender that order was received
+		socket.emit(data.Position, "Order event received. Processing...");
+
+		// Broadcast to any connected extension clients
+		// Use a dedicated event name so extension background can listen for it
+		io.emit("to-extension", { fromSocketId: socket.id, order: data });
+	});
+
+	// Handle messages coming from extension clients
+	// Extensions should emit 'from-extension' with a payload containing { position, payload }
+	// The backend will forward that to frontend clients by emitting to the `position` event
+	socket.on("from-extension", (msg) => {
+		try {
+			console.log("Received from-extension:", msg);
+			const position = msg.position || msg.Position || "automation";
+			// Emit to all connected frontend clients listening on this position/event
+			io.emit(position, msg.payload || msg);
+		} catch (err) {
+			console.error("Error handling from-extension message:", err);
+		}
+	});
+
 	socket.on("disconnect", () => {
 		console.log("User disconnected:", socket.id);
 	});
-});
-
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173"; // Vite default
-
-app.use(cors({ origin: CLIENT_URL }));
-app.use(express.json());
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"];
-const TOKEN_PATH = path.join(__dirname, "token.json");
-const CREDENTIALS_PATH = path.join(__dirname, "client_secret.json");
-
-async function getOAuth2Client() {
-	const credentials = JSON.parse(await fs.readFile(CREDENTIALS_PATH));
-	const { client_secret, client_id, redirect_uris } = credentials.web;
-	return new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-}
-
-async function loadSavedCredentials() {
-	try {
-		const token = await fs.readFile(TOKEN_PATH);
-		return JSON.parse(token);
-	} catch (err) {
-		return null;
-	}
-}
-
-async function saveCredentials(tokens) {
-	await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
-}
-
-// Route to get OAuth URL
-app.get("/auth-url", async (req, res) => {
-	try {
-		const oAuth2Client = await getOAuth2Client();
-		const authUrl = oAuth2Client.generateAuthUrl({
-			access_type: "offline",
-			scope: SCOPES,
-			prompt: "consent",
-		});
-		res.json({ authUrl });
-	} catch (error) {
-		res.status(500).json({ error: "Failed to generate auth URL" });
-	}
-});
-
-// OAuth2 callback route
-app.get("/oauth2callback", async (req, res) => {
-	const code = req.query.code;
-	if (!code) {
-		return res.status(400).json({ error: "No code provided" });
-	}
-	try {
-		const oAuth2Client = await getOAuth2Client();
-		const { tokens } = await oAuth2Client.getToken(code);
-		oAuth2Client.setCredentials(tokens);
-		await saveCredentials(tokens);
-		res.redirect(`${CLIENT_URL}/test?gmail=success`);
-	} catch (error) {
-		res.status(500).json({ error: "Authentication failed" });
-	}
-});
-
-// Route to fetch emails
-app.get("/emails", async (req, res) => {
-	try {
-		const tokens = await loadSavedCredentials();
-		if (!tokens) {
-			return res.status(401).json({ error: "Not authenticated" });
-		}
-		const oAuth2Client = await getOAuth2Client();
-		oAuth2Client.setCredentials(tokens);
-		const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
-
-		// Get message IDs first (this is fast)
-		let nextPageToken = null;
-		const allMessages = [];
-		do {
-			const resp = await gmail.users.messages.list({
-				userId: "me",
-				maxResults: 20, // Increased for better performance
-				pageToken: nextPageToken,
-			});
-			const messages = resp.data.messages || [];
-			allMessages.push(...messages);
-			nextPageToken = resp.data.nextPageToken;
-		} while (nextPageToken && allMessages.length < 20); // Limit to 20 for demo
-
-		// Batch fetch detailed messages (much faster than one by one)
-		const batchSize = 5; // Process 5 emails concurrently
-		const detailedMessages = [];
-
-		for (let i = 0; i < allMessages.length; i += batchSize) {
-			const batch = allMessages.slice(i, i + batchSize);
-
-			// Fetch batch of emails concurrently
-			const batchPromises = batch.map(async (message) => {
-				try {
-					const msg = await gmail.users.messages.get({
-						userId: "me",
-						id: message.id,
-						format: "full",
-					});
-
-					const headers = msg.data.payload.headers;
-					const emailData = {
-						id: msg.data.id,
-						threadId: msg.data.threadId,
-						labelIds: msg.data.labelIds,
-						snippet: msg.data.snippet,
-						from:
-							headers.find((h) => h.name === "From")?.value || "",
-						subject:
-							headers.find((h) => h.name === "Subject")?.value ||
-							"",
-						date:
-							headers.find((h) => h.name === "Date")?.value || "",
-						body: extractBody(msg.data.payload),
-					};
-					return emailData;
-				} catch (error) {
-					console.error(
-						`Error fetching message ${message.id}:`,
-						error.message
-					);
-					return null;
-				}
-			});
-
-			// Wait for current batch to complete
-			const batchResults = await Promise.all(batchPromises);
-			detailedMessages.push(...batchResults.filter(Boolean)); // Filter out null results
-
-			// Small delay to avoid rate limiting
-			if (i + batchSize < allMessages.length) {
-				await new Promise((resolve) => setTimeout(resolve, 100));
-			}
-		}
-
-		res.json(detailedMessages);
-	} catch (error) {
-		console.error("Error fetching emails:", error);
-		res.status(500).json({ error: "Failed to fetch emails" });
-	}
-});
-
-// Route to fetch Gmail labels
-app.get("/labels", async (req, res) => {
-	try {
-		const tokens = await loadSavedCredentials();
-		if (!tokens) {
-			return res.status(401).json({ error: "Not authenticated" });
-		}
-		const oAuth2Client = await getOAuth2Client();
-		oAuth2Client.setCredentials(tokens);
-		const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
-		const resp = await gmail.users.labels.list({ userId: "me" });
-		const labels = (resp.data.labels || []).map((label) => ({
-			id: label.id,
-			name: label.name,
-			color: label.color,
-			type: label.type,
-			labelListVisibility: label.labelListVisibility,
-			messageListVisibility: label.messageListVisibility,
-			// Add more fields if needed
-		}));
-		res.json(labels);
-	} catch (error) {
-		console.error("Error fetching labels:", error);
-		res.status(500).json({ error: "Failed to fetch labels" });
-	}
-});
-
-function extractBody(payload) {
-	let body = "";
-	if (payload.parts) {
-		for (const part of payload.parts) {
-			if (part.mimeType === "text/plain" && part.body.data) {
-				body += Buffer.from(part.body.data, "base64").toString("utf-8");
-			} else if (part.mimeType === "text/html" && part.body.data) {
-				body += Buffer.from(part.body.data, "base64").toString("utf-8");
-			} else if (part.parts) {
-				body += extractBody(part);
-			}
-		}
-	} else if (payload.body && payload.body.data) {
-		body = Buffer.from(payload.body.data, "base64").toString("utf-8");
-	}
-	return body;
-}
-
-app.get("/", (req, res) => {
-	res.send("Hello, World!");
 });
 
 server.listen(port, () => {

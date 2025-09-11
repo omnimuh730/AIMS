@@ -13,10 +13,8 @@ import { DemoProvider } from "@toolpad/core/internal";
 import DashboardPage from "./pages/DashboardPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import TestPage from "./pages/TestPage";
-import MailPage from "./pages/MailPage";
-import MailDetailPage from "./pages/MailPage/MailDetailPage";
-
-import { Mail, AutoAwesome, Settings, Visibility } from "@mui/icons-material";
+import AutomationPage from "./pages/AutomationPage";
+import { AutoAwesome, Settings, Visibility } from "@mui/icons-material";
 
 const NAVIGATION = [
 	{
@@ -27,11 +25,6 @@ const NAVIGATION = [
 		segment: "dashboard",
 		title: "Dashboard",
 		icon: <DashboardIcon />,
-	},
-	{
-		segment: "mail",
-		title: "Mail",
-		icon: <Mail />,
 	},
 	{
 		segment: "automation",
@@ -107,10 +100,9 @@ function AppContent() {
 	return (
 		<Routes>
 			<Route path="/dashboard" element={<DashboardPage />} />
-			<Route path="/mail" element={<MailPage />} />
-			<Route path="/mail/:id" element={<MailDetailPage />} />
 			<Route path="/logs" element={<TestPage />} />
 			<Route path="/test" element={<TestPage />} />
+			<Route path="/automation" element={<AutomationPage />} />
 			<Route path="*" element={<NotFoundPage />} />
 		</Routes>
 	);
