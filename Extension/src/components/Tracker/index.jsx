@@ -30,6 +30,7 @@ const ComponentTracker = () => {
 	const [action, setAction] = useState("click");
 	const [actionValue, setActionValue] = useState(""); // For fill/type actions
 
+	/* global chrome */
 	const handleHighlight = () => {
 		if (!pattern) return;
 		chrome.runtime.sendMessage({
@@ -77,7 +78,9 @@ const ComponentTracker = () => {
 
 			chrome.runtime.onMessage.addListener(listener);
 			return () => {
-				try { chrome.runtime.onMessage.removeListener(listener); } catch (e) { /* ignore */ }
+				try { chrome.runtime.onMessage.removeListener(listener); } catch (e) {
+					console.error('Error removing listener:', e);
+				}
 			};
 		}
 	}, []);

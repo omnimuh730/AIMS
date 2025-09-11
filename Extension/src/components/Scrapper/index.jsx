@@ -41,7 +41,7 @@ const getStepContent = (step) => {
 
 const ScrapperPage = () => {
 
-	const [activeStep, setActiveStep] = React.useState(0);
+	const [activeStep, setActiveStep] = useState(0);
 
 	const handleNext = () => {
 		setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -65,7 +65,7 @@ const ScrapperPage = () => {
 							const stepProps = {};
 							const labelProps = {};
 							return (
-								<Step key={label} {...stepProps}>
+								<Step key={`${label} + ${index}`} {...stepProps}>
 									<StepLabel {...labelProps}>{label}</StepLabel>
 								</Step>
 							);
