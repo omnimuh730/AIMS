@@ -1,19 +1,31 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	Paper,
 	TextField,
 	Button,
 	Stack,
-	Select
+	Select,
+	Typography,
+	FormControl,
+	InputLabel,
+	MenuItem,
+	Tooltip,
+	Divider,
 } from "@mui/material";
 
-const Tracker = () => {
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+
+// Minimal, self-contained Tracker component used in the Extension sidepanel.
+const commonTags = ["div", "a", "span", "img", "input", "button", "li", "h1", "h2", "p", "form", "section", "header", "footer", "textarea"];
+const commonProperties = ["id", "class", "name", "href", "src", "alt", "for", "type", "role", "aria-label", "data-testid"];
+
+const ComponentTracker = () => {
 	// State for highlighting
 	const [tag, setTag] = useState("div");
 	const [property, setProperty] = useState("class");
 	const [pattern, setPattern] = useState("");
-
-	// State for the new interaction features
 	const [order, setOrder] = useState(0);
 	const [action, setAction] = useState("click");
 	const [actionValue, setActionValue] = useState(""); // For fill/type actions
@@ -54,25 +66,21 @@ const Tracker = () => {
 
 
 	// Listen for messages forwarded from the background script (e.g., 'to-extension')
-	if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
-		chrome.runtime.onMessage.addListener((message) => {
-			if (message?.action === 'to-extension') {
-				/*
-				console.log('Panel received to-extension message:', message.payload);
-				const payload = message.payload;
-				// Show snackbar with a friendly message
-				const msgText = payload?.order?.Message || payload?.payload?.message || 'Received order from backend';
-				// Send ack back to background so background will forward to backend
-				chrome.runtime.sendMessage({
-					action: 'extension-ack', payload: {
-						position: payload?.order?.Position || payload?.position || 'automation',
-						payload: { status: 'ok', message: 'Extension UI shown notification', original: payload }
-					}
-				});
-				*/
-			}
-		});
-	}
+	useEffect(() => {
+		if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+			const listener = (message) => {
+				if (message?.action === 'to-extension') {
+					// placeholder for future UI notifications
+					// console.log('Panel received to-extension message:', message.payload);
+				}
+			};
+
+			chrome.runtime.onMessage.addListener(listener);
+			return () => {
+				try { chrome.runtime.onMessage.removeListener(listener); } catch (e) { /* ignore */ }
+			};
+		}
+	}, []);
 
 	const isActionWithValue = action === "fill" || action === "typeSmoothly";
 
@@ -162,4 +170,4 @@ const Tracker = () => {
 	);
 }
 
-export default Tracker;
+export default ComponentTracker;

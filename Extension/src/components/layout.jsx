@@ -1,12 +1,20 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Box from '@mui/material/Box';
+import {
+	Tabs,
+	Tab,
+	Box
+} from '@mui/material';
 
 import {
-	HeartBroken
+	TravelExplore,
+	ZoomIn
 } from '@mui/icons-material';
+
+import ComponentTracker from './Tracker';
+import ScrapperPage from './Scrapper';
+
+// Custom TabPanel component to handle tab content
 
 function CustomTabPanel(props) {
 	const { children, value, index, ...other } = props;
@@ -39,14 +47,14 @@ function a11yProps(index) {
 
 const TabInfo = [
 	{
-		label: 'Item One',
-		content: <h1>Item One</h1>,
-		icon: <HeartBroken />,
+		label: 'Scrap',
+		content: <ScrapperPage />,
+		icon: <TravelExplore />,
 	},
 	{
-		label: 'Item Two',
-		content: <h1>Item Two</h1>,
-		icon: <HeartBroken />,
+		label: 'Tracker',
+		content: <ComponentTracker />,
+		icon: <ZoomIn />,
 	}
 ]
 
