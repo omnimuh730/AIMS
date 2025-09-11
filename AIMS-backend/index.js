@@ -61,6 +61,17 @@ io.on("connection", (socket) => {
 		}
 	});
 
+	socket.on("connection", (data) => {
+		console.log("Connection event data:", data);
+		socket.emit("connection", {
+			status: "connected",
+			timestamp: new Date().toISOString(),
+			location: data.location || "unknown",
+			purpose: data.purpose || "general",
+			payload: data || {},
+		});
+	});
+
 	socket.on("disconnect", () => {
 		console.log("User disconnected:", socket.id);
 	});
