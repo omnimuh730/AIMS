@@ -88,10 +88,10 @@ const ScrapComponent = () => {
 		handleClear();
 		// Handle the click event for the list item
 		handleHighlight("div", "class", "index_job-card-main-flip1-stop?");
-		await delay(50);
+		await delay(200);
 		// send click (no identifier needed)
 		handleAction("div", "class", "?index_job-card-main-flip1-stop?", 0, "click", "");
-		await delay(50);
+		await delay(200);
 		setProgress(10);
 
 		//Wait still job details screen is showing.
@@ -100,7 +100,7 @@ const ScrapComponent = () => {
 		handleAction("div", "class", "?index_jobdetail-enter?", 0, "fetch", null, "text", id);
 		await promise_waitfor_jobdetails;
 
-		await delay(50);
+		await delay(200);
 		handleHighlight("a", "class", "?index_origin__?");
 		id = `scrap_apply_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_applyLink = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -112,7 +112,7 @@ const ScrapComponent = () => {
 		console.log('ApplyLink', ApplyLink);
 		setProgress(15);
 
-		await delay(50);
+		await delay(200);
 		handleHighlight("div", "class", "?index_jobTag__?");
 		id = `scrap_applicants_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_jobTag = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -121,7 +121,7 @@ const ScrapComponent = () => {
 		console.log('ApplicantsNumber', ApplicantsNumber);
 		setProgress(20);
 
-		await delay(50);
+		await delay(200);
 		handleHighlight("h2", "class", "?index_company-row__?");
 		id = `scrap_company_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_companyRow = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -138,7 +138,7 @@ const ScrapComponent = () => {
 		console.log('CompanyRow', CompanyRow);
 		setProgress(25);
 
-		await delay(50);
+		await delay(200);
 		handleHighlight("h1", "class", "?index_job-title__?");
 		id = `scrap_title_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_jobTitle = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -147,7 +147,7 @@ const ScrapComponent = () => {
 		console.log('JobTitle', JobTitle);
 		setProgress(30);
 
-		await delay(50);
+		await delay(200);
 		handleHighlight("div", "class", "?index_job-metadata-row__?");
 		id = `scrap_meta_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_job_metadata = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -178,7 +178,7 @@ const ScrapComponent = () => {
 		console.log('MetaTags', MetaTags);
 		setProgress(35);
 
-		await delay(50);
+		await delay(200);
 		handleHighlight("p", "class", "?index_company-summary__?");
 		id = `scrap_summary_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_company_summary = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -187,7 +187,7 @@ const ScrapComponent = () => {
 		console.log('CompanySummary', CompanySummary);
 		setProgress(40);
 
-		await delay(50);
+		await delay(200);
 		handleHighlight("div", "class", "?index_companyTags?");
 		id = `scrap_tags_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_companyTags = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -201,7 +201,7 @@ const ScrapComponent = () => {
 		console.log('CompanyTags', CompanyTags);
 		setProgress(45)
 
-		await delay(50);
+		await delay(200);
 		handleHighlight("section", "class", "?index_sectionContent__?");
 		id = `scrap_resp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_sectionContent1 = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -210,7 +210,7 @@ const ScrapComponent = () => {
 		console.log('Responsibilities', Responsibilities);
 		setProgress(50);
 
-		await delay(50);
+		await delay(200);
 		handleHighlight("section", "class", "?index_sectionContent__?");
 		id = `scrap_qual_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_sectionContent2 = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -219,7 +219,7 @@ const ScrapComponent = () => {
 		console.log('Qualification', Qualification);
 		setProgress(55);
 
-		await delay(50);
+		await delay(200);
 		handleHighlight("section", "class", "?index_sectionContent__?");
 		id = `scrap_ben_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_sectionContent3 = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -230,22 +230,22 @@ const ScrapComponent = () => {
 
 		setProgress(70);
 		handleHighlight("button", "id", "index_not-interest-button__?");
-		await delay(50);
+		await delay(200);
 		// click
 		handleAction("button", "id", "index_not-interest-button__?", 0, "click", "");
-		await delay(50);
+		await delay(200);
 		setProgress(80);
-		handleHighlight("span", "class", "ant-radio ant-wave-target");
-		await delay(50);
+		handleHighlight("label", "class", "?index_not-interest-popup-radio-item?");
+		await delay(200);
 		// click
-		handleAction("span", "class", "ant-radio ant-wave-target", 5, "click", "");
-		await delay(50);
+		handleAction("label", "class", "?index_not-interest-popup-radio-item?", 5, "click", "");
+		await delay(200);
 		setProgress(90);
 		handleHighlight("button", "class", "?index_not-interest-popup-button__?");
-		await delay(50);
+		await delay(200);
 		// click
 		handleAction("button", "class", "?index_not-interest-popup-button__?", 1, "click", "");
-		await delay(50);
+		await delay(200);
 		setProgress(100);
 
 		// Wait until job item list is showing
@@ -268,7 +268,17 @@ const ScrapComponent = () => {
 		}
 		// Collect all received result and put it into JSON schema
 		const resultData = {
-			applyLink: "",
+			applyLink: ApplyLink || "",
+			id: Date.now(),
+			postedAgo: PublishTime || "",
+			company: {
+				name: CompanyName || "",
+				tags: CompanyTags || [],
+			},
+			title: JobTitle?.success ? JobTitle.data : "",
+			details: MetaTags || {},
+			applicants: ApplicantsNumber?.success ? { count: parseInt(ApplicantsNumber.data.match(/\d+/)?.[0] || "0", 10), text: ApplicantsNumber.data } : { count: 0, text: "" },
+			description: [Responsibilities?.success ? Responsibilities.data : "", Qualification?.success ? Qualification.data : "", Benefits?.success ? Benefits.data : ""].filter(s => s).join("\n\n"),
 		};
 		console.log('Fetching is finished', resultData);
 	}

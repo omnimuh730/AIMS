@@ -40,6 +40,20 @@ function findElements(componentType, propertyName, pattern) {
 	return document.querySelectorAll(selector);
 }
 
+// Wait up to timeoutMs for elements to appear (polling). Returns NodeList or null.
+function waitForElements(componentType, propertyName, pattern, timeoutMs = 2000, intervalMs = 100) {
+	const start = Date.now();
+	return new Promise((resolve) => {
+		const check = () => {
+			const els = findElements(componentType, propertyName, pattern);
+			if (els && els.length > 0) return resolve(els);
+			if (Date.now() - start >= timeoutMs) return resolve(null);
+			setTimeout(check, intervalMs);
+		};
+		check();
+	});
+}
+
 /**
  * Applies a colored outline and a label to a single DOM element.
  * @param {HTMLElement} element The element to highlight.
@@ -115,11 +129,17 @@ function typeSmoothly(element, text) {
  * Finds a specific element and performs an action on it.
  * @param {object} payload The details of the action to execute.
  */
-function performActionOnElement(payload) {
+async function performActionOnElement(payload) {
 	const { componentType, propertyName, pattern, order, action, value } = payload;
-	const elements = findElements(componentType, propertyName, pattern);
+	let elements = findElements(componentType, propertyName, pattern);
 
-	if (elements.length === 0) {
+	if (!elements || elements.length === 0) {
+		// Try waiting briefly for dynamic content
+		console.debug('performAction: no elements found, waiting for DOM updates', { componentType, propertyName, pattern });
+		elements = await waitForElements(componentType, propertyName, pattern, 2000, 100);
+	}
+
+	if (!elements || elements.length === 0) {
 		console.log("Action failed: No elements found matching the criteria.");
 		return;
 	}
@@ -155,7 +175,7 @@ function performActionOnElement(payload) {
 
 /* global chrome */
 // Listener: handle highlight/clear/executeAction. For 'fetch' executeAction, return data back to extension.
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener(async (message) => {
 	if (message.action === "highlightByPattern") {
 		clearHighlights();
 		const { componentType, propertyName, pattern } = message.payload;
@@ -168,7 +188,12 @@ chrome.runtime.onMessage.addListener((message) => {
 		// If action is 'fetch', handle separately and return result to extension via background relay
 		if (message.payload && message.payload.action === 'fetch') {
 			const { componentType, propertyName, pattern, order = 0, fetchType } = message.payload;
-			const elements = findElements(componentType, propertyName, pattern);
+			// Try immediate query first
+			let elements = findElements(componentType, propertyName, pattern);
+			if (!elements || elements.length === 0) {
+				console.debug('fetch: no elements found, waiting briefly for DOM updates', { componentType, propertyName, pattern });
+				elements = await waitForElements(componentType, propertyName, pattern, 2000, 100);
+			}
 
 			if (!elements || elements.length === 0) {
 				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { identifier: message.payload?.identifier || message.payload?.requestId, success: false, data: null, error: 'No elements found' } });
@@ -189,14 +214,16 @@ chrome.runtime.onMessage.addListener((message) => {
 					// default to content -> outerHTML
 					data = target.outerHTML;
 				}
+				console.debug('fetch: returning data', { identifier: message.payload?.identifier || message.payload?.requestId, length: data ? data.length : 0 });
 				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { identifier: message.payload?.identifier || message.payload?.requestId, success: true, data } });
 			} catch (err) {
+				console.error('fetch: error while extracting data', err);
 				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { identifier: message.payload?.identifier || message.payload?.requestId, success: false, data: null, error: String(err) } });
 			}
 			return;
 		}
 
 		// otherwise, perform the action (click/fill/type)
-		performActionOnElement(message.payload);
+		await performActionOnElement(message.payload);
 	}
 });

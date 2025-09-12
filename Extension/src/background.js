@@ -14,8 +14,21 @@ chrome.runtime.onMessage.addListener((message/*, sender, sendResponse*/) => {
 	if (actionsToForward.includes(message.action)) {
 		chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 			if (tabs[0]?.id) {
-				// Forward the entire message object to the active tab
-				chrome.tabs.sendMessage(tabs[0].id, message);
+				// Try to forward the message to the content script. If the content script
+				// isn't present in the tab (e.g. extension loaded after tab), inject it
+				// and retry once.
+				chrome.tabs.sendMessage(tabs[0].id, message, (response) => {
+					if (chrome.runtime.lastError) {
+						// likely no listener in tab - inject content script then resend
+						chrome.scripting.executeScript({
+							target: { tabId: tabs[0].id },
+							files: ["contentScript.js"],
+						}, () => {
+							// ignore errors; try sending again
+							try { chrome.tabs.sendMessage(tabs[0].id, message); } catch (e) { console.error('Failed to send message after injecting contentScript', e); }
+						});
+					}
+				});
 			}
 		});
 		return;
