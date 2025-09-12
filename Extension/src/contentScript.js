@@ -27,7 +27,7 @@ function clearHighlights() {
  */
 function findElements(componentType, propertyName, pattern) {
 	let selector;
-    const p = pattern.replace(/"/g, '\\"');
+	const p = (pattern || '').replace(/"/g, '\\"');
 	if (pattern.startsWith("?") && pattern.endsWith("?")) {
 		selector = `${componentType}[${propertyName}*="${p.slice(1, -1)}"]`;
 	} else if (pattern.endsWith("?")) {
@@ -65,9 +65,9 @@ function applyHighlight(element, color) {
  * @param {string} color The highlight color.
  */
 function highlightByPattern(componentType, propertyName, pattern, color) {
-    const elementsToHighlight = findElements(componentType, propertyName, pattern);
-    elementsToHighlight.forEach(el => applyHighlight(el, color));
-    console.log(`Found and highlighted ${elementsToHighlight.length} elements.`);
+	const elementsToHighlight = findElements(componentType, propertyName, pattern);
+	elementsToHighlight.forEach(el => applyHighlight(el, color));
+	console.log(`Found and highlighted ${elementsToHighlight.length} elements.`);
 }
 
 function addLabel(el, id) {
@@ -95,20 +95,20 @@ function addLabel(el, id) {
  * @param {string} text The string to type.
  */
 function typeSmoothly(element, text) {
-    let i = 0;
-    element.value = ''; // Clear the field first
-    const interval = setInterval(() => {
-        if (i < text.length) {
-            element.value += text.charAt(i);
-            // Dispatch an 'input' event to make sure any attached JS listeners fire
-            element.dispatchEvent(new Event('input', { bubbles: true }));
-            i++;
-        } else {
-            clearInterval(interval);
+	let i = 0;
+	element.value = ''; // Clear the field first
+	const interval = setInterval(() => {
+		if (i < text.length) {
+			element.value += text.charAt(i);
+			// Dispatch an 'input' event to make sure any attached JS listeners fire
+			element.dispatchEvent(new Event('input', { bubbles: true }));
+			i++;
+		} else {
+			clearInterval(interval);
 			// Dispatch a final 'change' event
 			element.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-    }, 50); // 100ms interval between keystrokes
+		}
+	}, 50); // 50ms interval between keystrokes
 }
 
 /**
@@ -130,7 +130,7 @@ function performActionOnElement(payload) {
 	}
 
 	const targetElement = elements[order];
-    targetElement.focus(); // Focus the element first for a better user experience
+	targetElement.focus(); // Focus the element first for a better user experience
 
 	console.log(`Performing action '${action}' on element`, targetElement);
 
@@ -154,7 +154,7 @@ function performActionOnElement(payload) {
 
 
 /* global chrome */
-// Updated listener to handle all actions
+// Listener: handle highlight/clear/executeAction. For 'fetch' executeAction, return data back to extension.
 chrome.runtime.onMessage.addListener((message) => {
 	if (message.action === "highlightByPattern") {
 		clearHighlights();
@@ -163,8 +163,40 @@ chrome.runtime.onMessage.addListener((message) => {
 
 	} else if (message.action === "clearHighlight") {
 		clearHighlights();
-	
+
 	} else if (message.action === "executeAction") {
+		// If action is 'fetch', handle separately and return result to extension via background relay
+		if (message.payload && message.payload.action === 'fetch') {
+			const { componentType, propertyName, pattern, order = 0, fetchType } = message.payload;
+			const elements = findElements(componentType, propertyName, pattern);
+
+			if (!elements || elements.length === 0) {
+				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { success: false, data: null, error: 'No elements found' } });
+				return;
+			}
+
+			if (order >= elements.length) {
+				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { success: false, data: null, error: `Order ${order} out of range` } });
+				return;
+			}
+
+			const target = elements[order];
+			try {
+				let data = null;
+				if (fetchType === 'text') {
+					data = target.innerText;
+				} else {
+					// default to content -> innerHTML
+					data = target.innerHTML;
+				}
+				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { success: true, data } });
+			} catch (err) {
+				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { success: false, data: null, error: String(err) } });
+			}
+			return;
+		}
+
+		// otherwise, perform the action (click/fill/type)
 		performActionOnElement(message.payload);
 	}
 });

@@ -22,18 +22,24 @@ export const handleClear = () => {
 };
 
 // Function to send the interaction command
-export const handleAction = (tag, property, pattern, order, action, actionValue) => {
+export const handleAction = (tag, property, pattern, order, action, actionValue, fetchType) => {
+	const payload = {
+		// We send the selector info again to ensure we act on the right elements
+		componentType: tag,
+		propertyName: property,
+		pattern: pattern,
+		// Action details
+		order: parseInt(order, 10) || 0,
+		action: action,
+	};
+
+	// Only include value when present (fill/type)
+	if (actionValue !== undefined && actionValue !== null) payload.value = actionValue;
+	// Include fetchType when action === 'fetch'
+	if (fetchType) payload.fetchType = fetchType;
+
 	chrome.runtime.sendMessage({
 		action: "executeAction",
-		payload: {
-			// We send the selector info again to ensure we act on the right elements
-			componentType: tag,
-			propertyName: property,
-			pattern: pattern,
-			// Action details
-			order: parseInt(order, 10) || 0,
-			action: action,
-			value: actionValue,
-		}
+		payload,
 	});
 };
