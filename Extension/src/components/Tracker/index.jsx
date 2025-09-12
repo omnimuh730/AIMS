@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import useRuntime from '../../api/runtime.jsx';
 import {
 	Paper,
 	TextField,
@@ -30,25 +31,19 @@ const ComponentTracker = () => {
 	const [actionValue, setActionValue] = useState(""); // For fill/type actions
 
 
-	/* global chrome */
-	// Listen for messages forwarded from the background script (e.g., 'to-extension')
+	// Subscribe to runtime messages via the RuntimeProvider so only one
+	// chrome.runtime.onMessage listener exists at the app root.
+	const { addListener, removeListener } = useRuntime();
 	useEffect(() => {
-		if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
-			const listener = (message) => {
-				if (message?.action === 'to-extension') {
-					// placeholder for future UI notifications
-					// console.log('Panel received to-extension message:', message.payload);
-				}
-			};
-
-			chrome.runtime.onMessage.addListener(listener);
-			return () => {
-				try { chrome.runtime.onMessage.removeListener(listener); } catch (e) {
-					console.error('Error removing listener:', e);
-				}
-			};
-		}
-	}, []);
+		const listener = (message) => {
+			if (message?.action === 'to-extension') {
+				// placeholder for future UI notifications
+				// console.log('Panel received to-extension message:', message.payload);
+			}
+		};
+		addListener(listener);
+		return () => removeListener(listener);
+	}, [addListener, removeListener]);
 
 	const isActionWithValue = action === "fill" || action === "typeSmoothly";
 
