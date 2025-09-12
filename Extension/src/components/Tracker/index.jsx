@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import useRuntime from '../../api/runtime.jsx';
 import {
 	Paper,
 	TextField,
@@ -28,29 +29,31 @@ const ComponentTracker = () => {
 	const [order, setOrder] = useState(0);
 	const [action, setAction] = useState("click");
 	const [actionValue, setActionValue] = useState(""); // For fill/type actions
+	const [fetchType, setFetchType] = useState("content");
+	const [fetchResult, setFetchResult] = useState(null);
 
 
-	/* global chrome */
-	// Listen for messages forwarded from the background script (e.g., 'to-extension')
+	// Subscribe to runtime messages via the RuntimeProvider so only one
+	// chrome.runtime.onMessage listener exists at the app root.
+	const { addListener, removeListener } = useRuntime();
 	useEffect(() => {
-		if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
-			const listener = (message) => {
-				if (message?.action === 'to-extension') {
-					// placeholder for future UI notifications
-					// console.log('Panel received to-extension message:', message.payload);
-				}
-			};
+		const listener = (message) => {
+			if (message?.action === 'to-extension') {
+				// placeholder for future UI notifications
+			}
 
-			chrome.runtime.onMessage.addListener(listener);
-			return () => {
-				try { chrome.runtime.onMessage.removeListener(listener); } catch (e) {
-					console.error('Error removing listener:', e);
-				}
-			};
-		}
-	}, []);
+			// receive fetch result relayed from content script via background
+			if (message?.action === 'fetchResult') {
+				// payload: { success: boolean, data: string|null, error?: string }
+				setFetchResult(message.payload);
+			}
+		};
+		addListener(listener);
+		return () => removeListener(listener);
+	}, [addListener, removeListener]);
 
 	const isActionWithValue = action === "fill" || action === "typeSmoothly";
+	const isFetchAction = action === "fetch";
 
 	return (
 		<div>
@@ -108,6 +111,7 @@ const ComponentTracker = () => {
 								<MenuItem value="click">Click</MenuItem>
 								<MenuItem value="fill">Fill</MenuItem>
 								<MenuItem value="typeSmoothly">Type Smoothly</MenuItem>
+								<MenuItem value="fetch">Fetch</MenuItem>
 							</Select>
 						</FormControl>
 					</Stack>
@@ -123,11 +127,34 @@ const ComponentTracker = () => {
 						/>
 					)}
 
+					{/* Fetch-specific controls */}
+					{isFetchAction && (
+						<>
+							<FormControl fullWidth>
+								<InputLabel>Fetch Type</InputLabel>
+								<Select value={fetchType} label="Fetch Type" onChange={(e) => setFetchType(e.target.value)}>
+									<MenuItem value="content">Content (innerHTML)</MenuItem>
+									<MenuItem value="text">Text (innerText)</MenuItem>
+								</Select>
+							</FormControl>
+							{fetchResult && (
+								<TextField
+									fullWidth
+									label="Fetch Result"
+									multiline
+									minRows={3}
+									value={fetchResult.error ? `Error: ${fetchResult.error}` : (fetchResult.data || '')}
+									InputProps={{ readOnly: true }}
+								/>
+							)}
+						</>
+					)}
+
 					<Button
 						variant="contained"
 						color="success"
 						startIcon={<PlayArrowIcon />}
-						onClick={() => handleAction(tag, property, pattern, order, action, actionValue)}
+						onClick={() => handleAction(tag, property, pattern, order, action, actionValue, fetchType)}
 						disabled={!pattern || (isActionWithValue && !actionValue)}
 					>
 						Execute Action

@@ -27,7 +27,7 @@ function clearHighlights() {
  */
 function findElements(componentType, propertyName, pattern) {
 	let selector;
-    const p = pattern.replace(/"/g, '\\"');
+	const p = (pattern || '').replace(/"/g, '\\"');
 	if (pattern.startsWith("?") && pattern.endsWith("?")) {
 		selector = `${componentType}[${propertyName}*="${p.slice(1, -1)}"]`;
 	} else if (pattern.endsWith("?")) {
@@ -38,6 +38,20 @@ function findElements(componentType, propertyName, pattern) {
 		selector = `${componentType}[${propertyName}="${p}"]`;
 	}
 	return document.querySelectorAll(selector);
+}
+
+// Wait up to timeoutMs for elements to appear (polling). Returns NodeList or null.
+function waitForElements(componentType, propertyName, pattern, timeoutMs = 2000, intervalMs = 100) {
+	const start = Date.now();
+	return new Promise((resolve) => {
+		const check = () => {
+			const els = findElements(componentType, propertyName, pattern);
+			if (els && els.length > 0) return resolve(els);
+			if (Date.now() - start >= timeoutMs) return resolve(null);
+			setTimeout(check, intervalMs);
+		};
+		check();
+	});
 }
 
 /**
@@ -65,9 +79,9 @@ function applyHighlight(element, color) {
  * @param {string} color The highlight color.
  */
 function highlightByPattern(componentType, propertyName, pattern, color) {
-    const elementsToHighlight = findElements(componentType, propertyName, pattern);
-    elementsToHighlight.forEach(el => applyHighlight(el, color));
-    console.log(`Found and highlighted ${elementsToHighlight.length} elements.`);
+	const elementsToHighlight = findElements(componentType, propertyName, pattern);
+	elementsToHighlight.forEach(el => applyHighlight(el, color));
+	console.log(`Found and highlighted ${elementsToHighlight.length} elements.`);
 }
 
 function addLabel(el, id) {
@@ -95,31 +109,37 @@ function addLabel(el, id) {
  * @param {string} text The string to type.
  */
 function typeSmoothly(element, text) {
-    let i = 0;
-    element.value = ''; // Clear the field first
-    const interval = setInterval(() => {
-        if (i < text.length) {
-            element.value += text.charAt(i);
-            // Dispatch an 'input' event to make sure any attached JS listeners fire
-            element.dispatchEvent(new Event('input', { bubbles: true }));
-            i++;
-        } else {
-            clearInterval(interval);
+	let i = 0;
+	element.value = ''; // Clear the field first
+	const interval = setInterval(() => {
+		if (i < text.length) {
+			element.value += text.charAt(i);
+			// Dispatch an 'input' event to make sure any attached JS listeners fire
+			element.dispatchEvent(new Event('input', { bubbles: true }));
+			i++;
+		} else {
+			clearInterval(interval);
 			// Dispatch a final 'change' event
 			element.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-    }, 50); // 100ms interval between keystrokes
+		}
+	}, 50); // 50ms interval between keystrokes
 }
 
 /**
  * Finds a specific element and performs an action on it.
  * @param {object} payload The details of the action to execute.
  */
-function performActionOnElement(payload) {
+async function performActionOnElement(payload) {
 	const { componentType, propertyName, pattern, order, action, value } = payload;
-	const elements = findElements(componentType, propertyName, pattern);
+	let elements = findElements(componentType, propertyName, pattern);
 
-	if (elements.length === 0) {
+	if (!elements || elements.length === 0) {
+		// Try waiting briefly for dynamic content
+		console.debug('performAction: no elements found, waiting for DOM updates', { componentType, propertyName, pattern });
+		elements = await waitForElements(componentType, propertyName, pattern, 2000, 100);
+	}
+
+	if (!elements || elements.length === 0) {
 		console.log("Action failed: No elements found matching the criteria.");
 		return;
 	}
@@ -130,7 +150,7 @@ function performActionOnElement(payload) {
 	}
 
 	const targetElement = elements[order];
-    targetElement.focus(); // Focus the element first for a better user experience
+	targetElement.focus(); // Focus the element first for a better user experience
 
 	console.log(`Performing action '${action}' on element`, targetElement);
 
@@ -154,8 +174,8 @@ function performActionOnElement(payload) {
 
 
 /* global chrome */
-// Updated listener to handle all actions
-chrome.runtime.onMessage.addListener((message) => {
+// Listener: handle highlight/clear/executeAction. For 'fetch' executeAction, return data back to extension.
+chrome.runtime.onMessage.addListener(async (message) => {
 	if (message.action === "highlightByPattern") {
 		clearHighlights();
 		const { componentType, propertyName, pattern } = message.payload;
@@ -163,8 +183,47 @@ chrome.runtime.onMessage.addListener((message) => {
 
 	} else if (message.action === "clearHighlight") {
 		clearHighlights();
-	
+
 	} else if (message.action === "executeAction") {
-		performActionOnElement(message.payload);
+		// If action is 'fetch', handle separately and return result to extension via background relay
+		if (message.payload && message.payload.action === 'fetch') {
+			const { componentType, propertyName, pattern, order = 0, fetchType } = message.payload;
+			// Try immediate query first
+			let elements = findElements(componentType, propertyName, pattern);
+			if (!elements || elements.length === 0) {
+				console.debug('fetch: no elements found, waiting briefly for DOM updates', { componentType, propertyName, pattern });
+				elements = await waitForElements(componentType, propertyName, pattern, 2000, 100);
+			}
+
+			if (!elements || elements.length === 0) {
+				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { identifier: message.payload?.identifier || message.payload?.requestId, success: false, data: null, error: 'No elements found' } });
+				return;
+			}
+
+			if (order >= elements.length) {
+				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { identifier: message.payload?.identifier || message.payload?.requestId, success: false, data: null, error: `Order ${order} out of range` } });
+				return;
+			}
+
+			const target = elements[order];
+			try {
+				let data = null;
+				if (fetchType === 'text') {
+					data = target.innerText;
+				} else {
+					// default to content -> outerHTML
+					data = target.outerHTML;
+				}
+				console.debug('fetch: returning data', { identifier: message.payload?.identifier || message.payload?.requestId, length: data ? data.length : 0 });
+				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { identifier: message.payload?.identifier || message.payload?.requestId, success: true, data } });
+			} catch (err) {
+				console.error('fetch: error while extracting data', err);
+				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { identifier: message.payload?.identifier || message.payload?.requestId, success: false, data: null, error: String(err) } });
+			}
+			return;
+		}
+
+		// otherwise, perform the action (click/fill/type)
+		await performActionOnElement(message.payload);
 	}
 });
