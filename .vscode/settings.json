@@ -18,7 +18,7 @@
 	"prettier.useTabs": true,
 	"prettier.tabWidth": 4,
 	"[javascript]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"editor.defaultFormatter": "vscode.typescript-language-features",
 		"editor.formatOnSave": true,
 		"editor.insertSpaces": false,
 		"editor.tabSize": 4

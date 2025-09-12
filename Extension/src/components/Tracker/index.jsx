@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import {
 	Paper,
 	TextField,
@@ -17,9 +17,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
-// Minimal, self-contained Tracker component used in the Extension sidepanel.
-const commonTags = ["div", "a", "span", "img", "input", "button", "li", "h1", "h2", "p", "form", "section", "header", "footer", "textarea", "label"];
-const commonProperties = ["id", "class", "name", "href", "src", "alt", "for", "type", "role", "aria-label", "data-testid"];
+import { handleAction, handleClear, handleHighlight } from "../../api/interaction";
+import { commonTags, commonProperties } from "../../api/interaction";
 
 const ComponentTracker = () => {
 	// State for highlighting
@@ -30,42 +29,8 @@ const ComponentTracker = () => {
 	const [action, setAction] = useState("click");
 	const [actionValue, setActionValue] = useState(""); // For fill/type actions
 
+
 	/* global chrome */
-	const handleHighlight = () => {
-		if (!pattern) return;
-		chrome.runtime.sendMessage({
-			action: "highlightByPattern",
-			payload: {
-				componentType: tag,
-				propertyName: property,
-				pattern: pattern,
-			},
-		});
-	};
-
-	const handleClear = () => {
-		chrome.runtime.sendMessage({ action: "clearHighlight" });
-	};
-
-	// Function to send the interaction command
-	const handleAction = () => {
-		chrome.runtime.sendMessage({
-			action: "executeAction",
-			payload: {
-				// We send the selector info again to ensure we act on the right elements
-				componentType: tag,
-				propertyName: property,
-				pattern: pattern,
-				// Action details
-				order: parseInt(order, 10) || 0,
-				action: action,
-				value: actionValue,
-			}
-		});
-	};
-
-
-
 	// Listen for messages forwarded from the background script (e.g., 'to-extension')
 	useEffect(() => {
 		if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
@@ -115,7 +80,7 @@ const ComponentTracker = () => {
 						/>
 					</Tooltip>
 					<Stack direction="row" spacing={2}>
-						<Button fullWidth variant="contained" startIcon={<SearchIcon />} onClick={handleHighlight} disabled={!pattern}>
+						<Button fullWidth variant="contained" startIcon={<SearchIcon />} onClick={() => handleHighlight(tag, property, pattern)} disabled={!pattern}>
 							Highlight
 						</Button>
 						<Button fullWidth variant="outlined" color="secondary" startIcon={<ClearIcon />} onClick={handleClear}>
@@ -162,7 +127,7 @@ const ComponentTracker = () => {
 						variant="contained"
 						color="success"
 						startIcon={<PlayArrowIcon />}
-						onClick={handleAction}
+						onClick={() => handleAction(tag, property, pattern, order, action, actionValue)}
 						disabled={!pattern || (isActionWithValue && !actionValue)}
 					>
 						Execute Action
