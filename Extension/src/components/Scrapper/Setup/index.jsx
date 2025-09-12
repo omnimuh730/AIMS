@@ -50,7 +50,6 @@ const SetupComponent = () => {
 
 	const [isLevel1Connected, setIsLevel1Connected] = useState(false);
 	const [isLevel2Connected, setIsLevel2Connected] = useState(false);
-	const [isJobrightOpen, setIsJobrightOpen] = useState(false);
 
 	useEffect(() => {
 		if (socket) {
@@ -112,7 +111,7 @@ const SetupComponent = () => {
 				socket.off(SOCKET_PROTOCOL.STATUS.DISCONNECTED);
 			};
 		}
-	}, [socket]);
+	}, [socket, notification]);
 
 	return (
 		<Card sx={{ maxWidth: 500, mx: 'auto', mt: 4, borderRadius: 3, boxShadow: 3 }}>
@@ -134,12 +133,6 @@ const SetupComponent = () => {
 						isConnected={isLevel2Connected}
 						successText="Connected"
 						failText="Not Connected"
-					/>
-					<StatusRow
-						label="Website"
-						isConnected={isJobrightOpen}
-						successText="Opened"
-						failText="Not Opened"
 					/>
 				</Stack>
 			</CardContent>

@@ -28,6 +28,7 @@ chrome.runtime.onMessage.addListener((message/*, sender, sendResponse*/) => {
 							try { chrome.tabs.sendMessage(tabs[0].id, message); } catch (e) { console.error('Failed to send message after injecting contentScript', e); }
 						});
 					}
+					console.log('Response from content script:', response);
 				});
 			}
 		});

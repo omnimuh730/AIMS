@@ -1,5 +1,5 @@
-let highlightCounter = 1;
-let highlightLabels = [];
+highlightCounter = 1;
+highlightLabels = [];
 
 function clearHighlights() {
 	highlightLabels.forEach((label) => label.remove());

@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { } from '@mui/icons-material';
 import PropTypes from 'prop-types'
-import useRuntime from '../../../api/runtime';
+import { useRuntime } from '../../../api/runtimeContext';
 import useApi from '../../../api/useApi';
 import { handleClear, handleAction, handleHighlight } from '../../../api/interaction';
 function CircularProgressWithLabel(props) {
@@ -60,7 +60,6 @@ const ScrapComponent = () => {
 	const api = useApi();
 	// Map of pending resolvers for fetch requests by identifier
 	const pendingResolvers = useRef(new Map());
-	const [fetchResults, setFetchResults] = useState({});
 
 	useEffect(() => {
 		const listener = (message) => {
@@ -73,7 +72,6 @@ const ScrapComponent = () => {
 				const id = message.payload?.identifier;
 				// store result in state
 				if (id) {
-					setFetchResults(prev => ({ ...prev, [id]: message.payload }));
 					const resolver = pendingResolvers.current.get(id);
 					if (resolver) {
 						resolver(message.payload);
@@ -294,15 +292,25 @@ const ScrapComponent = () => {
 	}
 */
 		// Collect all received result and put it into JSON schema
+		/* example of ApplicantsNumber : {
+			"identifier": "scrap_applicants_1757697955016_ipjk",
+			"success": true,
+			"data": "Be an early applicant\nLess than 25 applicants"
+		}*/
+		//Split the data by new line and trim each item
+		const parseApplicantsTags = (data) => {
+			return data.split('\n').map(tag => tag.trim()).filter(tag => tag);
+		};
 
-		//ApplicantsNumber Example 
-		//<div class="index_jobTag__iMfCv" style="outline: red solid 2px;" data-highlighter-original-outline="" data-highlighter-id="1" data-highlighter-outline="true"><span class="ant-tag index_beTag__12tmh css-120qcz2"><span class="ant-typography css-120qcz2">Be an early applicant</span></span><span class="ant-tag css-120qcz2"><span class="ant-typography css-120qcz2"><span class="ant-typography css-120qcz2">Less than 25</span><span class="ant-typography css-120qcz2"> applicants</span></span></span><span class="ant-tag css-120qcz2"><span class="ant-typography css-120qcz2">Posted by Agency</span></span></div>
-		//We need to get each item of the ApplicantsNumber and put it in the resultData.tags array
+		const parsedTags = ApplicantsNumber?.success ? parseApplicantsTags(ApplicantsNumber.data) : [];
+
+		console.log('Parsed Tags', parsedTags);
+
 		const resultData = {
 			applyLink: ApplyLink || "",
 			id: Date.now(),
 			postedAgo: PublishTime || "",
-			tags: ApplicantsNumber?.success ? Array.from((new DOMParser().parseFromString(ApplicantsNumber.data, 'text/html')).querySelectorAll('span.ant-typography')).map(span => span.innerText) : [],
+			tags: parsedTags,
 			company: {
 				name: CompanyName || "",
 				tags: CompanyTags || [],

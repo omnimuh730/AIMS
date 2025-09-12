@@ -1,16 +1,18 @@
-import React, { createContext, useContext, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
+import RuntimeContext from './runtimeContext';
 
-const RuntimeContext = createContext(null);
-
+/* global chrome */
 export const RuntimeProvider = ({ children }) => {
 	const listenersRef = useRef(new Set());
 
 	useEffect(() => {
 		if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.onMessage) return;
 
+		// capture current set reference for cleanup safety
 		const dispatcher = (message, sender, sendResponse) => {
-			// Dispatch to all registered listeners safely
-			listenersRef.current.forEach((fn) => {
+			// Copy the listeners to an array to avoid issues if the set changes during iteration
+			const listeners = Array.from(listenersRef.current);
+			listeners.forEach((fn) => {
 				try {
 					fn(message, sender, sendResponse);
 				} catch (e) {
@@ -26,7 +28,9 @@ export const RuntimeProvider = ({ children }) => {
 				chrome.runtime.onMessage.removeListener(dispatcher);
 			} catch (e) {
 				// ignore
+				console.error('Error removing listener:', e);
 			}
+			// clear listeners
 			listenersRef.current.clear();
 		};
 	}, []);
@@ -54,10 +58,4 @@ export const RuntimeProvider = ({ children }) => {
 	);
 };
 
-export const useRuntime = () => {
-	const ctx = useContext(RuntimeContext);
-	if (!ctx) throw new Error('useRuntime must be used within RuntimeProvider');
-	return ctx;
-};
-
-export default useRuntime;
+export default RuntimeProvider;

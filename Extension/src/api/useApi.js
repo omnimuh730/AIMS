@@ -18,7 +18,9 @@ export default function useApi(baseUrl = '') {
 			const text = await res.text();
 			// Try parse JSON, fallback to text
 			let data = text;
-			try { data = text ? JSON.parse(text) : null; } catch (e) { /* not JSON */ }
+			try { data = text ? JSON.parse(text) : null; } catch (e) {
+				console.error('Failed to parse response as JSON', e);
+			}
 			if (!res.ok) {
 				const err = new Error('Request failed');
 				err.status = res.status;
