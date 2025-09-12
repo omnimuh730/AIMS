@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Stack, Typography } from "@mui/material";
 
 // Data Import
 import { mockJobs } from "./data/mockJobs";
+import useApi from "../../api/useApi";
 
 // Component Imports
 import JobCard from "./components/JobCard";
@@ -10,7 +11,26 @@ import JobDetailDrawer from "./components/JobDetailDrawer";
 import AskgllamaModal from "./components/AskgllamaModal";
 
 function JobListingsPage() {
-	const [jobs] = useState(mockJobs);
+	const [jobs, setJobs] = useState(mockJobs);
+	const api = useApi();
+
+	useEffect(() => {
+		let mounted = true;
+		(async () => {
+			try {
+				// call backend to get saved jobs
+				const res = await api.get('http://localhost:3000/api/jobs');
+				if (!mounted) return;
+				if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+					setJobs(res.data);
+				}
+			} catch (err) {
+				// keep mock jobs as fallback
+				console.warn('Failed to fetch jobs from backend, using mock data', err);
+			}
+		})();
+		return () => { mounted = false; };
+	}, [api]);
 	const [selectedJob, setSelectedJob] = useState(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -44,9 +64,9 @@ function JobListingsPage() {
 				>
 					Recommended Jobs
 				</Typography>
-				{jobs.map((job) => (
+				{jobs.map((job, idx) => (
 					<JobCard
-						key={job.id}
+						key={job.id || (job._id ? String(job._id) : idx)}
 						job={job}
 						onViewDetails={handleViewDetails}
 						onAskgllama={handleAskgllama}

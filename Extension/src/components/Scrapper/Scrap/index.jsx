@@ -294,11 +294,15 @@ const ScrapComponent = () => {
 	}
 */
 		// Collect all received result and put it into JSON schema
+
+		//ApplicantsNumber Example 
+		//<div class="index_jobTag__iMfCv" style="outline: red solid 2px;" data-highlighter-original-outline="" data-highlighter-id="1" data-highlighter-outline="true"><span class="ant-tag index_beTag__12tmh css-120qcz2"><span class="ant-typography css-120qcz2">Be an early applicant</span></span><span class="ant-tag css-120qcz2"><span class="ant-typography css-120qcz2"><span class="ant-typography css-120qcz2">Less than 25</span><span class="ant-typography css-120qcz2"> applicants</span></span></span><span class="ant-tag css-120qcz2"><span class="ant-typography css-120qcz2">Posted by Agency</span></span></div>
+		//We need to get each item of the ApplicantsNumber and put it in the resultData.tags array
 		const resultData = {
 			applyLink: ApplyLink || "",
 			id: Date.now(),
 			postedAgo: PublishTime || "",
-			tags: ApplicantsNumber?.success ? [ApplicantsNumber.data] : [],
+			tags: ApplicantsNumber?.success ? Array.from((new DOMParser().parseFromString(ApplicantsNumber.data, 'text/html')).querySelectorAll('span.ant-typography')).map(span => span.innerText) : [],
 			company: {
 				name: CompanyName || "",
 				tags: CompanyTags || [],
