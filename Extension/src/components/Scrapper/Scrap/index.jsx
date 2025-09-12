@@ -54,7 +54,7 @@ const ScrapComponent = () => {
 	const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 	const [progress, setProgress] = useState(10);
-
+	const [scrapFlag, setScrapFlag] = useState(false);
 
 	const { addListener, removeListener } = useRuntime();
 	const api = useApi();
@@ -331,6 +331,36 @@ const ScrapComponent = () => {
 		}
 	}
 
+	useEffect(() => {
+		let active = true; // cancellation flag
+
+		const run = async () => {
+			while (active && scrapFlag) {
+				try {
+					await onClickListItem(); // wait until it fully finishes
+				} catch (err) {
+					console.error("Error in onClickListItem:", err);
+				}
+			}
+		};
+
+		if (scrapFlag) {
+			run(); // start the async loop
+		}
+
+		return () => {
+			active = false; // stop when unmounted or scrapFlag changes
+		};
+	}, [scrapFlag]);
+	const onScrapStart = () => {
+		setScrapFlag(true);
+	}
+
+	const onScrapStop = () => {
+		setScrapFlag(false);
+		setProgress(0);
+	}
+
 	return (
 		<div>
 			<h1>CheckList</h1>
@@ -342,20 +372,11 @@ const ScrapComponent = () => {
 
 			<div>
 				<p>div -- class -- index_job-card-main-flip1-stop?(0)</p>
-				<Button onClick={onClickListItem}>Click List Item</Button>
-
+				<Button onClick={onScrapStart} disabled={scrapFlag}>Click List Item</Button>
+				<Button onClick={onScrapStop} disabled={!scrapFlag}>Stop</Button>
 			</div>
 
 			<Divider sx={{ my: 2 }} />
-			<h2>- items</h2>
-			<p>id</p>
-			<p>postedAgo</p>
-			<p>tags</p>
-			<p>company</p>
-			<p>title</p>
-			<p>details</p>
-			<p>applicants</p>
-			<p>description</p>
 		</div>
 	);
 }
