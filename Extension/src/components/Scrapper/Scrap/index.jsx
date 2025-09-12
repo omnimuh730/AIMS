@@ -9,8 +9,8 @@ import {
 } from '@mui/material';
 import { } from '@mui/icons-material';
 import PropTypes from 'prop-types'
-
-
+import useRuntime from '../../../api/runtime';
+import { handleClear, handleAction, handleHighlight } from '../../../api/interaction';
 function CircularProgressWithLabel(props) {
 	return (
 		<Box sx={{ position: 'relative', display: 'inline-flex' }}>
@@ -54,14 +54,42 @@ const ScrapComponent = () => {
 
 	const [progress, setProgress] = useState(10);
 
+
+	const { addListener, removeListener } = useRuntime();
 	useEffect(() => {
-		const timer = setInterval(() => {
-			setProgress((prevProgress) => (prevProgress >= 100 ? 0 : prevProgress + 10));
-		}, 800);
-		return () => {
-			clearInterval(timer);
+		const listener = (message) => {
+			if (message?.action === 'to-extension') {
+				// placeholder for future UI notifications
+				// console.log('Panel received to-extension message:', message.payload);
+			}
 		};
-	}, []);
+		addListener(listener);
+		return () => removeListener(listener);
+	}, [addListener, removeListener]);
+
+	async function onClickListItem() {
+		// Handle the click event for the list item
+		handleHighlight("div", "class", "index_job-card-main-flip1-stop?");
+		await delay(1000);
+		handleAction("div", "class", "index_job-card-main-flip1-stop?", 0, "click", "");
+		await delay(1000);
+		setProgress(25);
+		handleHighlight("button", "id", "index_not-interest-button__?");
+		await delay(1000);
+		handleAction("button", "id", "index_not-interest-button__?", 0, "click", "");
+		await delay(1000);
+		setProgress(50);
+		handleHighlight("span", "class", "ant-radio ant-wave-target");
+		await delay(1000);
+		handleAction("span", "class", "ant-radio ant-wave-target", 5, "click", "");
+		await delay(1000);
+		setProgress(75);
+		handleHighlight("button", "class", "?index_not-interest-popup-button__?");
+		await delay(1000);
+		handleAction("button", "class", "?index_not-interest-popup-button__?", 1, "click", "");
+		await delay(1000);
+		setProgress(100);
+	}
 
 	return (
 		<div>
@@ -74,13 +102,13 @@ const ScrapComponent = () => {
 
 			<div>
 				<p>div -- class -- index_job-card-main-flip1-stop?(0)</p>
-				<Button>Click</Button>
+				<Button onClick={onClickListItem}>Click List Item</Button>
 				{/* Scrapping Operation */}
 				<p>button -- id -- index_not-interest-button__?(0)</p>
 				<Button>Click</Button>
 				<p>span -- class -- ant-radio ant-wave-target(5)</p>
 				<Button>Click</Button>
-				<p>button -- class ?index_not-interest-popup-button__?(1)</p>
+				<p>button -- class -- ?index_not-interest-popup-button__?(1)</p>
 				{/* wait to the list showing */}
 
 			</div>
