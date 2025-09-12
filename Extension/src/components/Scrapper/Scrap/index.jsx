@@ -266,11 +266,37 @@ const ScrapComponent = () => {
 				await delay(500);
 			}
 		}
+		/*
+{
+		id: 1,
+		postedAgo: "22 minutes ago",
+		tags: ["Be an early applicant", "2 former colleagues work here"],
+		company: {
+			name: "JRD Systems",
+			logo: "https://via.placeholder.com/150/FFC107/000000?Text=JRD",
+		},
+		title: "Senior Java Developer",
+		details: {
+			location: "Downey, CA",
+			isRemote: true,
+			type: "Contract",
+			level: "Senior Level",
+			experience: "7+ years exp",
+			salary: null,
+		},
+		applicants: {
+			count: 24,
+			text: "Less than 25 applicants",
+		},
+		description: `<strong>About the Role:</strong><br/>We are seeking a seasoned Senior Java Developer to join our dynamic team. The ideal candidate will have extensive experience in building high-performing, scalable, enterprise-grade applications.<br/><br/><strong>Responsibilities:</strong><ul><li>Design and develop high-volume, low-latency applications for mission-critical systems.</li><li>Contribute in all phases of the development lifecycle.</li><li>Write well-designed, testable, efficient code.</li></ul><strong>Requirements:</strong><ul><li>7+ years of proven working experience in Java development.</li><li>Hands on experience in designing and developing applications using Java EE platforms.</li><li>Object-Oriented analysis and design using common design patterns.</li></ul>`,
+	}
+*/
 		// Collect all received result and put it into JSON schema
 		const resultData = {
 			applyLink: ApplyLink || "",
 			id: Date.now(),
 			postedAgo: PublishTime || "",
+			tags: applicantsNumber?.success ? [ApplicantsNumber.data] : [],
 			company: {
 				name: CompanyName || "",
 				tags: CompanyTags || [],
@@ -313,28 +339,3 @@ const ScrapComponent = () => {
 }
 
 export default ScrapComponent;
-/*
-{
-		id: 1,
-		postedAgo: "22 minutes ago",
-		tags: ["Be an early applicant", "2 former colleagues work here"],
-		company: {
-			name: "JRD Systems",
-			logo: "https://via.placeholder.com/150/FFC107/000000?Text=JRD",
-		},
-		title: "Senior Java Developer",
-		details: {
-			location: "Downey, CA",
-			isRemote: true,
-			type: "Contract",
-			level: "Senior Level",
-			experience: "7+ years exp",
-			salary: null,
-		},
-		applicants: {
-			count: 24,
-			text: "Less than 25 applicants",
-		},
-		description: `<strong>About the Role:</strong><br/>We are seeking a seasoned Senior Java Developer to join our dynamic team. The ideal candidate will have extensive experience in building high-performing, scalable, enterprise-grade applications.<br/><br/><strong>Responsibilities:</strong><ul><li>Design and develop high-volume, low-latency applications for mission-critical systems.</li><li>Contribute in all phases of the development lifecycle.</li><li>Write well-designed, testable, efficient code.</li></ul><strong>Requirements:</strong><ul><li>7+ years of proven working experience in Java development.</li><li>Hands on experience in designing and developing applications using Java EE platforms.</li><li>Object-Oriented analysis and design using common design patterns.</li></ul>`,
-	}
-*/
