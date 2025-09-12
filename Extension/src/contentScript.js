@@ -1,5 +1,15 @@
-highlightCounter = 1;
-highlightLabels = [];
+if (typeof highlightCounter === "undefined") {
+	var highlightCounter = 1;   // declare and initialize
+} else {
+	highlightCounter = 1;       // reset
+}
+
+if (typeof highlightLabels === "undefined") {
+	var highlightLabels = [];   // declare and initialize
+} else {
+	highlightLabels = [];       // reset
+}
+
 
 function clearHighlights() {
 	highlightLabels.forEach((label) => label.remove());
