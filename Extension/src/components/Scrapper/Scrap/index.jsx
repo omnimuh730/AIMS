@@ -10,6 +10,7 @@ import {
 import { } from '@mui/icons-material';
 import PropTypes from 'prop-types'
 import useRuntime from '../../../api/runtime';
+import useApi from '../../../api/useApi';
 import { handleClear, handleAction, handleHighlight } from '../../../api/interaction';
 function CircularProgressWithLabel(props) {
 	return (
@@ -56,6 +57,7 @@ const ScrapComponent = () => {
 
 
 	const { addListener, removeListener } = useRuntime();
+	const api = useApi();
 	// Map of pending resolvers for fetch requests by identifier
 	const pendingResolvers = useRef(new Map());
 	const [fetchResults, setFetchResults] = useState({});
@@ -296,7 +298,7 @@ const ScrapComponent = () => {
 			applyLink: ApplyLink || "",
 			id: Date.now(),
 			postedAgo: PublishTime || "",
-			tags: applicantsNumber?.success ? [ApplicantsNumber.data] : [],
+			tags: ApplicantsNumber?.success ? [ApplicantsNumber.data] : [],
 			company: {
 				name: CompanyName || "",
 				tags: CompanyTags || [],
@@ -307,6 +309,14 @@ const ScrapComponent = () => {
 			description: [Responsibilities?.success ? Responsibilities.data : "", Qualification?.success ? Qualification.data : "", Benefits?.success ? Benefits.data : ""].filter(s => s).join("\n\n"),
 		};
 		console.log('Fetching is finished', resultData);
+		// Send to backend
+		try {
+			// post to backend (assumes backend runs on localhost:3000)
+			await api.post('http://localhost:3000/api/jobs', resultData);
+			console.log('Saved job to backend');
+		} catch (err) {
+			console.error('Failed to save job', err);
+		}
 	}
 
 	return (
