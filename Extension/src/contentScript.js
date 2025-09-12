@@ -171,12 +171,12 @@ chrome.runtime.onMessage.addListener((message) => {
 			const elements = findElements(componentType, propertyName, pattern);
 
 			if (!elements || elements.length === 0) {
-				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { success: false, data: null, error: 'No elements found' } });
+				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { identifier: message.payload?.identifier || message.payload?.requestId, success: false, data: null, error: 'No elements found' } });
 				return;
 			}
 
 			if (order >= elements.length) {
-				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { success: false, data: null, error: `Order ${order} out of range` } });
+				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { identifier: message.payload?.identifier || message.payload?.requestId, success: false, data: null, error: `Order ${order} out of range` } });
 				return;
 			}
 
@@ -186,12 +186,12 @@ chrome.runtime.onMessage.addListener((message) => {
 				if (fetchType === 'text') {
 					data = target.innerText;
 				} else {
-					// default to content -> innerHTML
-					data = target.innerHTML;
+					// default to content -> outerHTML
+					data = target.outerHTML;
 				}
-				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { success: true, data } });
+				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { identifier: message.payload?.identifier || message.payload?.requestId, success: true, data } });
 			} catch (err) {
-				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { success: false, data: null, error: String(err) } });
+				chrome.runtime.sendMessage({ action: 'fetchResult', payload: { identifier: message.payload?.identifier || message.payload?.requestId, success: false, data: null, error: String(err) } });
 			}
 			return;
 		}

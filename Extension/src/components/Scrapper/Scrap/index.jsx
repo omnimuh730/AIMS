@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import {
 	Badge, Button,
@@ -10,7 +10,7 @@ import {
 import { } from '@mui/icons-material';
 import PropTypes from 'prop-types'
 import useRuntime from '../../../api/runtime';
-import { handleClear, sendActionAndWaitForResult, handleHighlight } from '../../../api/interaction';
+import { handleClear, handleAction, handleHighlight } from '../../../api/interaction';
 function CircularProgressWithLabel(props) {
 	return (
 		<Box sx={{ position: 'relative', display: 'inline-flex' }}>
@@ -56,11 +56,28 @@ const ScrapComponent = () => {
 
 
 	const { addListener, removeListener } = useRuntime();
+	// Map of pending resolvers for fetch requests by identifier
+	const pendingResolvers = useRef(new Map());
+	const [fetchResults, setFetchResults] = useState({});
+
 	useEffect(() => {
 		const listener = (message) => {
 			if (message?.action === 'to-extension') {
 				// placeholder for future UI notifications
-				// console.log('Panel received to-extension message:', message.payload);
+			}
+
+			if (message?.action === 'fetchResult') {
+				// message.payload should include { identifier?, success, data, error }
+				const id = message.payload?.identifier;
+				// store result in state
+				if (id) {
+					setFetchResults(prev => ({ ...prev, [id]: message.payload }));
+					const resolver = pendingResolvers.current.get(id);
+					if (resolver) {
+						resolver(message.payload);
+						pendingResolvers.current.delete(id);
+					}
+				}
 			}
 		};
 		addListener(listener);
@@ -71,81 +88,189 @@ const ScrapComponent = () => {
 		handleClear();
 		// Handle the click event for the list item
 		handleHighlight("div", "class", "index_job-card-main-flip1-stop?");
-		await delay(1000);
-		await sendActionAndWaitForResult("div", "class", "?index_job-card-main-flip1-stop?", 0, "click", "");
-		await delay(1000);
+		await delay(50);
+		// send click (no identifier needed)
+		handleAction("div", "class", "?index_job-card-main-flip1-stop?", 0, "click", "");
+		await delay(50);
 		setProgress(10);
 
-		await delay(1000);
+		//Wait still job details screen is showing.
+		let id = `scrap_wait_for_details_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+		const promise_waitfor_jobdetails = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+		handleAction("div", "class", "?index_jobdetail-enter?", 0, "fetch", null, "text", id);
+		await promise_waitfor_jobdetails;
+
+		await delay(50);
 		handleHighlight("a", "class", "?index_origin__?");
-		const ApplyLink = await sendActionAndWaitForResult("a", "class", "?index_origin__?", 0, "fetch", "content"); // Apply Link
+		id = `scrap_apply_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+		const promise_applyLink = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+		handleAction("a", "class", "?index_origin__?", 0, "fetch", null, "content", id);
+		const LinkComponent = await promise_applyLink;
+		// <a class="index_origin__7NnDG" type="text" href="https://myjobs.adp.com/revecorecareers?__tx_annotation=false&amp;c=2207439&amp;d=External&amp;r=5001146699306&amp;rb=INDEED&amp;&amp;sor=adprm" target="_blank"><img alt="job-post-link" loading="lazy" width="16" height="16" decoding="async" data-nimg="1" src="/newimages/public/file.svg" style="color: transparent;"><span>Original Job Post</span></a>
+
+		const ApplyLink = LinkComponent?.success ? (new DOMParser().parseFromString(LinkComponent.data, 'text/html')).querySelector('a')?.href : null;
 		console.log('ApplyLink', ApplyLink);
 		setProgress(15);
 
-		await delay(1000);
+		await delay(50);
 		handleHighlight("div", "class", "?index_jobTag__?");
-		const ApplicantsNumber = await sendActionAndWaitForResult("div", "class", "?index_jobTag__?", 0, "fetch", "text"); // How many applicants
+		id = `scrap_applicants_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+		const promise_jobTag = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+		handleAction("div", "class", "?index_jobTag__?", 0, "fetch", null, "text", id);
+		const ApplicantsNumber = await promise_jobTag;
 		console.log('ApplicantsNumber', ApplicantsNumber);
 		setProgress(20);
 
-		await delay(1000);
-		handleHighlight("div", "class", "?index_company-row__?");
-		const CompanyRow = await sendActionAndWaitForResult("div", "class", "?index_company-row__?", 0, "fetch", "content"); // Company Name
+		await delay(50);
+		handleHighlight("h2", "class", "?index_company-row__?");
+		id = `scrap_company_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+		const promise_companyRow = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+		handleAction("h2", "class", "?index_company-row__?", 0, "fetch", null, "content", id);
+		/*
+		<h2 class="ant-typography index_company-row__vOzgg css-120qcz2" style=""><strong>Revecore</strong><span class="index_publish-time___q_uC"> · 10 hours ago</span></h2>
+		Need to get each 2 text item - strong tag(company name) and span tag(publish time)
+		Remove ` · ` from the publish time
+		*/
+		const CompanyRawComponent = await promise_companyRow;
+		const CompanyName = CompanyRawComponent?.success ? (new DOMParser().parseFromString(CompanyRawComponent.data, 'text/html')).querySelector('strong')?.innerText : null;
+		const PublishTime = CompanyRawComponent?.success ? (new DOMParser().parseFromString(CompanyRawComponent.data, 'text/html')).querySelector('span')?.innerText.replace(' · ', '') : null;
+		const CompanyRow = { CompanyName, PublishTime };
 		console.log('CompanyRow', CompanyRow);
 		setProgress(25);
 
-		await delay(1000);
+		await delay(50);
 		handleHighlight("h1", "class", "?index_job-title__?");
-		const JobTitle = await sendActionAndWaitForResult("h1", "class", "?index_job-title__?", 0, "fetch", "text"); // Job Title
+		id = `scrap_title_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+		const promise_jobTitle = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+		handleAction("h1", "class", "?index_job-title__?", 0, "fetch", null, "text", id);
+		const JobTitle = await promise_jobTitle;
 		console.log('JobTitle', JobTitle);
 		setProgress(30);
 
-		await delay(1000);
+		await delay(50);
 		handleHighlight("div", "class", "?index_job-metadata-row__?");
-		const MetaTags = await sendActionAndWaitForResult("div", "class", "?index_job-metadata-row__?", 0, "fetch", "content"); // Meta Tags
+		id = `scrap_meta_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+		const promise_job_metadata = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+		handleAction("div", "class", "?index_job-metadata-row__?", 0, "fetch", null, "content", id);
+		/*
+		<div class="ant-row index_job-metadata-row__jNc9H css-120qcz2" style=""><div class="ant-col ant-col-12 css-120qcz2"><div class="index_job-metadata-item__Wv_Xh"><img alt="position" loading="lazy" width="16" height="16" decoding="async" data-nimg="1" src="/newimages/public/location.svg" style="color: transparent;"><span>United States</span></div></div><div class="ant-col ant-col-12 css-120qcz2"><div class="index_job-metadata-item__Wv_Xh"><img alt="time" loading="lazy" width="16" height="16" decoding="async" data-nimg="1" src="/newimages/public/time.svg" style="color: transparent;"><span>Full-time</span></div></div><div class="ant-col ant-col-12 css-120qcz2"><div class="index_job-metadata-item__Wv_Xh"><img alt="remote" loading="lazy" width="16" height="16" decoding="async" data-nimg="1" src="/newimages/public/remote.svg" style="color: transparent;"><span><em class="Highlight htb98a3df7-4679-43b1-b76a-6e5ec1374fb3" highlight="true" htmatch="remote" htloopnumber="218985379" style="font-style: inherit;">Remote</em></span></div></div><div class="ant-col ant-col-12 css-120qcz2"><div class="index_job-metadata-item__Wv_Xh"><img alt="seniority" loading="lazy" width="16" height="16" decoding="async" data-nimg="1" src="/newimages/public/level.svg" style="color: transparent;"><span>Senior Level</span></div></div><div class="ant-col ant-col-12 css-120qcz2"><div class="index_job-metadata-item__Wv_Xh"><img alt="date" loading="lazy" width="16" height="16" decoding="async" data-nimg="1" src="/newimages/public/date.svg" style="color: transparent;"><span>6+ years exp</span></div></div></div>
+		Need to parse each span text into an array of meta tags
+		this should be converted to json and property is determined by img alt attribute
+		*/
+		const MetaTagsComponent = await promise_job_metadata;
+		/*
+		{
+			position: "United States",
+			time: "Full-time",
+			remote: "Remote",
+			seniority: "Senior Level",
+			date: "6+ years exp"
+		}
+		*/
+		const MetaTags = MetaTagsComponent?.success ? Array.from((new DOMParser().parseFromString(MetaTagsComponent.data, 'text/html')).querySelectorAll('div.index_job-metadata-item__Wv_Xh')).reduce((acc, div) => {
+			const key = div.querySelector('img')?.alt;
+			const value = div.querySelector('span')?.innerText;
+			if (key && value) {
+				acc[key] = value;
+			}
+			return acc;
+		}, {}) : {};
 		console.log('MetaTags', MetaTags);
 		setProgress(35);
 
-		await delay(1000);
+		await delay(50);
 		handleHighlight("p", "class", "?index_company-summary__?");
-		const CompanySummary = await sendActionAndWaitForResult("p", "class", "?index_company-summary__?", 0, "fetch", "text"); // Company Summary
+		id = `scrap_summary_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+		const promise_company_summary = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+		handleAction("p", "class", "?index_company-summary__?", 0, "fetch", null, "text", id);
+		const CompanySummary = await promise_company_summary;
 		console.log('CompanySummary', CompanySummary);
 		setProgress(40);
 
-		await delay(1000);
-		handleHighlight("section", "class", "?index_section-content__?");
-		const Responsibilities = await sendActionAndWaitForResult("section", "class", "?index_section-content__?", 2, "fetch", "content"); // Section Content
-		console.log('Responsibilities', Responsibilities);
-		setProgress(45);
+		await delay(50);
+		handleHighlight("div", "class", "?index_companyTags?");
+		id = `scrap_tags_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+		const promise_companyTags = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+		handleAction("div", "class", "?index_companyTags?", 0, "fetch", null, "content", id);
+		/* <div class="index_companyTags__Sb2uk ant-flex css-120qcz2" style="gap: 4px; outline: red solid 2px;" data-highlighter-original-outline="" data-highlighter-id="1" data-highlighter-outline="true"><span class="ant-tag css-120qcz2">Analytics</span><span class="ant-tag css-120qcz2">Management Consulting</span><span class="ant-tag css-120qcz2">Medical</span></div>
 
-		await delay(1000);
-		handleHighlight("section", "class", "?index_section-content__?");
-		const Qualification = await sendActionAndWaitForResult("section", "class", "?index_section-content__?", 2, "fetch", "content"); // Section Content
-		console.log('Qualification', Qualification);
+		Get Company Tags data as string array
+		*/
+		const CompanyTagsComponent = await promise_companyTags;
+		const CompanyTags = CompanyTagsComponent?.success ? Array.from((new DOMParser().parseFromString(CompanyTagsComponent.data, 'text/html')).querySelectorAll('span.ant-tag')).map(span => span.innerText) : [];
+		console.log('CompanyTags', CompanyTags);
+		setProgress(45)
+
+		await delay(50);
+		handleHighlight("section", "class", "?index_sectionContent__?");
+		id = `scrap_resp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+		const promise_sectionContent1 = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+		handleAction("section", "class", "?index_sectionContent__?", 2, "fetch", null, "text", id);
+		const Responsibilities = await promise_sectionContent1;
+		console.log('Responsibilities', Responsibilities);
 		setProgress(50);
 
-		await delay(1000);
-		handleHighlight("section", "class", "?index_section-content__?");
-		const Benefits = await sendActionAndWaitForResult("section", "class", "?index_section-content__?", 2, "fetch", "content"); // Section Content
+		await delay(50);
+		handleHighlight("section", "class", "?index_sectionContent__?");
+		id = `scrap_qual_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+		const promise_sectionContent2 = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+		handleAction("section", "class", "?index_sectionContent__?", 3, "fetch", null, "text", id);
+		const Qualification = await promise_sectionContent2;
+		console.log('Qualification', Qualification);
+		setProgress(55);
+
+		await delay(50);
+		handleHighlight("section", "class", "?index_sectionContent__?");
+		id = `scrap_ben_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+		const promise_sectionContent3 = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+		handleAction("section", "class", "?index_sectionContent__?", 4, "fetch", null, "text", id);
+		const Benefits = await promise_sectionContent3;
 		console.log('Benefits', Benefits);
 		setProgress(60);
 
 		setProgress(70);
 		handleHighlight("button", "id", "index_not-interest-button__?");
-		await delay(1000);
-		await sendActionAndWaitForResult("button", "id", "index_not-interest-button__?", 0, "click", "");
-		await delay(1000);
+		await delay(50);
+		// click
+		handleAction("button", "id", "index_not-interest-button__?", 0, "click", "");
+		await delay(50);
 		setProgress(80);
 		handleHighlight("span", "class", "ant-radio ant-wave-target");
-		await delay(1000);
-		await sendActionAndWaitForResult("span", "class", "ant-radio ant-wave-target", 5, "click", "");
-		await delay(1000);
+		await delay(50);
+		// click
+		handleAction("span", "class", "ant-radio ant-wave-target", 5, "click", "");
+		await delay(50);
 		setProgress(90);
 		handleHighlight("button", "class", "?index_not-interest-popup-button__?");
-		await delay(1000);
-		await sendActionAndWaitForResult("button", "class", "?index_not-interest-popup-button__?", 1, "click", "");
-		await delay(1000);
+		await delay(50);
+		// click
+		handleAction("button", "class", "?index_not-interest-popup-button__?", 1, "click", "");
+		await delay(50);
 		setProgress(100);
+
+		// Wait until job item list is showing
+		// We need to wait until object_waitfor_joblist.success is false. If it gets true, step over, but if it's false, wait again to be true.
+		let success_wait_for_job_list = false;
+
+		while (!success_wait_for_job_list) {
+			id = `scrap_wait_for_list_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+			const promise_waitfor_joblist = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+			handleAction("div", "class", "?index_jobdetail-leave?", 0, "fetch", null, "content", id);
+			const object_waitfor_joblist = await promise_waitfor_joblist;
+			console.log('Waiting for job list', object_waitfor_joblist);
+
+			success_wait_for_job_list = object_waitfor_joblist?.success;
+
+			if (!success_wait_for_job_list) {
+				// wait for 1 second before next check
+				await delay(500);
+			}
+		}
+		// Collect all received result and put it into JSON schema
+		const resultData = {
+			applyLink: "",
+		};
+		console.log('Fetching is finished', resultData);
 	}
 
 	return (
@@ -160,13 +285,6 @@ const ScrapComponent = () => {
 			<div>
 				<p>div -- class -- index_job-card-main-flip1-stop?(0)</p>
 				<Button onClick={onClickListItem}>Click List Item</Button>
-				{/* Scrapping Operation */}
-				<p>button -- id -- index_not-interest-button__?(0)</p>
-				<Button>Click</Button>
-				<p>span -- class -- ant-radio ant-wave-target(5)</p>
-				<Button>Click</Button>
-				<p>button -- class -- ?index_not-interest-popup-button__?(1)</p>
-				{/* wait to the list showing */}
 
 			</div>
 

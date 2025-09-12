@@ -22,7 +22,10 @@ export const handleClear = () => {
 };
 
 // Function to send the interaction command
-export const handleAction = (tag, property, pattern, order, action, actionValue, fetchType) => {
+// handleAction: send an executeAction to the content script.
+// If `identifier` is provided it will be attached to the payload so
+// content script / background can echo it back in `fetchResult`.
+export const handleAction = (tag, property, pattern, order, action, actionValue, fetchType, identifier) => {
 	const payload = {
 		// We send the selector info again to ensure we act on the right elements
 		componentType: tag,
@@ -37,6 +40,8 @@ export const handleAction = (tag, property, pattern, order, action, actionValue,
 	if (actionValue !== undefined && actionValue !== null) payload.value = actionValue;
 	// Include fetchType when action === 'fetch'
 	if (fetchType) payload.fetchType = fetchType;
+	// Attach identifier (optional) so responses can be correlated
+	if (identifier) payload.identifier = identifier;
 
 	chrome.runtime.sendMessage({
 		action: "executeAction",
@@ -44,41 +49,7 @@ export const handleAction = (tag, property, pattern, order, action, actionValue,
 	});
 };
 
-// Helper: send an executeAction and wait for a fetchResult with matching requestId.
-export const sendActionAndWaitForResult = (tag, property, pattern, order, action, actionValue, fetchType, timeoutMs = 5000) => {
-	const requestId = `r_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-	const payload = {
-		componentType: tag,
-		propertyName: property,
-		pattern,
-		order: parseInt(order, 10) || 0,
-		action,
-	};
-	if (actionValue !== undefined && actionValue !== null) payload.value = actionValue;
-	if (fetchType) payload.fetchType = fetchType;
-	payload.requestId = requestId;
-
-	return new Promise((resolve, reject) => {
-		let timer = null;
-
-		function listener(message) {
-			if (message?.action === 'fetchResult' && message.payload && message.payload.requestId === requestId) {
-				if (timer) clearTimeout(timer);
-				try { chrome.runtime.onMessage.removeListener(listener); } catch (e) { }
-				resolve(message.payload);
-			}
-		}
-
-		// register listener
-		chrome.runtime.onMessage.addListener(listener);
-
-		// send the action
-		chrome.runtime.sendMessage({ action: 'executeAction', payload });
-
-		// timeout
-		timer = setTimeout(() => {
-			try { chrome.runtime.onMessage.removeListener(listener); } catch (e) { }
-			reject(new Error('Timed out waiting for fetchResult'));
-		}, timeoutMs);
-	});
-};
+// Note: the previous helper `sendActionAndWaitForResult` was intentionally removed.
+// We now recommend callers use `handleAction(..., identifier)` and listen for
+// `fetchResult` messages (which will contain `identifier`) and store/observe
+// them in component state.
