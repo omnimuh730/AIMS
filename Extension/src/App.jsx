@@ -1,34 +1,16 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
 	createTheme,
 	ThemeProvider,
 	CssBaseline,
 	Container,
-	Typography,
 	Box,
-	FormControl,
-	InputLabel,
-	Select,
-	MenuItem,
-	TextField,
-	Button,
-	Stack,
-	Tooltip,
-	Paper,
-	Divider,
 } from "@mui/material";
-import SearchIcon from '@mui/icons-material/Search';
-import ClearIcon from '@mui/icons-material/Clear';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-
 import useSocket from './api/useSocket';
 import useNotification from "./api/useNotification";
 
 import LayoutPage from "./components/layout";
 
-// A list of common HTML tags and attributes for the dropdowns
-const commonTags = ["div", "a", "span", "img", "input", "button", "li", "h1", "h2", "p", "form", "section", "header", "footer", "textarea"];
-const commonProperties = ["id", "class", "name", "href", "src", "alt", "for", "type", "role", "aria-label", "data-testid"];
 
 const darkTheme = createTheme({
 	palette: {

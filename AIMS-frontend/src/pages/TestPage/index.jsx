@@ -595,15 +595,6 @@ const TestPage = () => {
 	const handleSubmit = useCallback(() => {
 		console.log("System Instruction:", systemInstruction);
 		console.log("User Input:", userInput);
-
-		socket.emit(
-			"test-event",
-			JSON.stringify({
-				systemInstruction: systemInstruction,
-				userInput: userInput,
-			})
-		);
-		notification.info("Submitted data via socket");
 	}, [systemInstruction, userInput, socket, notification]);
 
 	// Fetch emails after successful auth

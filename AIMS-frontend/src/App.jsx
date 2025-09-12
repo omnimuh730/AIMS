@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 
 import PropTypes from "prop-types";
@@ -15,6 +15,12 @@ import NotFoundPage from "./pages/NotFoundPage";
 import TestPage from "./pages/TestPage";
 import AutomationPage from "./pages/AutomationPage";
 import { AutoAwesome, Settings, Visibility } from "@mui/icons-material";
+
+import useSocket from "./api/useSocket";
+import useNotification from "./api/useNotification";
+
+import { SOCKET_PROTOCOL } from "../../configs/socket_protocol";
+import { SOCKET_MESSAGE } from "../../configs/message_template";
 
 const NAVIGATION = [
 	{
@@ -112,6 +118,38 @@ function App(props) {
 	const { window } = props;
 	const router = useCustomRouter();
 	const demoWindow = window !== undefined ? window() : undefined;
+
+	const socket = useSocket();
+	const notification = useNotification();
+
+	useEffect(() => {
+
+		if (socket) {
+			socket.on("connect", () => {
+				notification.success("Socket connected");
+			});
+
+			socket.on(SOCKET_PROTOCOL.TYPE.CONNECTION, (data) => {
+				console.log("Received connection event:", data);
+				switch (data.payload.purpose) {
+					case SOCKET_PROTOCOL.IDENTIFIER.PURPOSE.CHECK_CONNECTIONS:
+						if (data.payload.src === SOCKET_PROTOCOL.LOCATION.EXTENSION && data.payload.tgt === SOCKET_PROTOCOL.LOCATION.FRONTEND) {
+							//Level 2 Connection check -> Reply to Extension
+							socket.emit(SOCKET_PROTOCOL.TYPE.CONNECTION, {
+								...data.payload,
+								timestamp: new Date().toISOString(),
+								src: SOCKET_PROTOCOL.LOCATION.FRONTEND,
+								tgt: SOCKET_PROTOCOL.LOCATION.EXTENSION,
+							});
+						}
+				}
+			});
+
+			socket.on("disconnect", (reason) => {
+				notification.error(`Socket disconnected: ${reason}`);
+			});
+		}
+	}, [socket, notification]);
 
 	return (
 		<DemoProvider window={demoWindow}>
