@@ -43,3 +43,42 @@ export const handleAction = (tag, property, pattern, order, action, actionValue,
 		payload,
 	});
 };
+
+// Helper: send an executeAction and wait for a fetchResult with matching requestId.
+export const sendActionAndWaitForResult = (tag, property, pattern, order, action, actionValue, fetchType, timeoutMs = 5000) => {
+	const requestId = `r_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+	const payload = {
+		componentType: tag,
+		propertyName: property,
+		pattern,
+		order: parseInt(order, 10) || 0,
+		action,
+	};
+	if (actionValue !== undefined && actionValue !== null) payload.value = actionValue;
+	if (fetchType) payload.fetchType = fetchType;
+	payload.requestId = requestId;
+
+	return new Promise((resolve, reject) => {
+		let timer = null;
+
+		function listener(message) {
+			if (message?.action === 'fetchResult' && message.payload && message.payload.requestId === requestId) {
+				if (timer) clearTimeout(timer);
+				try { chrome.runtime.onMessage.removeListener(listener); } catch (e) { }
+				resolve(message.payload);
+			}
+		}
+
+		// register listener
+		chrome.runtime.onMessage.addListener(listener);
+
+		// send the action
+		chrome.runtime.sendMessage({ action: 'executeAction', payload });
+
+		// timeout
+		timer = setTimeout(() => {
+			try { chrome.runtime.onMessage.removeListener(listener); } catch (e) { }
+			reject(new Error('Timed out waiting for fetchResult'));
+		}, timeoutMs);
+	});
+};

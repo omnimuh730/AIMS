@@ -10,7 +10,7 @@ import {
 import { } from '@mui/icons-material';
 import PropTypes from 'prop-types'
 import useRuntime from '../../../api/runtime';
-import { handleClear, handleAction, handleHighlight } from '../../../api/interaction';
+import { handleClear, sendActionAndWaitForResult, handleHighlight } from '../../../api/interaction';
 function CircularProgressWithLabel(props) {
 	return (
 		<Box sx={{ position: 'relative', display: 'inline-flex' }}>
@@ -68,25 +68,82 @@ const ScrapComponent = () => {
 	}, [addListener, removeListener]);
 
 	async function onClickListItem() {
+		handleClear();
 		// Handle the click event for the list item
 		handleHighlight("div", "class", "index_job-card-main-flip1-stop?");
 		await delay(1000);
-		handleAction("div", "class", "index_job-card-main-flip1-stop?", 0, "click", "");
+		await sendActionAndWaitForResult("div", "class", "?index_job-card-main-flip1-stop?", 0, "click", "");
 		await delay(1000);
+		setProgress(10);
+
+		await delay(1000);
+		handleHighlight("a", "class", "?index_origin__?");
+		const ApplyLink = await sendActionAndWaitForResult("a", "class", "?index_origin__?", 0, "fetch", "content"); // Apply Link
+		console.log('ApplyLink', ApplyLink);
+		setProgress(15);
+
+		await delay(1000);
+		handleHighlight("div", "class", "?index_jobTag__?");
+		const ApplicantsNumber = await sendActionAndWaitForResult("div", "class", "?index_jobTag__?", 0, "fetch", "text"); // How many applicants
+		console.log('ApplicantsNumber', ApplicantsNumber);
+		setProgress(20);
+
+		await delay(1000);
+		handleHighlight("div", "class", "?index_company-row__?");
+		const CompanyRow = await sendActionAndWaitForResult("div", "class", "?index_company-row__?", 0, "fetch", "content"); // Company Name
+		console.log('CompanyRow', CompanyRow);
 		setProgress(25);
+
+		await delay(1000);
+		handleHighlight("h1", "class", "?index_job-title__?");
+		const JobTitle = await sendActionAndWaitForResult("h1", "class", "?index_job-title__?", 0, "fetch", "text"); // Job Title
+		console.log('JobTitle', JobTitle);
+		setProgress(30);
+
+		await delay(1000);
+		handleHighlight("div", "class", "?index_job-metadata-row__?");
+		const MetaTags = await sendActionAndWaitForResult("div", "class", "?index_job-metadata-row__?", 0, "fetch", "content"); // Meta Tags
+		console.log('MetaTags', MetaTags);
+		setProgress(35);
+
+		await delay(1000);
+		handleHighlight("p", "class", "?index_company-summary__?");
+		const CompanySummary = await sendActionAndWaitForResult("p", "class", "?index_company-summary__?", 0, "fetch", "text"); // Company Summary
+		console.log('CompanySummary', CompanySummary);
+		setProgress(40);
+
+		await delay(1000);
+		handleHighlight("section", "class", "?index_section-content__?");
+		const Responsibilities = await sendActionAndWaitForResult("section", "class", "?index_section-content__?", 2, "fetch", "content"); // Section Content
+		console.log('Responsibilities', Responsibilities);
+		setProgress(45);
+
+		await delay(1000);
+		handleHighlight("section", "class", "?index_section-content__?");
+		const Qualification = await sendActionAndWaitForResult("section", "class", "?index_section-content__?", 2, "fetch", "content"); // Section Content
+		console.log('Qualification', Qualification);
+		setProgress(50);
+
+		await delay(1000);
+		handleHighlight("section", "class", "?index_section-content__?");
+		const Benefits = await sendActionAndWaitForResult("section", "class", "?index_section-content__?", 2, "fetch", "content"); // Section Content
+		console.log('Benefits', Benefits);
+		setProgress(60);
+
+		setProgress(70);
 		handleHighlight("button", "id", "index_not-interest-button__?");
 		await delay(1000);
-		handleAction("button", "id", "index_not-interest-button__?", 0, "click", "");
+		await sendActionAndWaitForResult("button", "id", "index_not-interest-button__?", 0, "click", "");
 		await delay(1000);
-		setProgress(50);
+		setProgress(80);
 		handleHighlight("span", "class", "ant-radio ant-wave-target");
 		await delay(1000);
-		handleAction("span", "class", "ant-radio ant-wave-target", 5, "click", "");
+		await sendActionAndWaitForResult("span", "class", "ant-radio ant-wave-target", 5, "click", "");
 		await delay(1000);
-		setProgress(75);
+		setProgress(90);
 		handleHighlight("button", "class", "?index_not-interest-popup-button__?");
 		await delay(1000);
-		handleAction("button", "class", "?index_not-interest-popup-button__?", 1, "click", "");
+		await sendActionAndWaitForResult("button", "class", "?index_not-interest-popup-button__?", 1, "click", "");
 		await delay(1000);
 		setProgress(100);
 	}
