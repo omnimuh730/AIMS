@@ -559,13 +559,10 @@ const TestPage = () => {
 	// Example: listen for notification event and show snackbar
 	useEffect(() => {
 		socket.on("notification", (msg) => {
-			console.log("Socket notification received:", msg);
 			notification.success(`Socket: ${msg}`);
 		});
 		socket.on("bid-plan", (data) => {
 			const parsed_data = JSON.parse(data);
-
-			console.log(parsed_data);
 		});
 		return () => socket.off("notification");
 	}, [socket, notification]);
@@ -573,9 +570,7 @@ const TestPage = () => {
 	// Check for Gmail OAuth2 redirect
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
-		console.log(params);
 		if (params.get("gmail") === "success") {
-			console.log("Gmail is already logged in");
 			setGmailAuthenticated(true);
 		}
 	}, []);

@@ -53,7 +53,6 @@ const SetupComponent = () => {
 
 	useEffect(() => {
 		if (socket) {
-			console.log("socket in setup component:", socket);
 			// Level 1 connection check
 			// Emit a connection event to check Level 1 connection
 			// The backend should respond with a 'connection' event
@@ -81,7 +80,6 @@ const SetupComponent = () => {
 			});
 
 			socket.on(SOCKET_PROTOCOL.TYPE.CONNECTION, (data) => {
-				console.log(data);
 				switch (data.payload.purpose) {
 					case SOCKET_PROTOCOL.IDENTIFIER.PURPOSE.CHECK_CONNECTIONS:
 						// Handle the check_connections purpose
@@ -96,12 +94,12 @@ const SetupComponent = () => {
 						break;
 					// Add more cases as needed
 					default:
-						console.log('Connection status received:', data);
+						break;
 				}
 			});
 
 			socket.on(SOCKET_PROTOCOL.STATUS.DISCONNECTED, (reason) => {
-				console.log('Socket disconnected:', reason);
+				notification.error(`${SOCKET_MESSAGE.LEVEL1_DISCONNECTED} - ${reason}`);
 				setIsLevel1Connected(false);
 			});
 

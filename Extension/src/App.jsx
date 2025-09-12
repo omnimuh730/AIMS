@@ -25,7 +25,6 @@ function App() {
 
 	useEffect(() => {
 		socket.on("notification", (msg) => {
-			console.log("Socket notification received:", msg);
 			notification.success(`Socket: ${msg}`);
 		});
 		return () => socket.off("notification");

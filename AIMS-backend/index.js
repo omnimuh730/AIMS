@@ -47,7 +47,6 @@ io.on("connection", (socket) => {
 	console.log("A user connected:", socket.id);
 
 	socket.on(SOCKET_PROTOCOL.TYPE.CONNECTION, (data) => {
-		console.log("Connection event data:", data);
 		//Broadcast-reply(amplifying) all messages to all connected clients every receiving - backend works like intermidiate server
 		io.emit(SOCKET_PROTOCOL.TYPE.CONNECTION, {
 			timestamp: new Date().toISOString(),

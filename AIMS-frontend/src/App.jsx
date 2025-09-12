@@ -130,7 +130,6 @@ function App(props) {
 			});
 
 			socket.on(SOCKET_PROTOCOL.TYPE.CONNECTION, (data) => {
-				console.log("Received connection event:", data);
 				switch (data.payload.purpose) {
 					case SOCKET_PROTOCOL.IDENTIFIER.PURPOSE.CHECK_CONNECTIONS:
 						if (data.payload.src === SOCKET_PROTOCOL.LOCATION.EXTENSION && data.payload.tgt === SOCKET_PROTOCOL.LOCATION.FRONTEND) {
