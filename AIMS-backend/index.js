@@ -84,13 +84,9 @@ app.get('/api/jobs', async (req, res) => {
 		// 1. Build Query
 		const query = {};
 
-		// Search
+		// Search - limit to title only for performance
 		if (q) {
-			query.$or = [
-				{ title: { $regex: q, $options: 'i' } },
-				{ description: { $regex: q, $options: 'i' } },
-				{ "company.name": { $regex: q, $options: 'i' } }
-			];
+			query.title = { $regex: q, $options: 'i' };
 		}
 
 		// Filters - ignore empty keys/values. If a value contains commas treat as $in

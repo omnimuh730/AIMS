@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Container, Stack, Typography, CircularProgress, Alert } from "@mui/material";
 import useApi from "../../api/useApi";
-import useDebouncedValue from '../../utils/useDebouncedValue';
 
 // Component Imports
 import JobCard from "./components/JobCard";
@@ -20,19 +19,16 @@ function JobListingsPage() {
 	const [selectedJob, setSelectedJob] = useState(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
-	const debouncedSearch = useDebouncedValue(searchQuery, 450);
-	const debouncedFilters = useDebouncedValue(filters, 450);
-
 	const fetchJobs = useCallback(async () => {
 		try {
 			const params = new URLSearchParams();
-			if (debouncedSearch) params.set('q', debouncedSearch);
+			if (searchQuery) params.set('q', searchQuery);
 			if (sortOption) params.set('sort', sortOption);
 			params.set('page', pagination.page);
 			params.set('limit', pagination.limit);
 
 			// Add filters (flattened) only when they have values
-			Object.entries(debouncedFilters).forEach(([k, v]) => {
+			Object.entries(filters).forEach(([k, v]) => {
 				if (v === undefined || v === null) return;
 				// If tags array, serialize to comma-separated
 				if (Array.isArray(v)) {
@@ -50,7 +46,7 @@ function JobListingsPage() {
 		} catch (err) {
 			console.warn('Failed to fetch jobs from backend', err);
 		}
-	}, [searchQuery, sortOption, pagination.page, pagination.limit, get]);
+	}, [searchQuery, sortOption, pagination.page, pagination.limit, get, filters]);
 
 	useEffect(() => {
 		fetchJobs();
