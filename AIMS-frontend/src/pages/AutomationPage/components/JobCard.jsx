@@ -49,7 +49,7 @@ const JobCardHeader = ({ company, postedAgo, tags }) => (
 				spacing={1}
 				sx={{ mb: 0.5, flexWrap: "wrap", gap: 0.5 }}
 			>
-				<Chip label={postedAgo} size="small" sx={{ bgcolor: "grey.200" }} />
+				<Chip label={postedAgo} size="small" />
 				{Array.isArray(tags) && tags.map((tag) => (
 					<Chip key={tag} label={tag} size="small" color="info" variant="outlined" />
 				))}
@@ -169,8 +169,6 @@ const JobCardActions = ({ applicants, onViewDetails, onAskgllama }) => (
 				sx={{
 					textTransform: "none",
 					borderRadius: "20px",
-					color: "black",
-					borderColor: "grey.400",
 				}}
 			>
 				Ask gllama

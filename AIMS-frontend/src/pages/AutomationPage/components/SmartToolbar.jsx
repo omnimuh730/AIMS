@@ -108,10 +108,6 @@ const SmartToolbar = ({
 				borderRadius: 2,
 				border: '1px solid',
 				borderColor: 'divider',
-				boxShadow: theme.palette.mode === 'light' ? '0 6px 16px rgba(0,0,0,0.06)' : '0 6px 16px rgba(0,0,0,0.4)',
-				backgroundImage: theme.palette.mode === 'light'
-					? 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.92))'
-					: 'linear-gradient(180deg, rgba(18,18,18,0.9), rgba(18,18,18,0.86))',
 				backdropFilter: 'blur(6px)',
 				mb: 2,
 			}}
@@ -137,12 +133,6 @@ const SmartToolbar = ({
 						sx={{
 							'& .MuiFilledInput-root': {
 								borderRadius: 1.5,
-								bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
-								'&:hover': { bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'background.paper' },
-								'&.Mui-focused': {
-									bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
-									boxShadow: `inset 0 0 0 1px ${theme.palette.primary.main}`,
-								},
 							},
 						}}
 					/>
@@ -160,11 +150,6 @@ const SmartToolbar = ({
 							sx={{
 								borderRadius: 1.5,
 								'& .MuiSelect-filled': { borderRadius: 1.5 },
-								bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
-								'&:hover': { bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'background.paper' },
-								'&.Mui-focused': {
-									boxShadow: `inset 0 0 0 1px ${theme.palette.primary.main}`,
-								},
 							}}
 						>
 							<MenuItem value="_createdAt_desc">Newest</MenuItem>
@@ -215,11 +200,6 @@ const SmartToolbar = ({
 								minWidth: 120,
 								'& .MuiFilledInput-root': {
 									borderRadius: 1.5,
-									bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
-									'&:hover': { bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'background.paper' },
-									'&.Mui-focused': {
-										boxShadow: `inset 0 0 0 1px ${theme.palette.primary.main}`,
-									},
 								},
 							}}
 						>
@@ -268,9 +248,6 @@ const SmartToolbar = ({
 								minWidth: { xs: '100%', sm: 220 },
 								'& .MuiFilledInput-root': {
 									borderRadius: 1.5,
-									bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
-									'&:hover': { bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'background.paper' },
-									'&.Mui-focused': { boxShadow: `inset 0 0 0 1px ${theme.palette.primary.main}` },
 								},
 							}}
 						/>
@@ -292,9 +269,6 @@ const SmartToolbar = ({
 								minWidth: { xs: '100%', sm: 240 },
 								'& .MuiFilledInput-root': {
 									borderRadius: 1.5,
-									bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
-									'&:hover': { bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'background.paper' },
-									'&.Mui-focused': { boxShadow: `inset 0 0 0 1px ${theme.palette.primary.main}` },
 								},
 							}}
 						/>
@@ -305,9 +279,6 @@ const SmartToolbar = ({
 								minWidth: { xs: '100%', sm: 160 },
 								'& .MuiFilledInput-root': {
 									borderRadius: 1.5,
-									bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
-									'&:hover': { bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'background.paper' },
-									'&.Mui-focused': { boxShadow: `inset 0 0 0 1px ${theme.palette.primary.main}` },
 								},
 							}}
 						>
@@ -337,9 +308,6 @@ const SmartToolbar = ({
 								minWidth: { xs: '100%', sm: 180 },
 								'& .MuiFilledInput-root': {
 									borderRadius: 1.5,
-									bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
-									'&:hover': { bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'background.paper' },
-									'&.Mui-focused': { boxShadow: `inset 0 0 0 1px ${theme.palette.primary.main}` },
 								},
 							}}
 						>
@@ -405,9 +373,6 @@ const SmartToolbar = ({
 								minWidth: { xs: '100%', sm: 260 },
 								'& .MuiFilledInput-root': {
 									borderRadius: 1.5,
-									bgcolor: theme.palette.mode === 'light' ? 'grey.50' : 'background.default',
-									'&:hover': { bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'background.paper' },
-									'&.Mui-focused': { boxShadow: `inset 0 0 0 1px ${theme.palette.primary.main}` },
 								},
 							}}
 						/>

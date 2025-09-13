@@ -84,8 +84,6 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama }) => {
 							sx={{
 								textTransform: "none",
 								borderRadius: "20px",
-								color: "black",
-								borderColor: "grey.400",
 							}}
 						>
 							Ask gllama

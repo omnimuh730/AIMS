@@ -79,7 +79,7 @@ function JobListingsPage() {
 	return (
 		<Container
 			maxWidth="xl"
-			sx={{ py: 4, bgcolor: "#f4f6f8", minHeight: "100vh" }}
+			sx={{ py: 4, minHeight: "100vh" }}
 		>
 			<Stack spacing={2.5}>
 				<Typography
