@@ -75,13 +75,71 @@ app.post('/api/jobs', async (req, res) => {
 });
 
 app.get('/api/jobs', async (req, res) => {
-	try {
-		const docs = jobsCollection ? await jobsCollection.find().sort({ _createdAt: -1 }).limit(100).toArray() : [];
-		return res.json({ success: true, data: docs });
-	} catch (err) {
-		console.error('GET /api/jobs error', err);
-		return res.status(500).json({ success: false, error: err.message });
-	}
+    try {
+        if (!jobsCollection) {
+            return res.status(503).json({ success: false, error: 'Database not ready' });
+        }
+
+        const { q, sort, page = 1, limit = 10, ...filters } = req.query;
+
+        // 1. Build Query
+        const query = {};
+
+        // Search
+        if (q) {
+            query.$or = [
+                { title: { $regex: q, $options: 'i' } },
+                { description: { $regex: q, $options: 'i' } },
+				{ "company.name": { $regex: q, $options: 'i' } }
+            ];
+        }
+
+        // Filters
+        for (const key in filters) {
+            const value = filters[key];
+            if (value) {
+                if (key.includes(',')) {
+                    query[key] = { $in: value.split(',') };
+                } else {
+                    query[key] = value;
+                }
+            }
+        }
+
+        // 2. Build Sort
+        const sortOption = {};
+        if (sort) {
+            const [sortField, sortOrder] = sort.split('_');
+            sortOption[sortField] = sortOrder === 'desc' ? -1 : 1;
+        } else {
+            sortOption._createdAt = -1; // Default sort
+        }
+
+        // 3. Pagination
+        const pageNum = parseInt(page, 10);
+        const limitNum = parseInt(limit, 10);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Execute query
+        const cursor = jobsCollection.find(query).sort(sortOption).skip(skip).limit(limitNum);
+        const docs = await cursor.toArray();
+        const total = await jobsCollection.countDocuments(query);
+
+        return res.json({
+            success: true,
+            data: docs,
+            pagination: {
+                total,
+                page: pageNum,
+                limit: limitNum,
+                totalPages: Math.ceil(total / limitNum),
+            }
+        });
+
+    } catch (err) {
+        console.error('GET /api/jobs error', err);
+        return res.status(500).json({ success: false, error: err.message });
+    }
 });
 
 server.listen(port, () => {
