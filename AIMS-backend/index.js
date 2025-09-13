@@ -23,6 +23,7 @@ let mongoClient;
 let jobsCollection;
 let companyCategoryCollection;
 let skillsCategoryCollection;
+let personalInfoCollection;
 
 async function initMongo() {
 	mongoClient = new MongoClient(mongoUrl);
@@ -31,6 +32,7 @@ async function initMongo() {
 	jobsCollection = db.collection('job_market');
 	companyCategoryCollection = db.collection('company_category');
 	skillsCategoryCollection = db.collection('skills_category');
+	personalInfoCollection = db.collection('personal_info');
 	console.log('Connected to MongoDB', mongoUrl, 'DB:', mongoDbName);
 }
 
@@ -274,6 +276,55 @@ app.get('/api/jobs', async (req, res) => {
 
 	} catch (err) {
 		console.error('GET /api/jobs error', err);
+		return res.status(500).json({ success: false, error: err.message });
+	}
+});
+
+// Personal info endpoints - manage user's saved skills
+// GET - returns array of saved skill names
+app.get('/api/personal/skills', async (req, res) => {
+	try {
+		if (!personalInfoCollection) return res.status(503).json({ success: false, error: 'Database not ready' });
+		const docs = await personalInfoCollection.find({}).toArray();
+		// return only names
+		const skills = docs.map(d => d.name);
+		return res.json({ success: true, skills });
+	} catch (err) {
+		console.error('GET /api/personal/skills error', err);
+		return res.status(500).json({ success: false, error: err.message });
+	}
+});
+
+// POST - add a skill (upsert)
+app.post('/api/personal/skills', async (req, res) => {
+	try {
+		if (!personalInfoCollection) return res.status(503).json({ success: false, error: 'Database not ready' });
+		const { skill } = req.body;
+		if (!skill || typeof skill !== 'string') return res.status(400).json({ success: false, error: 'Missing skill string in body' });
+		const name = skill.trim();
+		if (!name) return res.status(400).json({ success: false, error: 'Empty skill' });
+		await personalInfoCollection.updateOne({ name }, { $setOnInsert: { name, createdAt: new Date().toISOString() } }, { upsert: true });
+		const docs = await personalInfoCollection.find({}).toArray();
+		return res.json({ success: true, skills: docs.map(d => d.name) });
+	} catch (err) {
+		console.error('POST /api/personal/skills error', err);
+		return res.status(500).json({ success: false, error: err.message });
+	}
+});
+
+// DELETE - remove a skill
+app.delete('/api/personal/skills', async (req, res) => {
+	try {
+		if (!personalInfoCollection) return res.status(503).json({ success: false, error: 'Database not ready' });
+		const { skill } = req.body;
+		if (!skill || typeof skill !== 'string') return res.status(400).json({ success: false, error: 'Missing skill string in body' });
+		const name = skill.trim();
+		if (!name) return res.status(400).json({ success: false, error: 'Empty skill' });
+		await personalInfoCollection.deleteOne({ name });
+		const docs = await personalInfoCollection.find({}).toArray();
+		return res.json({ success: true, skills: docs.map(d => d.name) });
+	} catch (err) {
+		console.error('DELETE /api/personal/skills error', err);
 		return res.status(500).json({ success: false, error: err.message });
 	}
 });

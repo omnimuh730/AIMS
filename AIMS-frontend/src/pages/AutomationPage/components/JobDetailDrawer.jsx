@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
 	Drawer,
 	Box,
@@ -11,6 +11,8 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
+import CheckIcon from '@mui/icons-material/Check';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 const JobDetailDrawer = ({ job, open, onClose, onAskgllama }) => {
 	if (!job) return null;
@@ -19,7 +21,7 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama }) => {
 		<Drawer anchor="right" open={open} onClose={onClose}>
 			<Box
 				sx={{
-					width: { xs: "100vw", sm: 500, md: 600 },
+					width: { xs: "100vw", sm: 500, md: 1000 },
 					p: 5,
 					pt: 15,
 					position: "relative",
@@ -48,6 +50,11 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama }) => {
 					</Stack>
 				)}
 				<Divider sx={{ my: 2 }} />
+
+				{/* Skill tags - clickable toggle chips */}
+				{Array.isArray(job.skills) && job.skills.length > 0 && (
+					<SkillChips skills={job.skills} />
+				)}
 
 				<Box sx={{ overflowY: "auto", height: "calc(100% - 150px)" }}>
 					{typeof job.description === 'string' && /<\w+.*?>/.test(job.description) ? (
@@ -109,6 +116,107 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama }) => {
 };
 
 export default JobDetailDrawer;
+
+// Small internal component to handle clickable/toggleable skill chips
+const SkillChips = ({ skills = [] }) => {
+	// selected is a Set<string> of skills saved in personal_info
+	const [selected, setSelected] = useState(() => new Set());
+	const [loadingMap, setLoadingMap] = useState(() => ({})); // prevent concurrent toggles per-skill
+
+	const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE) ? import.meta.env.VITE_API_BASE : 'http://localhost:3000';
+
+	// Fetch saved skills on mount
+	useEffect(() => {
+		let mounted = true;
+		(async () => {
+			try {
+				const res = await fetch(`${API_BASE}/api/personal/skills`);
+				if (!mounted) return;
+				if (!res.ok) {
+					console.warn('GET /api/personal/skills returned', res.status, res.statusText);
+					return;
+				}
+				// try to parse JSON safely
+				let data;
+				try { data = await res.json(); } catch (e) { console.warn('Failed to parse JSON from /api/personal/skills', e); return; }
+				if (data && data.success && Array.isArray(data.skills)) {
+					setSelected(new Set(data.skills));
+				}
+			} catch (err) {
+				console.warn('Failed to fetch personal skills', err);
+			}
+		})();
+		return () => { mounted = false; };
+	}, []);
+
+	// Reset nothing when skills prop changes; keep user's saved selection
+
+	const toggle = async (skill) => {
+		if (loadingMap[skill]) return; // already toggling
+		const isSelected = selected.has(skill);
+		try {
+			setLoadingMap(prev => ({ ...prev, [skill]: true }));
+			let res, data;
+			if (!isSelected) {
+				// add
+				res = await fetch(`${API_BASE}/api/personal/skills`, {
+					method: 'POST', headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ skill })
+				});
+			} else {
+				// remove
+				res = await fetch(`${API_BASE}/api/personal/skills`, {
+					method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ skill })
+				});
+			}
+
+			if (!res.ok) {
+				// server returned 404/500 etc
+				const text = await res.text().catch(() => null);
+				console.warn('Toggle skill request failed', res.status, res.statusText, text);
+			} else {
+				// try parse JSON
+				try { data = await res.json(); } catch (e) { console.warn('Failed to parse JSON from toggle response', e); }
+				if (data && data.success && Array.isArray(data.skills)) {
+					setSelected(new Set(data.skills));
+				} else {
+					// If server returned ok but no skills array, log and do nothing
+					if (!(data && data.success)) console.warn('Toggle skill response did not include success/skills', data);
+				}
+			}
+		} catch (e) {
+			console.error('Toggle skill failed', e);
+		} finally {
+			setLoadingMap(prev => {
+				const next = { ...prev };
+				delete next[skill];
+				return next;
+			});
+		}
+	};
+
+	return (
+		<Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 0.5 }}>
+			{skills.map(s => {
+				const isSelected = selected.has(s);
+				const busy = !!loadingMap[s];
+				return (
+					<Chip
+						key={s}
+						label={s}
+						size="small"
+						variant={isSelected ? 'filled' : 'outlined'}
+						color={isSelected ? 'primary' : 'error'}
+						onClick={() => toggle(s)}
+						icon={isSelected ? <CheckIcon sx={{ color: 'white' }} /> : <CancelIcon />}
+						sx={{ cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.7 : 1 }}
+					/>
+				);
+			})}
+		</Stack>
+	);
+};
 
 /** 
 {
