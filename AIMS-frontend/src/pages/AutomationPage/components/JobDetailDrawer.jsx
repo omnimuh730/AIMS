@@ -7,6 +7,7 @@ import {
 	Divider,
 	Stack,
 	Button,
+	Chip
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import FlashOnIcon from "@mui/icons-material/FlashOn";

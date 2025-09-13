@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Container, Stack, Typography, CircularProgress, Alert } from "@mui/material";
 import useApi from "../../api/useApi";
+import useDebouncedValue from '../../utils/useDebouncedValue';
 
 // Component Imports
 import JobCard from "./components/JobCard";
@@ -19,19 +20,27 @@ function JobListingsPage() {
 	const [selectedJob, setSelectedJob] = useState(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
+	const debouncedSearch = useDebouncedValue(searchQuery, 450);
+	const debouncedFilters = useDebouncedValue(filters, 450);
+
 	const fetchJobs = useCallback(async () => {
 		try {
 			const params = new URLSearchParams();
-			if (searchQuery) params.set('q', searchQuery);
+			if (debouncedSearch) params.set('q', debouncedSearch);
 			if (sortOption) params.set('sort', sortOption);
 			params.set('page', pagination.page);
 			params.set('limit', pagination.limit);
 
 			// Add filters (flattened) only when they have values
-			Object.entries(filters).forEach(([k, v]) => {
-				if (v !== undefined && v !== null && String(v).trim() !== '') {
-					params.set(k, String(v));
+			Object.entries(debouncedFilters).forEach(([k, v]) => {
+				if (v === undefined || v === null) return;
+				// If tags array, serialize to comma-separated
+				if (Array.isArray(v)) {
+					const arr = v.map(s => String(s).trim()).filter(Boolean);
+					if (arr.length) params.set(k, arr.join(','));
+					return;
 				}
+				if (String(v).trim() !== '') params.set(k, String(v));
 			});
 			const res = await get(`http://localhost:3000/api/jobs?${params.toString()}`);
 			if (res && res.success) {

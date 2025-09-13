@@ -10,6 +10,8 @@ import {
 	Pagination,
 	Typography,
 	Grid,
+	Autocomplete,
+	Chip,
 } from '@mui/material';
 
 const SmartToolbar = ({
@@ -118,12 +120,20 @@ const SmartToolbar = ({
 								<MenuItem value="Contract">Contract</MenuItem>
 							</Select>
 						</FormControl>
-						<TextField
-							label="Tags (comma separated)"
-							size="small"
-							value={filters['company.tags'] || ''}
-							onChange={(e) => onFiltersChange({ ...filters, ['company.tags']: e.target.value })}
-							helperText="e.g. Health Care,Hospital"
+						<Autocomplete
+							multiple
+							freeSolo
+							options={[]}
+							value={Array.isArray(filters['company.tags']) ? filters['company.tags'] : (filters['company.tags'] ? String(filters['company.tags']).split(',').map(s => s.trim()).filter(Boolean) : [])}
+							onChange={(e, value) => onFiltersChange({ ...filters, ['company.tags']: value })}
+							renderTags={(value, getTagProps) =>
+								value.map((option, index) => (
+									<Chip variant="outlined" size="small" label={option} {...getTagProps({ index })} />
+								))
+							}
+							renderInput={(params) => (
+								<TextField {...params} label="Tags" placeholder="Add tag and press Enter" size="small" helperText="Press Enter to add tag" />
+							)}
 						/>
 					</Stack>
 				</Grid>
