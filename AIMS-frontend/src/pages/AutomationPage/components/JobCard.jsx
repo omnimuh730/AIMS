@@ -6,13 +6,14 @@ import {
 	CardContent,
 	Typography,
 	Grid,
-	Box,
 	Avatar,
 	Stack,
 	Chip,
 	Button,
 	IconButton,
 	Divider,
+	Box,
+	Paper
 } from "@mui/material";
 
 // MUI Icon Imports
@@ -25,6 +26,8 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import BlockIcon from "@mui/icons-material/Block";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+
+import { styled } from '@mui/material/styles';
 
 // Internal Component Import
 import DetailItem from "./DetailItem";
@@ -70,6 +73,17 @@ const JobCardHeader = ({ company, postedAgo, tags }) => (
 	</Box>
 );
 
+const Item = styled(Paper)(({ theme }) => ({
+	backgroundColor: '#fff',
+	...theme.typography.body2,
+	padding: theme.spacing(1),
+	textAlign: 'center',
+	color: (theme.vars ?? theme).palette.text.secondary,
+	...theme.applyStyles('dark', {
+		backgroundColor: '#1A2027',
+	}),
+}));
+
 const JobCardDetails = ({ details = {} }) => {
 	// Normalize different keys that may come from backend
 	const location = details.location || details.position || 'none';
@@ -80,28 +94,42 @@ const JobCardDetails = ({ details = {} }) => {
 	const salary = details.money || 'None';
 
 	return (
-		<Grid container spacing={{ xs: 1, sm: 2 }} sx={{ my: 1 }}>
-			<Grid item xs={6} sm={4}>
-				<DetailItem icon={<LocationOnIcon fontSize="small" />} text={location} />
-			</Grid>
-			{isRemote && (
-				<Grid item xs={6} sm={4}>
-					<DetailItem icon={<HomeWorkIcon fontSize="small" />} text={"Remote"} />
+		<Box sx={{ flexGrow: 1 }}>
+			<Grid container spacing={2}>
+				<Grid size={{ xs: 6, sm: 3, md: 2 }}>
+					<Item>
+						<DetailItem icon={<LocationOnIcon fontSize="small" />} text={location} />
+					</Item>
 				</Grid>
-			)}
-			<Grid item xs={6} sm={4}>
-				<DetailItem icon={<AccessTimeIcon fontSize="small" />} text={type} />
+				{isRemote && (
+					<Grid size={{ xs: 6, sm: 3, md: 2 }}>
+						<Item>
+							<DetailItem icon={<HomeWorkIcon fontSize="small" />} text={"Remote"} />
+						</Item>
+					</Grid>
+				)}
+				<Grid size={{ xs: 6, sm: 3, md: 2 }}>
+					<Item>
+						<DetailItem icon={<AccessTimeIcon fontSize="small" />} text={type} />
+					</Item>
+				</Grid>
+				<Grid size={{ xs: 6, sm: 3, md: 2 }}>
+					<Item>
+						<DetailItem icon={<LeaderboardIcon fontSize="small" />} text={level} />
+					</Item>
+				</Grid>
+				<Grid size={{ xs: 6, sm: 3, md: 2 }}>
+					<Item>
+						<DetailItem icon={<CalendarTodayIcon fontSize="small" />} text={experience} />
+					</Item>
+				</Grid>
+				<Grid size={{ xs: 6, sm: 3, md: 2 }}>
+					<Item>
+						<DetailItem icon={<AttachMoneyIcon fontSize="small" />} text={salary} />
+					</Item>
+				</Grid>
 			</Grid>
-			<Grid item xs={6} sm={4}>
-				<DetailItem icon={<LeaderboardIcon fontSize="small" />} text={level} />
-			</Grid>
-			<Grid item xs={6} sm={4}>
-				<DetailItem icon={<CalendarTodayIcon fontSize="small" />} text={experience} />
-			</Grid>
-			<Grid item xs={6} sm={4}>
-				<DetailItem icon={<AttachMoneyIcon fontSize="small" />} text={salary} />
-			</Grid>
-		</Grid>
+		</Box>
 	);
 };
 
@@ -176,8 +204,7 @@ const JobCard = ({ job, onViewDetails, onAskgllama }) => (
 		<CardContent>
 			<JobCardHeader
 				company={{
-					name: job.company.name,
-					logo: job.company.logo,
+					...job.company,
 					title: job.title,
 				}}
 				postedAgo={job.postedAgo}
