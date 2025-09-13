@@ -118,7 +118,7 @@ const SmartToolbar = ({
 		>
 			<Grid container spacing={2} alignItems="stretch">
 				{/* Search */}
-				<Grid size={{ xs: 12, md: 5 }}>
+				<Grid size={{ xs: 12, md: 4 }}>
 					<TextField
 						fullWidth
 						variant="filled"
@@ -148,8 +148,9 @@ const SmartToolbar = ({
 					/>
 				</Grid>
 
+
 				{/* Sort */}
-				<Grid size={{ xs: 12, sm: 6, md: 2 }}>
+				<Grid size={{ xs: 12, md: 2 }}>
 					<FormControl fullWidth variant="filled" size="small">
 						<InputLabel>Sort by</InputLabel>
 						<Select
@@ -175,7 +176,7 @@ const SmartToolbar = ({
 				</Grid>
 
 				{/* Pagination + Limit */}
-				<Grid size={{ xs: 12, sm: 6, md: 5 }}>
+				<Grid size={{ xs: 12, md: 6 }}>
 					<Stack
 						direction={{ xs: 'column', md: 'row' }}
 						spacing={1.5}
@@ -412,6 +413,8 @@ const SmartToolbar = ({
 						/>
 					</Stack>
 				</Grid>
+
+
 			</Grid>
 		</Box>
 	);
