@@ -61,20 +61,6 @@ function AutomationPage() {
 
 	return (
 		<div>
-			<Button
-				variant="contained"
-				color="primary"
-				style={{ margin: 16 }}
-				onClick={OpenDetails}
-			>
-				Open Details
-			</Button>
-			<Button variant="contained" color="primary" style={{ margin: 16 }}>
-				Fetch Information
-			</Button>
-			<Button variant="contained" color="primary" style={{ margin: 16 }}>
-				Remove from List
-			</Button>
 			<JobListingsPage />
 		</div>
 	);

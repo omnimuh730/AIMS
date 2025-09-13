@@ -88,7 +88,7 @@ function JobListingsPage() {
 					fontWeight="bold"
 					gutterBottom
 				>
-					Recommended Jobs
+					{`Recommended Jobs (${pagination.total || 0})`}
 				</Typography>
 				<SmartToolbar
 					searchQuery={searchQuery}
