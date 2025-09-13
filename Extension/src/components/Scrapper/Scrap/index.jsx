@@ -12,6 +12,7 @@ import PropTypes from 'prop-types'
 import { useRuntime } from '../../../api/runtimeContext';
 import useApi from '../../../api/useApi';
 import { handleClear, handleAction, handleHighlight } from '../../../api/interaction';
+import useNotification from '../../../api/useNotification';
 function CircularProgressWithLabel(props) {
 	return (
 		<Box sx={{ position: 'relative', display: 'inline-flex' }}>
@@ -57,6 +58,7 @@ const ScrapComponent = () => {
 	const [scrapFlag, setScrapFlag] = useState(false);
 
 	const { addListener, removeListener } = useRuntime();
+	const notification = useNotification();
 	const api = useApi();
 	// Map of pending resolvers for fetch requests by identifier
 	const pendingResolvers = useRef(new Map());
@@ -205,6 +207,16 @@ const ScrapComponent = () => {
 		const Benefits = await promise_sectionContent3;
 		setProgress(60);
 
+		await delay(200);
+		handleHighlight("div", "class", "?index_skill-matching-tags-area__?");
+		id = `scrap_skill_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+		const promise_skill_matching = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
+		handleAction("div", "class", "?index_skill-matching-tags-area__?", 0, "fetch", null, "text", id);
+		//Result: "Java\nSpring Boot\nMicroservices\nSQL\nRESTful APIs\nAgile Methodologies\nGit\nDocker\nKubernetes"
+		const SkillMatching = await promise_skill_matching;
+		const Skills = SkillMatching?.success ? SkillMatching.data.split('\n').map(s => s.trim()).filter(Boolean) : [];
+		setProgress(65);
+
 		setProgress(70);
 		handleHighlight("button", "id", "index_not-interest-button__?");
 		await delay(200);
@@ -294,6 +306,7 @@ const ScrapComponent = () => {
 			details: MetaTags || {},
 			applicants: ApplicantsNumber?.success ? { count: parseInt(ApplicantsNumber.data.match(/\d+/)?.[0] || "0", 10), text: ApplicantsNumber.data } : { count: 0, text: "" },
 			description: [Responsibilities?.success ? Responsibilities.data : "", Qualification?.success ? Qualification.data : "", Benefits?.success ? Benefits.data : ""].filter(s => s).join("\n\n"),
+			skills: Skills || [],
 		};
 		notification.info('Scrap completed, saving job to backend...');
 		// Send to backend
