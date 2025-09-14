@@ -42,6 +42,11 @@ function JobListingsPage() {
 					if (arr.length) params.set(k, arr.join(','));
 					return;
 				}
+				// For postedAtFrom/postedAtTo, send as UTC ISO string
+				if ((k === 'postedAtFrom' || k === 'postedAtTo') && v) {
+					params.set(k, v);
+					return;
+				}
 				if (String(v).trim() !== '') params.set(k, String(v));
 			});
 

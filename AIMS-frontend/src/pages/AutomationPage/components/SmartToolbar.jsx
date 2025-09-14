@@ -18,7 +18,13 @@ import {
 	Checkbox,
 	FormControlLabel
 } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { useTheme } from '@mui/material/styles';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
 import WorkOutlineRoundedIcon from '@mui/icons-material/WorkOutlineRounded';
@@ -65,6 +71,10 @@ const SmartToolbar = ({
 				: [])
 	);
 
+	// Date pickers local state
+	const [localPostedAtFrom, setLocalPostedAtFrom] = useState(filters.postedAtFrom ? dayjs(filters.postedAtFrom) : null);
+	const [localPostedAtTo, setLocalPostedAtTo] = useState(filters.postedAtTo ? dayjs(filters.postedAtTo) : null);
+
 	// Keep local state in sync when parent filters/search change externally
 	useEffect(() => setLocalSearch(searchQuery || ''), [searchQuery]);
 	useEffect(() => setLocalCompany(filters['company.name'] || ''), [filters]);
@@ -81,6 +91,8 @@ const SmartToolbar = ({
 					.filter(Boolean)
 				: [])
 	), [filters]);
+	useEffect(() => setLocalPostedAtFrom(filters.postedAtFrom ? dayjs(filters.postedAtFrom) : null), [filters.postedAtFrom]);
+	useEffect(() => setLocalPostedAtTo(filters.postedAtTo ? dayjs(filters.postedAtTo) : null), [filters.postedAtTo]);
 
 	const debouncedSearch = useDebouncedValue(localSearch, debounceMs);
 	const debouncedCompany = useDebouncedValue(localCompany, debounceMs);
@@ -98,6 +110,19 @@ const SmartToolbar = ({
 		if (localRemote && localRemote !== '') next['details.remote'] = localRemote; else delete next['details.remote'];
 		if (localTime && localTime !== '') next['details.time'] = localTime; else delete next['details.time'];
 		if (Array.isArray(localTags) && localTags.length) next['company.tags'] = localTags; else delete next['company.tags'];
+		// Date range: convert local to ISO UTC before sending to parent
+		if (localPostedAtFrom && dayjs(localPostedAtFrom).isValid()) {
+			const utcFrom = dayjs(localPostedAtFrom).utc().toISOString();
+			next.postedAtFrom = utcFrom;
+		} else {
+			delete next.postedAtFrom;
+		}
+		if (localPostedAtTo && dayjs(localPostedAtTo).isValid()) {
+			const utcTo = dayjs(localPostedAtTo).utc().toISOString();
+			next.postedAtTo = utcTo;
+		} else {
+			delete next.postedAtTo;
+		}
 
 		try {
 			const same = JSON.stringify(next) === JSON.stringify(filters);
@@ -105,7 +130,7 @@ const SmartToolbar = ({
 		} catch (e) {
 			onFiltersChange(next);
 		}
-	}, [debouncedCompany, debouncedPosition, localRemote, localTime, localTags, filters, onFiltersChange]);
+	}, [debouncedCompany, debouncedPosition, localRemote, localTime, localTags, localPostedAtFrom, localPostedAtTo, filters, onFiltersChange]);
 
 	return (
 		<Box
@@ -123,17 +148,15 @@ const SmartToolbar = ({
 				{/* Select All & Remove */}
 				<Grid size={{ xs: 12 }}>
 					<Stack direction="row" spacing={2} alignItems="center">
-						<input
-							type="checkbox"
+						<Checkbox
 							checked={selectAllChecked}
 							onChange={e => onSelectAll && onSelectAll(e.target.checked)}
-							style={{ marginRight: 8 }}
 						/>
 						<Typography variant="body2">Select All</Typography>
 						<button
 							onClick={onRemoveSelected}
 							disabled={disableRemove}
-							style={{ marginLeft: 16, padding: '4px 12px', borderRadius: 4, background: disableRemove ? '#eee' : '#d32f2f', color: '#fff', border: 'none', cursor: disableRemove ? 'not-allowed' : 'pointer' }}
+							style={{ marginLeft: 32, padding: '4px 12px', borderRadius: 4, background: disableRemove ? '#eee' : '#d32f2f', color: '#fff', border: 'none', cursor: disableRemove ? 'not-allowed' : 'pointer' }}
 						>
 							Remove
 						</button>
@@ -278,12 +301,12 @@ const SmartToolbar = ({
 							}}
 						/>
 						<TextField
-							label="Position / Location"
+							label="Location"
 							variant="filled"
 							size="small"
 							value={localPosition}
 							onChange={(e) => setLocalPosition(e.target.value)}
-							placeholder="e.g., Backend • Berlin"
+							placeholder="e.g., United States"
 							InputProps={{
 								startAdornment: (
 									<InputAdornment position="start">
@@ -402,6 +425,22 @@ const SmartToolbar = ({
 								},
 							}}
 						/>
+						{/* Posted date range filter */}
+
+						<LocalizationProvider dateAdapter={AdapterDayjs}>
+							<DatePicker
+								label="From date"
+								value={localPostedAtFrom}
+								onChange={date => setLocalPostedAtFrom(date)}
+								slotProps={{ textField: { variant: 'filled', size: 'small', sx: { minWidth: 160, borderRadius: 1.5 } } }}
+							/>
+							<DatePicker
+								label="To date"
+								value={localPostedAtTo}
+								onChange={date => setLocalPostedAtTo(date)}
+								slotProps={{ textField: { variant: 'filled', size: 'small', sx: { minWidth: 160, borderRadius: 1.5 } } }}
+							/>
+						</LocalizationProvider>
 						{/* LinkedIn jobs filter checkbox with MUI */}
 						<FormControlLabel
 							control={
