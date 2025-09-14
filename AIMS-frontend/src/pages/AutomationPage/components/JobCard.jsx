@@ -284,10 +284,13 @@ const MatchPanel = ({ job, userSkills }) => {
 		let postedDateScore = 0;
 		if (job.postedAt) {
 			const hoursAgo = (Date.now() - new Date(job.postedAt).getTime()) / 3600000;
-			if (hoursAgo <= 24) postedDateScore = 100;
-			else if (hoursAgo <= 48) postedDateScore = 80;
-			else if (hoursAgo <= 72) postedDateScore = 60;
-			else postedDateScore = 40;
+			const daysAgo = hoursAgo / 24;
+			const weeksAgo = daysAgo / 2;
+			if (weeksAgo >= 1)
+				return 0;
+			const fx = Math.floor(((1 - ((weeksAgo * 2) ** 4) / 16) ** 8) * 100);
+
+			postedDateScore = fx > 100 ? 0 : fx < 0 ? 0 : fx;
 		}
 		const midSalary = parseAndCalculateMidYearlySalary(job.details?.money);
 		const salaryScore = calculateSalaryScore(midSalary);
