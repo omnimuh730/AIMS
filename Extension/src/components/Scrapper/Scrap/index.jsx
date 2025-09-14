@@ -5,9 +5,11 @@ import {
 	Divider,
 	CircularProgress,
 	Typography,
-	Box
+	Paper,
+	Stack,
+	Box,
 } from '@mui/material';
-import { } from '@mui/icons-material';
+import { PlayArrow, Stop } from '@mui/icons-material';
 import PropTypes from 'prop-types'
 import { useRuntime } from '../../../api/runtimeContext';
 import useApi from '../../../api/useApi';
@@ -54,7 +56,7 @@ const ScrapComponent = () => {
 	// Mock delay function
 	const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-	const [progress, setProgress] = useState(10);
+	const [progress, setProgress] = useState(0);
 	const [scrapFlag, setScrapFlag] = useState(false);
 
 	const { addListener, removeListener } = useRuntime();
@@ -62,6 +64,8 @@ const ScrapComponent = () => {
 	const api = useApi();
 	// Map of pending resolvers for fetch requests by identifier
 	const pendingResolvers = useRef(new Map());
+
+	const [scrappedCount, setScrappedCount] = useState(0);
 
 	useEffect(() => {
 		const listener = (message) => {
@@ -114,7 +118,7 @@ const ScrapComponent = () => {
 		const CompanyLogo = CompanyLogoComponent?.success ? (new DOMParser().parseFromString(CompanyLogoComponent.data, 'text/html')).querySelector('img')?.src : null;
 		handleClear();
 		setProgress(12);
-		await delay(500);
+		await delay(200);
 		handleClear();
 
 		handleHighlight("a", "class", "?index_origin__?");
@@ -309,9 +313,13 @@ const ScrapComponent = () => {
 			// post to backend (assumes backend runs on localhost:3000)
 			await api.post('http://localhost:3000/api/jobs', resultData);
 			notification.success('Job saved successfully');
+			setScrappedCount(prev => prev + 1);
 		} catch (err) {
 			notification.error('Failed to save job');
 		}
+		setProgress(0);
+		handleClear();
+		await delay(500);
 	}
 
 	useEffect(() => {
@@ -345,22 +353,53 @@ const ScrapComponent = () => {
 	}
 
 	return (
-		<div>
-			<h1>CheckList</h1>
-			<Badge badgeContent={1} color='error'>
-				<Button variant='outlined' color='primary'>Scrap</Button>
-			</Badge>
-			<CircularProgressWithLabel value={progress} />
-			<Divider sx={{ my: 2 }} />
+		<Paper elevation={2} sx={{ p: 3, borderRadius: 2, maxWidth: 400, mx: 'auto' }}>
+			<Stack spacing={2}>
+				{/* Section 1: Title */}
+				<Typography variant="h5" component="h2" gutterBottom>
+					Scraping Controls
+				</Typography>
+				<Divider />
 
-			<div>
-				<p>div -- class -- index_job-card-main-flip1-stop?(0)</p>
-				<Button onClick={onScrapStart} disabled={scrapFlag}>Click List Item</Button>
-				<Button onClick={onScrapStop} disabled={!scrapFlag}>Stop</Button>
-			</div>
+				{/* Section 2: Progress and Stats */}
+				<Stack
+					direction="row"
+					spacing={2}
+					justifyContent="space-around"
+					alignItems="center"
+					sx={{ py: 2 }}
+				>
+					<CircularProgressWithLabel size={60} value={progress} />
+					<Box textAlign="center">
+						<Typography variant="h6">{scrappedCount}</Typography>
+						<Typography variant="body2" color="text.secondary">
+							Items Scrapped
+						</Typography>
+					</Box>
+				</Stack>
 
-			<Divider sx={{ my: 2 }} />
-		</div>
+				{/* Section 3: Action Buttons */}
+				<Stack direction="row" spacing={2} justifyContent="flex-end">
+					<Button
+						variant="outlined"
+						color="error"
+						onClick={onScrapStop}
+						disabled={!scrapFlag}
+						startIcon={<Stop />}
+					>
+						Stop
+					</Button>
+					<Button
+						variant="contained"
+						onClick={onScrapStart}
+						disabled={scrapFlag}
+						startIcon={<PlayArrow />}
+					>
+						Start Scraping
+					</Button>
+				</Stack>
+			</Stack>
+		</Paper>
 	);
 }
 
