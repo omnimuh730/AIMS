@@ -211,6 +211,7 @@ const parseAndCalculateMidYearlySalary = (salaryStr) => {
 };
 const calculateSalaryScore = (jobMidSalary) => {
 	if (jobMidSalary === null) return null;
+	/*
 	const IDEAL = { min: 120000, max: 190000, mid: 155000 }, ACCEPTABLE = { min: 90000, max: 220000 };
 	const interpolate = (val, from1, to1, from2, to2) => (((val - from1) / (to1 - from1)) * (to2 - from2)) + from2;
 	if (jobMidSalary >= IDEAL.min && jobMidSalary <= IDEAL.max) return 100 - interpolate(Math.abs(jobMidSalary - IDEAL.mid), 0, IDEAL.mid - IDEAL.min, 0, 10);
@@ -220,6 +221,11 @@ const calculateSalaryScore = (jobMidSalary) => {
 	if (jobMidSalary < ACCEPTABLE.min) return Math.max(0, interpolate(jobMidSalary, ACCEPTABLE.min - BUFFER, ACCEPTABLE.min, 0, 50));
 	if (jobMidSalary > ACCEPTABLE.max) return Math.max(0, interpolate(jobMidSalary, ACCEPTABLE.max, ACCEPTABLE.max + BUFFER, 50, 0));
 	return 0;
+	*/
+	if (jobMidSalary > 140000) return 100;
+	const x = jobMidSalary / 100000;
+	const score = (-(((x - 1.4) / 0.55) ** 4) + 1) ** 2;
+	return score > 1 ? 0 : Math.round(score * 100);
 };
 
 // --- UI HELPER COMPONENTS ---
@@ -256,9 +262,17 @@ const MetricItem = ({ label, score }) => {
 // --- THE MAIN MATCH PANEL COMPONENT (with corrected 2x2 Grid Layout) ---
 const MatchPanel = ({ job, userSkills }) => {
 	const scores = useMemo(() => {
+		//Example of userSkills
+		/*
+			[
+				"Cloud-based product experience",
+				"React",
+				"Ruby on Rails",
+				"Documentation"
+			]
+		*/
 		const requiredSkills = job.skills || [];
-		const userSkillSet = new Set((userSkills || []).map(s => s.toLowerCase()));
-		const matchedCount = requiredSkills.filter(req => userSkillSet.has(req.toLowerCase())).length;
+		const matchedCount = requiredSkills.filter(item => userSkills.includes(item)).length;
 		const skillMatch = requiredSkills.length > 0 ? (matchedCount / requiredSkills.length) * 100 : 0;
 		const applicantCount = job.applicants?.count;
 		let applicantScore = 0;
@@ -319,7 +333,7 @@ const MatchPanel = ({ job, userSkills }) => {
 };
 
 // --- Main Exported Component - MODIFIED FOR LAYOUT ---
-const JobCard = ({ job, onViewDetails, onAskgllama }) => (
+const JobCard = ({ job, userSkills, onViewDetails, onAskgllama }) => (
 	<Box sx={{ display: 'flex' }}>
 		{/* This is your original Card component, now acting as the left panel */}
 		<Card
@@ -353,7 +367,7 @@ const JobCard = ({ job, onViewDetails, onAskgllama }) => (
 		</Card>
 
 		{/* This is the new right panel for the percentage UI */}
-		<MatchPanel job={job} userSkills={null} />
+		<MatchPanel job={job} userSkills={userSkills} />
 	</Box>
 );
 

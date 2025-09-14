@@ -18,7 +18,9 @@ function JobListingsPage() {
 
 	const [selectedJob, setSelectedJob] = useState(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [userSkills, setUserSkills] = useState([]);
 
+	// Fetch jobs
 	const fetchJobs = useCallback(async () => {
 		try {
 			const params = new URLSearchParams();
@@ -48,9 +50,25 @@ function JobListingsPage() {
 		}
 	}, [searchQuery, sortOption, pagination.page, pagination.limit, get, filters]);
 
+	// Fetch user skills
+	const fetchUserSkills = useCallback(async () => {
+		try {
+			const res = await get('http://localhost:3000/api/personal/skills');
+			if (res && res.success && Array.isArray(res.skills)) {
+				setUserSkills(res.skills);
+			}
+		} catch (err) {
+			console.warn('Failed to fetch user skills', err);
+		}
+	}, [get]);
+
 	useEffect(() => {
 		fetchJobs();
 	}, [fetchJobs]);
+
+	useEffect(() => {
+		fetchUserSkills();
+	}, [fetchUserSkills]);
 
 	const handleViewDetails = (job) => {
 		setSelectedJob(job);
@@ -110,6 +128,7 @@ function JobListingsPage() {
 						<JobCard
 							key={job.id || (job._id ? String(job._id) : idx)}
 							job={job}
+							userSkills={userSkills}
 							onViewDetails={handleViewDetails}
 							onAskgllama={handleAskgllama}
 						/>
