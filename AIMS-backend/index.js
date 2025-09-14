@@ -7,6 +7,7 @@ import cors from 'cors';
 import { MongoClient } from "mongodb";
 
 import { SOCKET_PROTOCOL } from "../configs/socket_protocol.js";
+import { calculateJobScores } from "../configs/jobScore.js";
 
 dotenv.config();
 
@@ -206,6 +207,14 @@ app.get('/api/jobs', async (req, res) => {
 		}
 
 		const { q, sort, page = 1, limit = 10, ...filters } = req.query;
+		// For recommended sort, userSkills may come from body or query (frontend sends in body for GET)
+		let userSkills = [];
+		if (req.body && Array.isArray(req.body.userSkills)) {
+			userSkills = req.body.userSkills;
+		} else if (req.query.userSkills) {
+			// If sent as query param (comma separated)
+			userSkills = Array.isArray(req.query.userSkills) ? req.query.userSkills : String(req.query.userSkills).split(',').map(s => s.trim()).filter(Boolean);
+		}
 
 		// 1. Build Query
 		const query = {};
@@ -239,29 +248,37 @@ app.get('/api/jobs', async (req, res) => {
 		}
 
 		// 2. Build Sort
-		// Build sort option safely: avoid empty field names which cause Mongo errors
-		const sortOption = {};
-		if (sort && typeof sort === 'string') {
-			const [sortField = '', sortOrder] = sort.split('_');
-			if (sortField && sortField.trim().length > 0) {
-				sortOption[sortField] = sortOrder === 'desc' ? -1 : 1;
-			} else {
-				// fallback to default if field is empty
-				sortOption._createdAt = -1;
-			}
-		} else {
-			sortOption._createdAt = -1; // Default sort
-		}
-
-		// 3. Pagination
 		const pageNum = Math.max(1, parseInt(page, 10) || 1);
 		const limitNum = Math.max(1, parseInt(limit, 10) || 10);
 		const skip = (pageNum - 1) * limitNum;
 
-		// Execute query
-		const cursor = jobsCollection.find(query).sort(sortOption).skip(skip).limit(limitNum);
-		const docs = await cursor.toArray();
-		const total = await jobsCollection.countDocuments(query);
+		let docs;
+		let total = await jobsCollection.countDocuments(query);
+
+		if (sort === 'recommended' && userSkills.length > 0) {
+			// Fetch all matching jobs, score and sort by overallScore
+			docs = await jobsCollection.find(query).toArray();
+			docs.forEach(job => {
+				job._score = calculateJobScores(job, userSkills).overallScore;
+			});
+			docs.sort((a, b) => b._score - a._score);
+			docs = docs.slice(skip, skip + limitNum);
+		} else {
+			// Build sort option safely: avoid empty field names which cause Mongo errors
+			const sortOption = {};
+			if (sort && typeof sort === 'string') {
+				const [sortField = '', sortOrder] = sort.split('_');
+				if (sortField && sortField.trim().length > 0) {
+					sortOption[sortField] = sortOrder === 'desc' ? -1 : 1;
+				} else {
+					// fallback to default if field is empty
+					sortOption._createdAt = -1;
+				}
+			} else {
+				sortOption._createdAt = -1; // Default sort
+			}
+			docs = await jobsCollection.find(query).sort(sortOption).skip(skip).limit(limitNum).toArray();
+		}
 
 		return res.json({
 			success: true,

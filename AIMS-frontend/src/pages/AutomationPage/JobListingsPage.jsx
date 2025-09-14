@@ -25,7 +25,7 @@ function JobListingsPage() {
 		try {
 			const params = new URLSearchParams();
 			if (searchQuery) params.set('q', searchQuery);
-			if (sortOption) params.set('sort', sortOption);
+			if (sortOption && sortOption !== 'recommended') params.set('sort', sortOption);
 			params.set('page', pagination.page);
 			params.set('limit', pagination.limit);
 
@@ -40,7 +40,16 @@ function JobListingsPage() {
 				}
 				if (String(v).trim() !== '') params.set(k, String(v));
 			});
-			const res = await get(`http://localhost:3000/api/jobs?${params.toString()}`);
+
+			let res;
+			if (sortOption === 'recommended') {
+				// Send userSkills to backend for recommended sort
+				res = await get(`http://localhost:3000/api/jobs?${params.toString()}`, {
+					userSkills: userSkills
+				});
+			} else {
+				res = await get(`http://localhost:3000/api/jobs?${params.toString()}`);
+			}
 			if (res && res.success) {
 				setJobs(res.data);
 				setPagination(res.pagination);
@@ -48,7 +57,7 @@ function JobListingsPage() {
 		} catch (err) {
 			console.warn('Failed to fetch jobs from backend', err);
 		}
-	}, [searchQuery, sortOption, pagination.page, pagination.limit, get, filters]);
+	}, [searchQuery, sortOption, pagination.page, pagination.limit, get, filters, userSkills]);
 
 	// Fetch user skills
 	const fetchUserSkills = useCallback(async () => {

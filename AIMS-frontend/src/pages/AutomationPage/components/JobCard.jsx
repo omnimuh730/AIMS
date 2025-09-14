@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { calculateJobScores } from "../../../utils/jobScore";
+import { calculateJobScores } from '../../../../../configs/jobScore';
 
 // MUI Imports
 import {

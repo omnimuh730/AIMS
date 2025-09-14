@@ -154,8 +154,7 @@ const SmartToolbar = ({
 						>
 							<MenuItem value="_createdAt_desc">Newest</MenuItem>
 							<MenuItem value="_createdAt_asc">Oldest</MenuItem>
-							<MenuItem value="title_asc">Title (A-Z)</MenuItem>
-							<MenuItem value="title_desc">Title (Z-A)</MenuItem>
+							<MenuItem value="recommended">Recommended</MenuItem>
 						</Select>
 					</FormControl>
 				</Grid>
