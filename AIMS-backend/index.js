@@ -207,7 +207,7 @@ app.get('/api/jobs', async (req, res) => {
 			return res.status(503).json({ success: false, error: 'Database not ready' });
 		}
 
-		const { q, sort, page = 1, limit = 10, ...filters } = req.query;
+		const { q, sort, page = 1, limit = 10, showLinkedInOnly = 'true', ...filters } = req.query;
 		// For recommended sort, userSkills comes from query param (comma separated)
 		let userSkills = [];
 		if (req.query.userSkills) {
@@ -220,6 +220,11 @@ app.get('/api/jobs', async (req, res) => {
 		// Search - limit to title only for performance
 		if (q) {
 			query.title = { $regex: q, $options: 'i' };
+		}
+
+		// LinkedIn jobs filter
+		if (showLinkedInOnly === 'false' || showLinkedInOnly === false) {
+			query.applyLink = { $not: /linkedin\.com/ };
 		}
 
 		// 2. Build Sort

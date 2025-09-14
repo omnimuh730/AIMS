@@ -14,7 +14,9 @@ import {
 	Chip,
 	InputAdornment,
 	Divider,
-	useMediaQuery
+	useMediaQuery,
+	Checkbox,
+	FormControlLabel
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -235,6 +237,7 @@ const SmartToolbar = ({
 								<MenuItem value={10}>10</MenuItem>
 								<MenuItem value={25}>25</MenuItem>
 								<MenuItem value={50}>50</MenuItem>
+								<MenuItem value={100}>100</MenuItem>
 							</Select>
 						</FormControl>
 					</Stack>
@@ -399,16 +402,18 @@ const SmartToolbar = ({
 								},
 							}}
 						/>
-						{/* LinkedIn jobs filter checkbox */}
-						<Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-							<input
-								type="checkbox"
-								checked={showLinkedInOnly}
-								onChange={e => onShowLinkedInOnlyChange && onShowLinkedInOnlyChange(e.target.checked)}
-								style={{ marginRight: 8 }}
-							/>
-							<Typography variant="body2">Show LinkedIn jobs only</Typography>
-						</Box>
+						{/* LinkedIn jobs filter checkbox with MUI */}
+						<FormControlLabel
+							control={
+								<Checkbox
+									checked={showLinkedInOnly}
+									onChange={e => onShowLinkedInOnlyChange && onShowLinkedInOnlyChange(e.target.checked)}
+									sx={{ p: 2 }}
+								/>
+							}
+							label={<Typography variant="h6" sx={{ fontWeight: 'bold' }}>LinkedIn Jobs</Typography>}
+							sx={{ ml: 2, alignItems: 'center', minHeight: 56 }}
+						/>
 					</Stack>
 				</Grid>
 

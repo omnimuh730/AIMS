@@ -13,7 +13,7 @@ function JobListingsPage() {
 	const [jobs, setJobs] = useState([]);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [sortOption, setSortOption] = useState("_createdAt_desc");
-	const [filters, setFilters] = useState({});
+	const [filters, setFilters] = useState({ showLinkedInOnly: true });
 	const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
 	const { loading, error, get, post } = useApi();
 
@@ -180,17 +180,22 @@ function JobListingsPage() {
 				) : error ? (
 					<Alert severity="error">Failed to load jobs. Please try again later.</Alert>
 				) : (
-					jobs.map((job, idx) => (
-						<JobCard
-							key={job._id || job.id || idx}
-							job={job}
-							userSkills={userSkills}
-							onViewDetails={handleViewDetails}
-							onAskgllama={handleAskgllama}
-							checked={selectedIds.includes(job._id || job.id)}
-							onCheck={(checked) => handleSelectJob(job._id || job.id, checked)}
-						/>
-					))
+					jobs
+						.filter(job => {
+							if (filters.showLinkedInOnly) return true;
+							return !(job.applyLink && job.applyLink.includes('linkedin.com'));
+						})
+						.map((job, idx) => (
+							<JobCard
+								key={job._id || job.id || idx}
+								job={job}
+								userSkills={userSkills}
+								onViewDetails={handleViewDetails}
+								onAskgllama={handleAskgllama}
+								checked={selectedIds.includes(job._id || job.id)}
+								onCheck={(checked) => handleSelectJob(job._id || job.id, checked)}
+							/>
+						))
 				)}
 			</Stack>
 
