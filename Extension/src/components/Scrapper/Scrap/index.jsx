@@ -395,7 +395,7 @@ const ScrapComponent = () => {
 						disabled={scrapFlag}
 						startIcon={<PlayArrow />}
 					>
-						Start Scraping
+						Start
 					</Button>
 				</Stack>
 			</Stack>
