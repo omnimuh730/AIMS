@@ -91,16 +91,18 @@ const ScrapComponent = () => {
 		// Handle the click event for the list item
 		handleHighlight("div", "class", "?index_job-card-main-flip1-stop?");
 		handleAction("div", "class", "?index_job-card-main-flip1-stop?", 0, "click", "");
-		await delay(200);
+		await delay(500);
 		handleClear();
 		setProgress(10);
+
+		handleClear();
 
 		//Wait still job details screen is showing.
 		let id = `scrap_wait_for_details_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_waitfor_jobdetails = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
 		handleAction("div", "class", "?index_jobdetail-enter?", 0, "fetch", null, "text", id);
 		await promise_waitfor_jobdetails;
-		await delay(1000);
+		await delay(500);
 
 		//<img alt="company-logo" loading="lazy" width="44" height="44" decoding="async" data-nimg="1" class="index_company-logo-img__AE9Vx" src="https://media.licdn.com/dms/image/v2/C4D0BAQGJi1QGUgQtAA/company-logo_100_100/company-logo_100_100/0/1644946892309/emids_logo?e=2147483647&amp;v=beta&amp;t=BeIEzLKIWNUgH7ZPLKTcU3BHQ1XqD2tjcwx1NgBLkw0" style="color: transparent;">
 		//Fetch Company Logo URL
@@ -112,7 +114,8 @@ const ScrapComponent = () => {
 		const CompanyLogo = CompanyLogoComponent?.success ? (new DOMParser().parseFromString(CompanyLogoComponent.data, 'text/html')).querySelector('img')?.src : null;
 		handleClear();
 		setProgress(12);
-		await delay(200);
+		await delay(500);
+		handleClear();
 
 		handleHighlight("a", "class", "?index_origin__?");
 		id = `scrap_apply_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
@@ -123,18 +126,18 @@ const ScrapComponent = () => {
 
 		const ApplyLink = LinkComponent?.success ? (new DOMParser().parseFromString(LinkComponent.data, 'text/html')).querySelector('a')?.href : null;
 		setProgress(15);
+		await delay(200);
 		handleClear();
 
-		await delay(200);
 		handleHighlight("div", "class", "?index_jobTag__?");
 		id = `scrap_applicants_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_jobTag = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
 		handleAction("div", "class", "?index_jobTag__?", 0, "fetch", null, "text", id);
 		const ApplicantsNumber = await promise_jobTag;
 		setProgress(20);
+		await delay(200);
 		handleClear();
 
-		await delay(200);
 		handleHighlight("h2", "class", "?index_company-row__?");
 		id = `scrap_company_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_companyRow = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -148,18 +151,18 @@ const ScrapComponent = () => {
 		const CompanyName = CompanyRawComponent?.success ? (new DOMParser().parseFromString(CompanyRawComponent.data, 'text/html')).querySelector('strong')?.innerText : null;
 		const PublishTime = CompanyRawComponent?.success ? (new DOMParser().parseFromString(CompanyRawComponent.data, 'text/html')).querySelector('span')?.innerText.replace(' · ', '') : null;
 		setProgress(25);
+		await delay(200);
 		handleClear();
 
-		await delay(200);
 		handleHighlight("h1", "class", "?index_job-title__?");
 		id = `scrap_title_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_jobTitle = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
 		handleAction("h1", "class", "?index_job-title__?", 0, "fetch", null, "text", id);
 		const JobTitle = await promise_jobTitle;
 		setProgress(30);
+		await delay(200);
 		handleClear();
 
-		await delay(200);
 		handleHighlight("div", "class", "?index_job-metadata-row__?");
 		id = `scrap_meta_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_job_metadata = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -175,18 +178,18 @@ const ScrapComponent = () => {
 			return acc;
 		}, {}) : {};
 		setProgress(35);
+		await delay(200);
 		handleClear();
 
-		await delay(200);
 		handleHighlight("p", "class", "?index_company-summary__?");
 		id = `scrap_summary_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_company_summary = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
 		handleAction("p", "class", "?index_company-summary__?", 0, "fetch", null, "text", id);
 		const CompanySummary = await promise_company_summary;
 		setProgress(40);
+		await delay(200);
 		handleClear();
 
-		await delay(200);
 		handleHighlight("div", "class", "?index_companyTags?");
 		id = `scrap_tags_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_companyTags = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -198,36 +201,36 @@ const ScrapComponent = () => {
 		const CompanyTagsComponent = await promise_companyTags;
 		const CompanyTags = CompanyTagsComponent?.success ? Array.from((new DOMParser().parseFromString(CompanyTagsComponent.data, 'text/html')).querySelectorAll('span.ant-tag')).map(span => span.innerText) : [];
 		setProgress(45)
+		await delay(200);
 		handleClear();
 
-		await delay(200);
 		handleHighlight("section", "class", "?index_sectionContent__?");
 		id = `scrap_resp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_sectionContent1 = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
 		handleAction("section", "class", "?index_sectionContent__?", 2, "fetch", null, "text", id);
 		const Responsibilities = await promise_sectionContent1;
 		setProgress(50);
+		await delay(200);
 		handleClear();
 
-		await delay(200);
 		handleHighlight("section", "class", "?index_sectionContent__?");
 		id = `scrap_qual_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_sectionContent2 = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
 		handleAction("section", "class", "?index_sectionContent__?", 3, "fetch", null, "text", id);
 		const Qualification = await promise_sectionContent2;
 		setProgress(55);
+		await delay(200);
 		handleClear();
 
-		await delay(200);
 		handleHighlight("section", "class", "?index_sectionContent__?");
 		id = `scrap_ben_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_sectionContent3 = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
 		handleAction("section", "class", "?index_sectionContent__?", 4, "fetch", null, "text", id);
 		const Benefits = await promise_sectionContent3;
 		setProgress(60);
+		await delay(200);
 		handleClear();
 
-		await delay(200);
 		handleHighlight("div", "class", "?index_skill-matching-tags-area__?");
 		id = `scrap_skill_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 		const promise_skill_matching = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
@@ -237,10 +240,10 @@ const ScrapComponent = () => {
 		const Skills = SkillMatching?.success ? SkillMatching.data.split('\n').map(s => s.trim()).filter(Boolean) : [];
 		setProgress(65);
 		handleClear();
+		await delay(500);
 
 		setProgress(70);
 		handleHighlight("button", "id", "index_not-interest-button__?");
-		await delay(500);
 		// click
 		handleAction("button", "id", "index_not-interest-button__?", 0, "click", "");
 		await delay(500);
@@ -257,6 +260,7 @@ const ScrapComponent = () => {
 		handleAction("button", "class", "?index_not-interest-popup-button__?", 1, "click", "");
 		await delay(500);
 		setProgress(100);
+		handleClear();
 
 		// Wait until job item list is showing
 		// We need to wait until object_waitfor_joblist.success is false. If it gets true, step over, but if it's false, wait again to be true.
@@ -276,37 +280,6 @@ const ScrapComponent = () => {
 				await delay(1500);
 			}
 		}
-		/*
-{
-		id: 1,
-		postedAgo: "22 minutes ago",
-		tags: ["Be an early applicant", "2 former colleagues work here"],
-		company: {
-			name: "JRD Systems",
-			logo: "https://via.placeholder.com/150/FFC107/000000?Text=JRD",
-		},
-		title: "Senior Java Developer",
-		details: {
-			location: "Downey, CA",
-			isRemote: true,
-			type: "Contract",
-			level: "Senior Level",
-			experience: "7+ years exp",
-			salary: null,
-		},
-		applicants: {
-			count: 24,
-			text: "Less than 25 applicants",
-		},
-		description: `<strong>About the Role:</strong><br/>We are seeking a seasoned Senior Java Developer to join our dynamic team. The ideal candidate will have extensive experience in building high-performing, scalable, enterprise-grade applications.<br/><br/><strong>Responsibilities:</strong><ul><li>Design and develop high-volume, low-latency applications for mission-critical systems.</li><li>Contribute in all phases of the development lifecycle.</li><li>Write well-designed, testable, efficient code.</li></ul><strong>Requirements:</strong><ul><li>7+ years of proven working experience in Java development.</li><li>Hands on experience in designing and developing applications using Java EE platforms.</li><li>Object-Oriented analysis and design using common design patterns.</li></ul>`,
-	}
-*/
-		// Collect all received result and put it into JSON schema
-		/* example of ApplicantsNumber : {
-			"identifier": "scrap_applicants_1757697955016_ipjk",
-			"success": true,
-			"data": "Be an early applicant\nLess than 25 applicants"
-		}*/
 		//Split the data by new line and trim each item
 		const parseApplicantsTags = (data) => {
 			return data.split('\n').map(tag => tag.trim()).filter(tag => tag);
@@ -322,7 +295,7 @@ const ScrapComponent = () => {
 			company: {
 				name: CompanyName || "",
 				tags: CompanyTags || [],
-				logo: CompanyLogo?.success ? CompanyLogo.data : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGRo4_tzLdMlx9Bzp9ZyFGo0VdeHbJt_rfYQ&s",
+				logo: CompanyLogoComponent?.success ? CompanyLogo : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGRo4_tzLdMlx9Bzp9ZyFGo0VdeHbJt_rfYQ&s",
 			},
 			title: JobTitle?.success ? JobTitle.data : "",
 			details: MetaTags || {},
