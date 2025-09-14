@@ -50,11 +50,9 @@ const SetupComponent = () => {
 
 	const [isLevel1Connected, setIsLevel1Connected] = useState(false);
 	const [isLevel2Connected, setIsLevel2Connected] = useState(false);
-	const [isJobrightOpen, setIsJobrightOpen] = useState(false);
 
 	useEffect(() => {
 		if (socket) {
-			console.log("socket in setup component:", socket);
 			// Level 1 connection check
 			// Emit a connection event to check Level 1 connection
 			// The backend should respond with a 'connection' event
@@ -82,7 +80,6 @@ const SetupComponent = () => {
 			});
 
 			socket.on(SOCKET_PROTOCOL.TYPE.CONNECTION, (data) => {
-				console.log(data);
 				switch (data.payload.purpose) {
 					case SOCKET_PROTOCOL.IDENTIFIER.PURPOSE.CHECK_CONNECTIONS:
 						// Handle the check_connections purpose
@@ -97,12 +94,12 @@ const SetupComponent = () => {
 						break;
 					// Add more cases as needed
 					default:
-						console.log('Connection status received:', data);
+						break;
 				}
 			});
 
 			socket.on(SOCKET_PROTOCOL.STATUS.DISCONNECTED, (reason) => {
-				console.log('Socket disconnected:', reason);
+				notification.error(`${SOCKET_MESSAGE.LEVEL1_DISCONNECTED} - ${reason}`);
 				setIsLevel1Connected(false);
 			});
 
@@ -112,7 +109,7 @@ const SetupComponent = () => {
 				socket.off(SOCKET_PROTOCOL.STATUS.DISCONNECTED);
 			};
 		}
-	}, [socket]);
+	}, [socket, notification]);
 
 	return (
 		<Card sx={{ maxWidth: 500, mx: 'auto', mt: 4, borderRadius: 3, boxShadow: 3 }}>
@@ -134,12 +131,6 @@ const SetupComponent = () => {
 						isConnected={isLevel2Connected}
 						successText="Connected"
 						failText="Not Connected"
-					/>
-					<StatusRow
-						label="Website"
-						isConnected={isJobrightOpen}
-						successText="Opened"
-						failText="Not Opened"
 					/>
 				</Stack>
 			</CardContent>

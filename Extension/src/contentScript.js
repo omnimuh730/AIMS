@@ -152,8 +152,6 @@ async function performActionOnElement(payload) {
 	const targetElement = elements[order];
 	targetElement.focus(); // Focus the element first for a better user experience
 
-	console.log(`Performing action '${action}' on element`, targetElement);
-
 	switch (action) {
 		case "click":
 			targetElement.click();
@@ -168,7 +166,7 @@ async function performActionOnElement(payload) {
 			typeSmoothly(targetElement, value);
 			break;
 		default:
-			console.log(`Unknown action: ${action}`);
+			break;
 	}
 }
 
