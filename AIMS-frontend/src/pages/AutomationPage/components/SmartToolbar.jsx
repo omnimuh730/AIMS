@@ -33,10 +33,13 @@ const SmartToolbar = ({
 	pagination,
 	onPageChange,
 	onLimitChange,
-	// new advanced filters
 	filters = {},
 	onFiltersChange = () => { },
 	debounceMs = 600,
+	selectAllChecked = false,
+	onSelectAll,
+	onRemoveSelected,
+	disableRemove = false,
 }) => {
 	const theme = useTheme();
 	const isSmDown = useMediaQuery(theme.breakpoints.down('sm'));
@@ -113,6 +116,25 @@ const SmartToolbar = ({
 			}}
 		>
 			<Grid container spacing={2} alignItems="stretch">
+				{/* Select All & Remove */}
+				<Grid size={{ xs: 12 }}>
+					<Stack direction="row" spacing={2} alignItems="center">
+						<input
+							type="checkbox"
+							checked={selectAllChecked}
+							onChange={e => onSelectAll && onSelectAll(e.target.checked)}
+							style={{ marginRight: 8 }}
+						/>
+						<Typography variant="body2">Select All</Typography>
+						<button
+							onClick={onRemoveSelected}
+							disabled={disableRemove}
+							style={{ marginLeft: 16, padding: '4px 12px', borderRadius: 4, background: disableRemove ? '#eee' : '#d32f2f', color: '#fff', border: 'none', cursor: disableRemove ? 'not-allowed' : 'pointer' }}
+						>
+							Remove
+						</button>
+					</Stack>
+				</Grid>
 				{/* Search */}
 				<Grid size={{ xs: 12, md: 4 }}>
 					<TextField

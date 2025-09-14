@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import useNotification from '../../api/useNotification';
 import { Container, Stack, Typography, CircularProgress, Alert } from "@mui/material";
 import useApi from "../../api/useApi";
 
@@ -14,11 +15,13 @@ function JobListingsPage() {
 	const [sortOption, setSortOption] = useState("_createdAt_desc");
 	const [filters, setFilters] = useState({});
 	const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
-	const { loading, error, get } = useApi();
+	const { loading, error, get, post } = useApi();
 
 	const [selectedJob, setSelectedJob] = useState(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [userSkills, setUserSkills] = useState([]);
+	const [selectedIds, setSelectedIds] = useState([]);
+	const notification = useNotification();
 
 	// Fetch jobs
 	const fetchJobs = useCallback(async () => {
@@ -102,6 +105,39 @@ function JobListingsPage() {
 		setPagination(prev => ({ ...prev, limit: newLimit, page: 1 }));
 	};
 
+	// Select all jobs on current page
+	const handleSelectAll = (checked) => {
+		if (checked) {
+			setSelectedIds(jobs.map(job => job._id || job.id));
+		} else {
+			setSelectedIds([]);
+		}
+	};
+
+	// Toggle single job selection
+	const handleSelectJob = (id, checked) => {
+		setSelectedIds(prev => checked ? [...prev, id] : prev.filter(_id => _id !== id));
+	};
+
+	// Remove selected jobs
+	const handleRemoveSelected = async () => {
+		if (!selectedIds.length) return;
+		try {
+			// Send ids as strings for backend compatibility
+			const ids = selectedIds.map(id => typeof id === 'object' && id.$oid ? id.$oid : String(id));
+			const res = await post('http://localhost:3000/api/jobs/remove', { ids });
+			if (res && res.success) {
+				notification.success(`Removed ${res.deletedCount || 0} job(s)`);
+				setSelectedIds([]);
+				fetchJobs();
+			} else {
+				notification.error('Failed to remove jobs');
+			}
+		} catch (err) {
+			notification.error('Failed to remove jobs');
+		}
+	};
+
 	return (
 		<Container
 			maxWidth="xl"
@@ -126,6 +162,10 @@ function JobListingsPage() {
 					onLimitChange={handleLimitChange}
 					filters={filters}
 					onFiltersChange={(next) => { setFilters(next); setPagination(p => ({ ...p, page: 1 })); }}
+					selectAllChecked={selectedIds.length === jobs.length && jobs.length > 0}
+					onSelectAll={handleSelectAll}
+					onRemoveSelected={handleRemoveSelected}
+					disableRemove={!selectedIds.length}
 				/>
 				{loading ? (
 					<CircularProgress />
@@ -134,11 +174,13 @@ function JobListingsPage() {
 				) : (
 					jobs.map((job, idx) => (
 						<JobCard
-							key={job.id || (job._id ? String(job._id) : idx)}
+							key={job._id || job.id || idx}
 							job={job}
 							userSkills={userSkills}
 							onViewDetails={handleViewDetails}
 							onAskgllama={handleAskgllama}
+							checked={selectedIds.includes(job._id || job.id)}
+							onCheck={(checked) => handleSelectJob(job._id || job.id, checked)}
 						/>
 					))
 				)}

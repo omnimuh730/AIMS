@@ -14,8 +14,9 @@ function estimateApplicants({
 	// --- Step 1: Calculate Elapsed Times in Hours ---
 
 	// Validate the known data point to prevent mathematical errors (e.g., log of a negative number)
-	if (applicants_datapoint <= 0 || applicants_datapoint >= max_applicants) {
-		throw new Error("applicants_datapoint must be a positive number and less than max_applicants.");
+	if (applicants_datapoint < 0 || applicants_datapoint >= max_applicants) {
+		console.log("applicants_datapoint must be a positive number and less than max_applicants.");
+		return 0;
 	}
 
 	// Date subtraction in JS gives milliseconds. Convert to hours.
@@ -25,7 +26,8 @@ function estimateApplicants({
 
 	// Edge case: Avoid division by zero if our data point happens to be exactly at the peak time.
 	if (t_known === t0_peak_time_hours) {
-		throw new Error("Cannot calculate growth rate 'k' because the data point is at the assumed peak time (t_known equals t0). Please choose a different t0 or provide a different data point.");
+		console.log("Cannot calculate growth rate 'k' because the data point is at the assumed peak time (t_known equals t0). Please choose a different t0 or provide a different data point.");
+		return 0;
 	}
 
 

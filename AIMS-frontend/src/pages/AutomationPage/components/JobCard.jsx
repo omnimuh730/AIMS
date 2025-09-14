@@ -235,8 +235,6 @@ const MetricItem = ({ label, score }) => {
 const MatchPanel = ({ job, userSkills }) => {
 	const scores = useMemo(() => calculateJobScores(job, userSkills), [job, userSkills]);
 
-	console.log('scores, job, userskills', scores, job, userSkills);
-
 	return (
 		<Paper variant="outlined" sx={{ width: 340, minWidth: 240, p: 2, borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeft: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 			{/* Overall Score */}
@@ -267,8 +265,14 @@ const MatchPanel = ({ job, userSkills }) => {
 };
 
 // --- Main Exported Component - MODIFIED FOR LAYOUT ---
-const JobCard = ({ job, userSkills, onViewDetails, onAskgllama }) => (
-	<Box sx={{ display: 'flex' }}>
+const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, checked, onCheck }) => (
+	<Box sx={{ display: 'flex', alignItems: 'center' }}>
+		<input
+			type="checkbox"
+			checked={checked}
+			onChange={e => onCheck && onCheck(e.target.checked)}
+			style={{ marginRight: 12, marginLeft: 8 }}
+		/>
 		{/* This is your original Card component, now acting as the left panel */}
 		<Card
 			variant="outlined"

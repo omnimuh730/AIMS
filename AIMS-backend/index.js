@@ -1,10 +1,11 @@
+
 import express from "express";
 import http from "http";
 
 import { Server } from "socket.io";
 import dotenv from "dotenv";
 import cors from 'cors';
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 
 import { SOCKET_PROTOCOL } from "../configs/socket_protocol.js";
 import { calculateJobScores } from "../configs/jobScore.js";
@@ -221,32 +222,6 @@ app.get('/api/jobs', async (req, res) => {
 			query.title = { $regex: q, $options: 'i' };
 		}
 
-		// Filters - ignore empty keys/values. If a value contains commas treat as $in
-		/*
-		for (const key in filters) {
-			if (key === 'skill' || key === 'skills' || key === 'skillset' || key === 'skill_set') continue; // Ignore skill filters
-			let value = filters[key];
-			if (!key || value === undefined || value === '') continue;
-			// If comma-separated, create an array of trimmed values and remove empties
-			if (typeof value === 'string' && value.includes(',')) {
-				const arr = value.split(',').map(v => v.trim()).filter(Boolean);
-				if (arr.length > 0) {
-					// Try to convert numeric strings to numbers
-					const converted = arr.map(v => (v !== '' && !isNaN(v) ? Number(v) : v));
-					query[key] = { $in: converted };
-				}
-			} else {
-				// single value - trim
-				if (typeof value === 'string') value = value.trim();
-				if (value !== '') {
-					// try convert numeric
-					const conv = (typeof value === 'string' && !isNaN(value)) ? Number(value) : value;
-					query[key] = conv;
-				}
-			}
-		}
-			*/
-
 		// 2. Build Sort
 		const pageNum = Math.max(1, parseInt(page, 10) || 1);
 		const limitNum = Math.max(1, parseInt(limit, 10) || 10);
@@ -348,6 +323,29 @@ app.delete('/api/personal/skills', async (req, res) => {
 		return res.json({ success: true, skills: docs.map(d => d.name) });
 	} catch (err) {
 		console.error('DELETE /api/personal/skills error', err);
+		return res.status(500).json({ success: false, error: err.message });
+	}
+});
+
+// Remove jobs by array of IDs
+app.post('/api/jobs/remove', async (req, res) => {
+	try {
+		if (!jobsCollection) return res.status(503).json({ success: false, error: 'Database not ready' });
+		const { ids } = req.body;
+		if (!Array.isArray(ids) || !ids.length) return res.status(400).json({ success: false, error: 'Missing ids array' });
+		// Convert all ids to ObjectId
+		const objectIds = ids.map(id => {
+			try {
+				return new ObjectId(id);
+			} catch {
+				return null;
+			}
+		}).filter(Boolean);
+
+		const result = await jobsCollection.deleteMany({ _id: { $in: objectIds } });
+		return res.json({ success: true, deletedCount: result.deletedCount });
+	} catch (err) {
+		console.error('POST /api/jobs/remove error', err);
 		return res.status(500).json({ success: false, error: err.message });
 	}
 });
