@@ -21,6 +21,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { useTheme } from '@mui/material/styles';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -145,23 +146,6 @@ const SmartToolbar = ({
 			}}
 		>
 			<Grid container spacing={2} alignItems="stretch">
-				{/* Select All & Remove */}
-				<Grid size={{ xs: 12 }}>
-					<Stack direction="row" spacing={2} alignItems="center">
-						<Checkbox
-							checked={selectAllChecked}
-							onChange={e => onSelectAll && onSelectAll(e.target.checked)}
-						/>
-						<Typography variant="body2">Select All</Typography>
-						<button
-							onClick={onRemoveSelected}
-							disabled={disableRemove}
-							style={{ marginLeft: 32, padding: '4px 12px', borderRadius: 4, background: disableRemove ? '#eee' : '#d32f2f', color: '#fff', border: 'none', cursor: disableRemove ? 'not-allowed' : 'pointer' }}
-						>
-							Remove
-						</button>
-					</Stack>
-				</Grid>
 				{/* Search */}
 				<Grid size={{ xs: 12, md: 4 }}>
 					<TextField
@@ -390,12 +374,10 @@ const SmartToolbar = ({
 							renderTags={(value, getTagProps) =>
 								value.map((option, index) => (
 									<Chip
-										variant="filled"
 										size="small"
 										color="primary"
 										label={option}
 										{...getTagProps({ index })}
-										sx={{ borderRadius: 1, mr: 0.5 }}
 									/>
 								))
 							}
@@ -409,9 +391,6 @@ const SmartToolbar = ({
 										...params.InputProps,
 										startAdornment: (
 											<>
-												<InputAdornment position="start" sx={{ pl: 0.5 }}>
-													<LocalOfferRoundedIcon color="action" fontSize="small" />
-												</InputAdornment>
 												{params.InputProps.startAdornment}
 											</>
 										),
@@ -425,9 +404,38 @@ const SmartToolbar = ({
 								},
 							}}
 						/>
-						{/* Posted date range filter */}
+						{/* LinkedIn jobs filter checkbox with MUI */}
 
-						<LocalizationProvider dateAdapter={AdapterDayjs}>
+						<FormControlLabel
+							control={
+								<Checkbox
+									checked={showLinkedInOnly}
+									onChange={e =>
+										onShowLinkedInOnlyChange && onShowLinkedInOnlyChange(e.target.checked)
+									}
+									sx={{ p: 2 }}
+								/>
+							}
+							label={
+								<Typography variant="body2">
+									LinkedIn Jobs
+								</Typography>
+							}
+							sx={{
+								ml: 'auto',         // 👈 pushes it to the right
+								alignItems: 'center',
+								minHeight: 56,
+							}}
+						/>
+					</Stack>
+				</Grid>
+
+				<Grid size={{ xs: 12, md: 6 }}>
+
+					{/* Posted date range filter */}
+
+					<LocalizationProvider dateAdapter={AdapterDayjs}>
+						<DemoContainer components={['DatePicker', 'DatePicker']}>
 							<DatePicker
 								label="From date"
 								value={localPostedAtFrom}
@@ -440,19 +448,26 @@ const SmartToolbar = ({
 								onChange={date => setLocalPostedAtTo(date)}
 								slotProps={{ textField: { variant: 'filled', size: 'small', sx: { minWidth: 160, borderRadius: 1.5 } } }}
 							/>
-						</LocalizationProvider>
-						{/* LinkedIn jobs filter checkbox with MUI */}
-						<FormControlLabel
-							control={
-								<Checkbox
-									checked={showLinkedInOnly}
-									onChange={e => onShowLinkedInOnlyChange && onShowLinkedInOnlyChange(e.target.checked)}
-									sx={{ p: 2 }}
-								/>
-							}
-							label={<Typography variant="h6" sx={{ fontWeight: 'bold' }}>LinkedIn Jobs</Typography>}
-							sx={{ ml: 2, alignItems: 'center', minHeight: 56 }}
+						</DemoContainer>
+					</LocalizationProvider>
+				</Grid>
+
+
+				{/* Select All & Remove */}
+				<Grid size={{ xs: 12, md: 6 }}>
+					<Stack direction="row" spacing={2} alignItems="center" justifyContent="flex-end">
+						<Checkbox
+							checked={selectAllChecked}
+							onChange={e => onSelectAll && onSelectAll(e.target.checked)}
 						/>
+						<Typography variant="body2">Select All</Typography>
+						<button
+							onClick={onRemoveSelected}
+							disabled={disableRemove}
+							style={{ marginLeft: 32, padding: '4px 12px', borderRadius: 4, background: disableRemove ? '#eee' : '#d32f2f', color: '#fff', border: 'none', cursor: disableRemove ? 'not-allowed' : 'pointer' }}
+						>
+							Remove
+						</button>
 					</Stack>
 				</Grid>
 
