@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { calculateJobScores } from "../../../utils/jobScore";
 
 // MUI Imports
 import {
@@ -198,79 +199,6 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama }) =
 	);
 };
 
-function estimateApplicants({
-	started_time,
-	passed_time_datapoint,
-	applicants_datapoint,
-	current_time,
-	max_applicants = 2000,
-	t0_peak_time_hours = 48.0
-}) {
-	// --- Step 1: Calculate Elapsed Times in Hours ---
-
-	// Validate the known data point to prevent mathematical errors (e.g., log of a negative number)
-	if (applicants_datapoint <= 0 || applicants_datapoint >= max_applicants) {
-		throw new Error("applicants_datapoint must be a positive number and less than max_applicants.");
-	}
-
-	// Date subtraction in JS gives milliseconds. Convert to hours.
-	const MS_PER_HOUR = 1000 * 60 * 60;
-	const t_known = (passed_time_datapoint.getTime() - started_time.getTime()) / MS_PER_HOUR;
-	const t_current = (current_time.getTime() - started_time.getTime()) / MS_PER_HOUR;
-
-	// Edge case: Avoid division by zero if our data point happens to be exactly at the peak time.
-	if (t_known === t0_peak_time_hours) {
-		throw new Error("Cannot calculate growth rate 'k' because the data point is at the assumed peak time (t_known equals t0). Please choose a different t0 or provide a different data point.");
-	}
-
-
-	// --- Step 2: Calibrate the Curve - Solve for Growth Rate 'k' ---
-	// The formula is: k = ln( (L / N) - 1 ) / (t₀ - t)
-	// Math.log() in JavaScript is the natural logarithm (ln).
-	const numerator = Math.log((max_applicants / applicants_datapoint) - 1);
-	const denominator = t0_peak_time_hours - t_known;
-	const k = numerator / denominator;
-
-
-	// --- Step 3: Make the Estimation ---
-	// The formula is: f(t) = L / (1 + e^(-k * (t - t₀)))
-	// Math.exp(x) in JavaScript is e^x.
-	const exponent = -k * (t_current - t0_peak_time_hours);
-	const estimatedCount = max_applicants / (1 + Math.exp(exponent));
-
-	return estimatedCount;
-}
-
-// --- HELPER FUNCTIONS FOR CALCULATIONS (UNCHANGED and CORRECT) ---
-const parseAndCalculateMidYearlySalary = (salaryStr) => {
-	if (!salaryStr || typeof salaryStr !== 'string') return null;
-	const isHourly = salaryStr.includes('/hr');
-	const numbers = salaryStr.match(/[\d.]+/g);
-	if (!numbers) return null;
-	let values = numbers.map(parseFloat);
-	if (salaryStr.toLowerCase().includes('k')) values = values.map(v => v * 1000);
-	if (isHourly) values = values.map(v => v * 40 * 52);
-	return values.length > 1 ? (values[0] + values[1]) / 2 : values[0];
-};
-const calculateSalaryScore = (jobMidSalary) => {
-	if (jobMidSalary === null) return null;
-	/*
-	const IDEAL = { min: 120000, max: 190000, mid: 155000 }, ACCEPTABLE = { min: 90000, max: 220000 };
-	const interpolate = (val, from1, to1, from2, to2) => (((val - from1) / (to1 - from1)) * (to2 - from2)) + from2;
-	if (jobMidSalary >= IDEAL.min && jobMidSalary <= IDEAL.max) return 100 - interpolate(Math.abs(jobMidSalary - IDEAL.mid), 0, IDEAL.mid - IDEAL.min, 0, 10);
-	if (jobMidSalary >= ACCEPTABLE.min && jobMidSalary < IDEAL.min) return interpolate(jobMidSalary, ACCEPTABLE.min, IDEAL.min, 50, 90);
-	if (jobMidSalary > IDEAL.max && jobMidSalary <= ACCEPTABLE.max) return interpolate(jobMidSalary, IDEAL.max, ACCEPTABLE.max, 90, 50);
-	const BUFFER = 20000;
-	if (jobMidSalary < ACCEPTABLE.min) return Math.max(0, interpolate(jobMidSalary, ACCEPTABLE.min - BUFFER, ACCEPTABLE.min, 0, 50));
-	if (jobMidSalary > ACCEPTABLE.max) return Math.max(0, interpolate(jobMidSalary, ACCEPTABLE.max, ACCEPTABLE.max + BUFFER, 50, 0));
-	return 0;
-	*/
-	if (jobMidSalary > 140000) return 100;
-	const x = jobMidSalary / 100000;
-	const score = (-(((x - 1.4) / 0.55) ** 4) + 1) ** 2;
-	return score > 1 ? 0 : Math.round(score * 100);
-};
-
 // --- UI HELPER COMPONENTS ---
 const CircularProgressWithLabel = ({ value, size, thickness }) => (
 	<Box sx={{ position: 'relative', display: 'inline-flex' }}>
@@ -303,69 +231,9 @@ const MetricItem = ({ label, score }) => {
 
 
 // --- THE MAIN MATCH PANEL COMPONENT (with corrected 2x2 Grid Layout) ---
+
 const MatchPanel = ({ job, userSkills }) => {
-	const scores = useMemo(() => {
-		//Example of userSkills
-		/*
-			[
-				"Cloud-based product experience",
-				"React",
-				"Ruby on Rails",
-				"Documentation"
-			]
-		*/
-		const requiredSkills = job.skills || [];
-		const matchedCount = requiredSkills.filter(item => userSkills.includes(item)).length;
-		const skillMatch = requiredSkills.length > 0 ? (matchedCount / requiredSkills.length) * 100 : 0;
-		const applicantCount = job.applicants?.count;
-		let applicantScore = 0;
-		if (typeof applicantCount === 'number') {
-			// --- Given Data ---
-			const start = job._createdAt ? new Date(job._createdAt) : new Date(); // Job posting start time
-			const data_point_time = job.postedAt ? new Date(job.postedAt) : new Date(start.getTime() + 1);
-			const data_point_applicants = applicantCount;
-			//get current time;
-			const current = new Date();
-
-
-			// --- Scenario 1: Assume a 48-hour peak interest time ---
-			const estimation = estimateApplicants({
-				started_time: start,
-				passed_time_datapoint: data_point_time,
-				applicants_datapoint: data_point_applicants,
-				current_time: current,
-				max_applicants: 2000,
-				t0_peak_time_hours: 48.0 // This is our key assumption
-			});
-
-			console.log(`Estimated applicants after 72 hours (with 48h peak): ${Math.round(estimation)}`);
-			// Expected output: Estimated applicants after 72 hours (with 48h peak): 1850
-			applicantScore = estimation > 2000 ? 0 : (2000 - estimation) / 20;
-		}
-		let postedDateScore = 0;
-		if (job.postedAt) {
-			const hoursAgo = (Date.now() - new Date(job.postedAt).getTime()) / 3600000;
-			const daysAgo = hoursAgo / 24;
-			const weeksAgo = daysAgo / 2;
-			if (weeksAgo >= 1)
-				return 0;
-			const fx = Math.floor(((1 - ((weeksAgo * 2) ** 4) / 16) ** 8) * 100);
-
-			postedDateScore = fx > 100 ? 0 : fx < 0 ? 0 : fx;
-		}
-		const midSalary = parseAndCalculateMidYearlySalary(job.details?.money);
-		const salaryScore = calculateSalaryScore(midSalary);
-		const individualScores = { skillMatch, applicantScore, postedDateScore, salaryScore };
-		const validScores = Object.values(individualScores).filter(s => s !== null);
-		const overallScore = validScores.length > 0 ? validScores.reduce((a, b) => a + b, 0) / validScores.length : 0;
-		return {
-			skillMatch: Math.round(skillMatch),
-			applicantScore: Math.round(applicantScore),
-			postedDateScore: Math.round(postedDateScore),
-			salaryScore: salaryScore !== null ? Math.round(salaryScore) : null,
-			overallScore: Math.round(overallScore)
-		};
-	}, [job, userSkills]);
+	const scores = useMemo(() => calculateJobScores(job, userSkills), [job, userSkills]);
 
 	return (
 		<Paper variant="outlined" sx={{ width: 340, minWidth: 240, p: 2, borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeft: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -383,7 +251,7 @@ const MatchPanel = ({ job, userSkills }) => {
 					<MetricItem label="Skill" score={scores.skillMatch} />
 				</Grid>
 				<Grid size={{ md: 6 }}>
-					<MetricItem label="Applicants" score={scores.applicantScore} />
+					<MetricItem label={`Bid.Est ${scores.estimateApplicantNumber}`} score={scores.applicantScore} />
 				</Grid>
 				<Grid size={{ md: 6 }}>
 					<MetricItem label="Freshness" score={scores.postedDateScore} />
@@ -436,58 +304,3 @@ const JobCard = ({ job, userSkills, onViewDetails, onAskgllama }) => (
 );
 
 export default JobCard;
-
-/*
-{
-  "applyLink": "https://firstam.wd1.myworkdayjobs.com/firstamericancareers/job/USA-California-Santa-Ana/Software-Engineer--Remote-in-CA-_R051832?source=LINKED",
-  "id": 1757826403786,
-  "postedAgo": "12 hours ago",
-  "tags": [
-	"200+ applicants"
-  ],
-  "company": {
-	"name": "First American",
-	"tags": [
-	  "Financial Services",
-	  "Insurance",
-	  "Property Insurance",
-	  "Real Estate",
-	  "Real Estate Investment"
-	],
-	"logo": "https://media.licdn.com/dms/image/v2/C4E0BAQGm3U8CaUDy2A/company-logo_100_100/company-logo_100_100/0/1630580362791/first_american_logo?e=2147483647&v=beta&t=-a9Ylz8YY02z9P6TTpJie-SQKd6KSEqHEnoDZNNzVvE"
-  },
-  "title": "Software Engineer (Remote In CA)",
-  "details": {
-	"position": "Santa Ana, CA",
-	"time": "Full-time",
-	"remote": "Remote",
-	"seniority": "Mid Level",
-	"money": "$34.68/hr - $46.21/hr",
-	"date": "4+ years exp"
-  },
-  "applicants": {
-	"count": 200,
-	"text": "200+ applicants"
-  },
-  "description": "Responsibilities\nContribute to design, development, coding, testing, debugging, and deploying of software in an Azure cloud environment.\nModify and enhance existing applications as well as assist the team on product delivery by writing code and reviewing pull requests.\nIndependently define, prioritize goals and tasks in a fast-paced agile product environment with small, focused teams.\nCommunicate effectively with a variety of stakeholders to ensure project success.\nDerive optimal solutions and implement best coding practices.\nWork with Solution Architect and strategize design plans.\n\nQualification\nRepresents the skills you have\n\nFind out how your skills align with this job's requirements. If anything seems off, you can easily click on the tags to select or unselect skills to reflect your actual expertise.\n\nAzure\nPython\nObject-Oriented Programming\nRDBMS\nNoSQL\nReact\nJavaScript/TypeScript\nREST API\nDocker\nLinux\nWindows\nGIT\nNPM Package Management\nEager to Learn\nCommunication Skills\nRequired\n4 + years of experience in cloud-native applications (Azure strongly preferred, AWS is also ok) using Python.\nThorough understanding of Object-Oriented Programming (OOP) design and practices.\nStrong RDBMS experience (PostgreSQL, MS SQL etc.) designing tables & writing queries. NoSQL experience is a strong plus.\nFamiliarity with design patterns.\nConduct code reviews to ensure best coding practices are utilized.\nBachelor’s degree in computer science or equivalent combination of education and experience.\nStrong knowledge of professional software engineering best practices for the full software development life cycle, including coding standards, code reviews, source control management, build processes, testing, CI/CD, and DevOps.\nFluency with multi-platform software utilizing various programming environments and tools.\nExcellent communication and written skills.\nEager to learn new languages and technologies.\nFamiliar with Python, Azure, React, JavaScript/TypeScript, REST API, Relational Databases (PostgreSQL, MySQL etc.), NoSQL Databases (MongoDB etc.).\nExperience with Docker, Linux, Windows, Azure, GIT, NPM Package Management.\n\nBenefits\nMedical\nDental\nVision\n401k\nPTO/paid sick leave\nEmployee stock purchase plan",
-  "skills": [
-	"Azure",
-	"Python",
-	"Object-Oriented Programming",
-	"RDBMS",
-	"NoSQL",
-	"React",
-	"JavaScript/TypeScript",
-	"REST API",
-	"Docker",
-	"Linux",
-	"Windows",
-	"GIT",
-	"NPM Package Management",
-	"Eager to Learn",
-	"Communication Skills"
-  ],
-  "_createdAt": "2025-09-14T05:06:43.788Z",
-  "postedAt": "2025-09-13T17:06:43.788Z"
-}
-*/
