@@ -260,15 +260,18 @@ app.get('/api/jobs', async (req, res) => {
 			// Build sort option safely: avoid empty field names which cause Mongo errors
 			const sortOption = {};
 			if (sort && typeof sort === 'string') {
-				const [sortField = '', sortOrder] = sort.split('_');
-				if (sortField && sortField.trim().length > 0) {
+				let sortField = '', sortOrder;
+				[sortField, sortOrder] = sort.split('_');
+				if (sortField === 'postedAt') {
+					sortOption.postedAt = sortOrder === 'asc' ? 1 : -1;
+				} else if (sortField && sortField.trim().length > 0) {
 					sortOption[sortField] = sortOrder === 'desc' ? -1 : 1;
 				} else {
 					// fallback to default if field is empty
-					sortOption._createdAt = -1;
+					sortOption.postedAt = -1;
 				}
 			} else {
-				sortOption._createdAt = -1; // Default sort
+				sortOption.postedAt = -1; // Default sort
 			}
 			docs = await jobsCollection.find(query).sort(sortOption).skip(skip).limit(limitNum).toArray();
 		}

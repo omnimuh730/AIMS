@@ -12,7 +12,7 @@ import SmartToolbar from "./components/SmartToolbar";
 function JobListingsPage() {
 	const [jobs, setJobs] = useState([]);
 	const [searchQuery, setSearchQuery] = useState("");
-	const [sortOption, setSortOption] = useState("_createdAt_desc");
+	const [sortOption, setSortOption] = useState("postedAt_desc");
 	const [filters, setFilters] = useState({ showLinkedInOnly: true });
 	const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
 	const { loading, error, get, post } = useApi();

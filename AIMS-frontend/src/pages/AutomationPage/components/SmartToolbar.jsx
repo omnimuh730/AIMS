@@ -201,8 +201,8 @@ const SmartToolbar = ({
 								'& .MuiSelect-filled': { borderRadius: 1.5 },
 							}}
 						>
-							<MenuItem value="_createdAt_desc">Newest</MenuItem>
-							<MenuItem value="_createdAt_asc">Oldest</MenuItem>
+							<MenuItem value="postedAt_desc">Newest</MenuItem>
+							<MenuItem value="postedAt_asc">Oldest</MenuItem>
 							<MenuItem value="recommended">Recommended</MenuItem>
 						</Select>
 					</FormControl>
