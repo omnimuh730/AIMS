@@ -198,6 +198,49 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama }) =
 	);
 };
 
+function estimateApplicants({
+	started_time,
+	passed_time_datapoint,
+	applicants_datapoint,
+	current_time,
+	max_applicants = 2000,
+	t0_peak_time_hours = 48.0
+}) {
+	// --- Step 1: Calculate Elapsed Times in Hours ---
+
+	// Validate the known data point to prevent mathematical errors (e.g., log of a negative number)
+	if (applicants_datapoint <= 0 || applicants_datapoint >= max_applicants) {
+		throw new Error("applicants_datapoint must be a positive number and less than max_applicants.");
+	}
+
+	// Date subtraction in JS gives milliseconds. Convert to hours.
+	const MS_PER_HOUR = 1000 * 60 * 60;
+	const t_known = (passed_time_datapoint.getTime() - started_time.getTime()) / MS_PER_HOUR;
+	const t_current = (current_time.getTime() - started_time.getTime()) / MS_PER_HOUR;
+
+	// Edge case: Avoid division by zero if our data point happens to be exactly at the peak time.
+	if (t_known === t0_peak_time_hours) {
+		throw new Error("Cannot calculate growth rate 'k' because the data point is at the assumed peak time (t_known equals t0). Please choose a different t0 or provide a different data point.");
+	}
+
+
+	// --- Step 2: Calibrate the Curve - Solve for Growth Rate 'k' ---
+	// The formula is: k = ln( (L / N) - 1 ) / (t₀ - t)
+	// Math.log() in JavaScript is the natural logarithm (ln).
+	const numerator = Math.log((max_applicants / applicants_datapoint) - 1);
+	const denominator = t0_peak_time_hours - t_known;
+	const k = numerator / denominator;
+
+
+	// --- Step 3: Make the Estimation ---
+	// The formula is: f(t) = L / (1 + e^(-k * (t - t₀)))
+	// Math.exp(x) in JavaScript is e^x.
+	const exponent = -k * (t_current - t0_peak_time_hours);
+	const estimatedCount = max_applicants / (1 + Math.exp(exponent));
+
+	return estimatedCount;
+}
+
 // --- HELPER FUNCTIONS FOR CALCULATIONS (UNCHANGED and CORRECT) ---
 const parseAndCalculateMidYearlySalary = (salaryStr) => {
 	if (!salaryStr || typeof salaryStr !== 'string') return null;
@@ -277,9 +320,27 @@ const MatchPanel = ({ job, userSkills }) => {
 		const applicantCount = job.applicants?.count;
 		let applicantScore = 0;
 		if (typeof applicantCount === 'number') {
-			if (applicantCount <= 25) applicantScore = 100;
-			else if (applicantCount >= 200) applicantScore = 0;
-			else applicantScore = 100 - (((applicantCount - 25) / 175) * 100);
+			// --- Given Data ---
+			const start = job._createdAt ? new Date(job._createdAt) : new Date(); // Job posting start time
+			const data_point_time = job.postedAt ? new Date(job.postedAt) : new Date(start.getTime() + 1);
+			const data_point_applicants = applicantCount;
+			//get current time;
+			const current = new Date();
+
+
+			// --- Scenario 1: Assume a 48-hour peak interest time ---
+			const estimation = estimateApplicants({
+				started_time: start,
+				passed_time_datapoint: data_point_time,
+				applicants_datapoint: data_point_applicants,
+				current_time: current,
+				max_applicants: 2000,
+				t0_peak_time_hours: 48.0 // This is our key assumption
+			});
+
+			console.log(`Estimated applicants after 72 hours (with 48h peak): ${Math.round(estimation)}`);
+			// Expected output: Estimated applicants after 72 hours (with 48h peak): 1850
+			applicantScore = estimation > 2000 ? 0 : (2000 - estimation) / 20;
 		}
 		let postedDateScore = 0;
 		if (job.postedAt) {
