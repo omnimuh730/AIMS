@@ -14,11 +14,21 @@ import FlashOnIcon from "@mui/icons-material/FlashOn";
 import CheckIcon from '@mui/icons-material/Check';
 import CancelIcon from '@mui/icons-material/Cancel';
 
-const JobDetailDrawer = ({ job, open, onClose, onAskgllama }) => {
+const JobDetailDrawer = ({ job, open, onClose, onAskgllama, onSkillsChanged }) => {
+	const [skillsChanged, setSkillsChanged] = useState(false);
 	if (!job) return null;
 
+	// Wrap onClose to notify parent if skills changed
+	const handleClose = () => {
+		onClose && onClose();
+		if (skillsChanged && onSkillsChanged) {
+			onSkillsChanged();
+			setSkillsChanged(false);
+		}
+	};
+
 	return (
-		<Drawer anchor="right" open={open} onClose={onClose}>
+		<Drawer anchor="right" open={open} onClose={handleClose}>
 			<Box
 				sx={{
 					width: { xs: "100vw", sm: 500, md: 1000 },
@@ -29,7 +39,7 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama }) => {
 				}}
 			>
 				<IconButton
-					onClick={onClose}
+					onClick={handleClose}
 					sx={{ position: "absolute", top: 16, right: 16 }}
 				>
 					<CloseIcon />
@@ -53,7 +63,7 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama }) => {
 
 				{/* Skill tags - clickable toggle chips */}
 				{Array.isArray(job.skills) && job.skills.length > 0 && (
-					<SkillChips skills={job.skills} />
+					<SkillChips skills={job.skills} onSkillsChanged={() => setSkillsChanged(true)} />
 				)}
 
 				<Box sx={{ overflowY: "auto", height: "calc(100% - 150px)" }}>
@@ -118,7 +128,7 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama }) => {
 export default JobDetailDrawer;
 
 // Small internal component to handle clickable/toggleable skill chips
-const SkillChips = ({ skills = [] }) => {
+const SkillChips = ({ skills = [], onSkillsChanged }) => {
 	// selected is a Set<string> of skills saved in personal_info
 	const [selected, setSelected] = useState(() => new Set());
 	const [loadingMap, setLoadingMap] = useState(() => ({})); // prevent concurrent toggles per-skill
@@ -180,6 +190,7 @@ const SkillChips = ({ skills = [] }) => {
 				try { data = await res.json(); } catch (e) { console.warn('Failed to parse JSON from toggle response', e); }
 				if (data && data.success && Array.isArray(data.skills)) {
 					setSelected(new Set(data.skills));
+					if (onSkillsChanged) onSkillsChanged();
 				} else {
 					// If server returned ok but no skills array, log and do nothing
 					if (!(data && data.success)) console.warn('Toggle skill response did not include success/skills', data);

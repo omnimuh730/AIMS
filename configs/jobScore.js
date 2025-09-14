@@ -93,8 +93,8 @@ export function calculateJobScores(job, userSkills) {
 			passed_time_datapoint: data_point_time,
 			applicants_datapoint: data_point_applicants,
 			current_time: current,
-			max_applicants: 2000,
-			t0_peak_time_hours: 48.0 // This is our key assumption
+			max_applicants: 700,
+			t0_peak_time_hours: 72.0 // This is our key assumption
 		});
 
 		estimateApplicantNumber = estimation;

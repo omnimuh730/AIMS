@@ -40,6 +40,8 @@ const SmartToolbar = ({
 	onSelectAll,
 	onRemoveSelected,
 	disableRemove = false,
+	showLinkedInOnly = false,
+	onShowLinkedInOnlyChange,
 }) => {
 	const theme = useTheme();
 	const isSmDown = useMediaQuery(theme.breakpoints.down('sm'));
@@ -397,6 +399,16 @@ const SmartToolbar = ({
 								},
 							}}
 						/>
+						{/* LinkedIn jobs filter checkbox */}
+						<Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+							<input
+								type="checkbox"
+								checked={showLinkedInOnly}
+								onChange={e => onShowLinkedInOnlyChange && onShowLinkedInOnlyChange(e.target.checked)}
+								style={{ marginRight: 8 }}
+							/>
+							<Typography variant="body2">Show LinkedIn jobs only</Typography>
+						</Box>
 					</Stack>
 				</Grid>
 

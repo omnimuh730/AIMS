@@ -40,7 +40,17 @@ import { styled } from '@mui/material/styles';
 import DetailItem from "./DetailItem";
 
 // --- Sub-Components (Internal to JobCard) ---
-const JobCardHeader = ({ company, postedAgo, tags }) => (
+const formatPostedAt = (postedAt) => {
+	if (!postedAt) return null;
+	try {
+		const date = new Date(postedAt);
+		return date.toLocaleString();
+	} catch {
+		return postedAt;
+	}
+};
+
+const JobCardHeader = ({ company, postedAgo, postedAt, tags }) => (
 	<Box sx={{ display: "flex", alignItems: "start", mb: 1.5 }}>
 		<Avatar
 			src={company.logo || undefined}
@@ -57,6 +67,7 @@ const JobCardHeader = ({ company, postedAgo, tags }) => (
 				sx={{ mb: 0.5, flexWrap: "wrap", gap: 0.5 }}
 			>
 				<Chip label={postedAgo} size="small" />
+				{postedAt && <Chip label={formatPostedAt(postedAt)} size="small" color="success" />}
 				{Array.isArray(tags) && tags.map((tag) => (
 					<Chip key={tag} label={tag} size="small" color="info" variant="outlined" />
 				))}
@@ -291,6 +302,7 @@ const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, checked, onCheck
 						title: job.title,
 					}}
 					postedAgo={job.postedAgo}
+					postedAt={job.postedAt}
 					tags={job.tags}
 				/>
 				<Divider sx={{ my: 1 }} />

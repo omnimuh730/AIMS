@@ -22,6 +22,7 @@ function JobListingsPage() {
 	const [userSkills, setUserSkills] = useState([]);
 	const [selectedIds, setSelectedIds] = useState([]);
 	const notification = useNotification();
+	const [skillsChanged, setSkillsChanged] = useState(false);
 
 	// Fetch jobs
 	const fetchJobs = useCallback(async () => {
@@ -87,6 +88,11 @@ function JobListingsPage() {
 
 	const handleCloseDrawer = () => {
 		setSelectedJob(null);
+		if (skillsChanged) {
+			setSkillsChanged(false); // Reset first to ensure correct rerender
+			fetchUserSkills();
+			fetchJobs();
+		}
 	};
 
 	const handleAskgllama = () => {
@@ -166,6 +172,8 @@ function JobListingsPage() {
 					onSelectAll={handleSelectAll}
 					onRemoveSelected={handleRemoveSelected}
 					disableRemove={!selectedIds.length}
+					showLinkedInOnly={!!filters.showLinkedInOnly}
+					onShowLinkedInOnlyChange={checked => setFilters(f => ({ ...f, showLinkedInOnly: checked }))}
 				/>
 				{loading ? (
 					<CircularProgress />
@@ -191,6 +199,7 @@ function JobListingsPage() {
 				open={!!selectedJob}
 				onClose={handleCloseDrawer}
 				onAskgllama={handleAskgllama}
+				onSkillsChanged={() => setSkillsChanged(true)}
 			/>
 
 			<AskgllamaModal open={isModalOpen} onClose={handleCloseModal} />
