@@ -75,6 +75,7 @@ export function calculateJobScores(job, userSkills) {
 	const applicantCount = job.applicants?.count;
 	let applicantScore = 0;
 	let estimateApplicantNumber = 0;
+
 	if (typeof applicantCount === 'number') {
 		// --- Given Data ---
 		const start = job._createdAt ? new Date(job._createdAt) : new Date(); // Job posting start time
@@ -95,9 +96,6 @@ export function calculateJobScores(job, userSkills) {
 		});
 
 		estimateApplicantNumber = estimation;
-
-		console.log(`Estimated applicants after 72 hours (with 48h peak): ${Math.round(estimation)}`);
-		// Expected output: Estimated applicants after 72 hours (with 48h peak): 1850
 		applicantScore = estimation > 2000 ? 0 : (2000 - estimation) / 20; if (applicantCount <= 25) applicantScore = 100;
 		else if (applicantCount >= 200) applicantScore = 0;
 		else applicantScore = 100 - (((applicantCount - 25) / 175) * 100);
@@ -110,7 +108,7 @@ export function calculateJobScores(job, userSkills) {
 		const daysAgo = hoursAgo / 24;
 		const weeksAgo = daysAgo / 2;
 		if (weeksAgo >= 1)
-			return 0;
+			postedDateScore = 0;
 		const fx = Math.floor(((1 - ((weeksAgo * 2) ** 4) / 16) ** 8) * 100);
 
 		postedDateScore = fx > 100 ? 0 : fx < 0 ? 0 : fx;
@@ -121,9 +119,9 @@ export function calculateJobScores(job, userSkills) {
 	const salaryScore = calculateSalaryScore(midSalary);
 
 	// Overall score
-	const WEIGHT_SKILL = 1;
-	const WEIGHT_APPLICANTS = 1;
-	const WEIGHT_FRESHNESS = 1;
+	const WEIGHT_SKILL = 3;
+	const WEIGHT_APPLICANTS = 2;
+	const WEIGHT_FRESHNESS = 0.5;
 	const WEIGHT_SALARY = 0.5;
 
 	let overallScore = 0;

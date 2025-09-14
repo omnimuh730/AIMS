@@ -41,15 +41,14 @@ function JobListingsPage() {
 				if (String(v).trim() !== '') params.set(k, String(v));
 			});
 
-			let res;
+			let url = `http://localhost:3000/api/jobs?${params.toString()}`;
 			if (sortOption === 'recommended') {
-				// Send userSkills to backend for recommended sort
-				res = await get(`http://localhost:3000/api/jobs?${params.toString()}`, {
-					userSkills: userSkills
-				});
-			} else {
-				res = await get(`http://localhost:3000/api/jobs?${params.toString()}`);
+				url += `&sort=recommended`;
+				if (userSkills && userSkills.length > 0) {
+					url += `&userSkills=${encodeURIComponent(userSkills.join(','))}`;
+				}
 			}
+			const res = await get(url);
 			if (res && res.success) {
 				setJobs(res.data);
 				setPagination(res.pagination);

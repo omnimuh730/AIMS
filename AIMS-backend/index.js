@@ -207,12 +207,9 @@ app.get('/api/jobs', async (req, res) => {
 		}
 
 		const { q, sort, page = 1, limit = 10, ...filters } = req.query;
-		// For recommended sort, userSkills may come from body or query (frontend sends in body for GET)
+		// For recommended sort, userSkills comes from query param (comma separated)
 		let userSkills = [];
-		if (req.body && Array.isArray(req.body.userSkills)) {
-			userSkills = req.body.userSkills;
-		} else if (req.query.userSkills) {
-			// If sent as query param (comma separated)
+		if (req.query.userSkills) {
 			userSkills = Array.isArray(req.query.userSkills) ? req.query.userSkills : String(req.query.userSkills).split(',').map(s => s.trim()).filter(Boolean);
 		}
 
@@ -225,7 +222,9 @@ app.get('/api/jobs', async (req, res) => {
 		}
 
 		// Filters - ignore empty keys/values. If a value contains commas treat as $in
+		/*
 		for (const key in filters) {
+			if (key === 'skill' || key === 'skills' || key === 'skillset' || key === 'skill_set') continue; // Ignore skill filters
 			let value = filters[key];
 			if (!key || value === undefined || value === '') continue;
 			// If comma-separated, create an array of trimmed values and remove empties
@@ -246,6 +245,7 @@ app.get('/api/jobs', async (req, res) => {
 				}
 			}
 		}
+			*/
 
 		// 2. Build Sort
 		const pageNum = Math.max(1, parseInt(page, 10) || 1);
@@ -255,14 +255,20 @@ app.get('/api/jobs', async (req, res) => {
 		let docs;
 		let total = await jobsCollection.countDocuments(query);
 
-		if (sort === 'recommended' && userSkills.length > 0) {
-			// Fetch all matching jobs, score and sort by overallScore
-			docs = await jobsCollection.find(query).toArray();
-			docs.forEach(job => {
-				job._score = calculateJobScores(job, userSkills).overallScore;
-			});
-			docs.sort((a, b) => b._score - a._score);
-			docs = docs.slice(skip, skip + limitNum);
+		if (sort === 'recommended') {
+			if (userSkills && userSkills.length > 0) {
+				// Fetch all matching jobs, score and sort by overallScore
+				docs = await jobsCollection.find(query).toArray();
+				docs.forEach(job => {
+					job._score = calculateJobScores(job, userSkills).overallScore;
+				});
+				docs.sort((a, b) => b._score - a._score);
+				docs = docs.slice(skip, skip + limitNum);
+			} else {
+				// Fallback to default sort if no userSkills
+				const sortOption = { _createdAt: -1 };
+				docs = await jobsCollection.find(query).sort(sortOption).skip(skip).limit(limitNum).toArray();
+			}
 		} else {
 			// Build sort option safely: avoid empty field names which cause Mongo errors
 			const sortOption = {};

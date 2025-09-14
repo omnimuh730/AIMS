@@ -235,6 +235,8 @@ const MetricItem = ({ label, score }) => {
 const MatchPanel = ({ job, userSkills }) => {
 	const scores = useMemo(() => calculateJobScores(job, userSkills), [job, userSkills]);
 
+	console.log('scores, job, userskills', scores, job, userSkills);
+
 	return (
 		<Paper variant="outlined" sx={{ width: 340, minWidth: 240, p: 2, borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeft: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 			{/* Overall Score */}
