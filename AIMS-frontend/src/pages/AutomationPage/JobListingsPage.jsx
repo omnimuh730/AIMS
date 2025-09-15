@@ -14,7 +14,7 @@ function JobListingsPage() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [sortOption, setSortOption] = useState("postedAt_desc");
 	const [filters, setFilters] = useState({ showLinkedInOnly: true });
-	const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
+	const [pagination, setPagination] = useState({ page: 1, limit: 25, total: 0, totalPages: 1 });
 	const { loading, error, get, post } = useApi();
 
 	const [selectedJob, setSelectedJob] = useState(null);

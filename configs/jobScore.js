@@ -106,14 +106,17 @@ export function calculateJobScores(job, userSkills) {
 	// Freshness score
 	let postedDateScore = 0;
 	if (job.postedAt) {
+		const limit_date = 3;
 		const hoursAgo = (Date.now() - new Date(job.postedAt).getTime()) / 3600000;
 		const daysAgo = hoursAgo / 24;
-		const weeksAgo = daysAgo / 2;
-		if (weeksAgo >= 1)
+		const weeksAgo = daysAgo / limit_date;
+		if (weeksAgo > limit_date)
 			postedDateScore = 0;
-		const fx = Math.floor(((1 - ((weeksAgo * 2) ** 4) / 16) ** 8) * 100);
+		else {
+			const fx = Math.floor(((1 - ((weeksAgo * 2) ** 4) / 16) ** 8) * 100);
 
-		postedDateScore = fx > 100 ? 0 : fx < 0 ? 0 : fx;
+			postedDateScore = fx > 100 ? 0 : fx < 0 ? 0 : fx;
+		}
 	}
 
 	// Salary score
