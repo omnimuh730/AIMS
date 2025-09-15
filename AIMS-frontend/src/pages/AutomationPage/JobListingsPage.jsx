@@ -53,9 +53,6 @@ function JobListingsPage() {
 			let url = `http://localhost:3000/api/jobs?${params.toString()}`;
 			if (sortOption === 'recommended') {
 				url += `&sort=recommended`;
-				if (userSkills && userSkills.length > 0) {
-					url += `&userSkills=${encodeURIComponent(userSkills.join(','))}`;
-				}
 			}
 			const res = await get(url);
 			if (res && res.success) {

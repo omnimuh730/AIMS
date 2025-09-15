@@ -13,6 +13,7 @@ import { DemoProvider } from "@toolpad/core/internal";
 import DashboardPage from "./pages/DashboardPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import TestPage from "./pages/TestPage";
+import SettingsPage from "./pages/SettingsPage";
 import AutomationPage from "./pages/AutomationPage";
 import { AutoAwesome, Settings, Visibility } from "@mui/icons-material";
 
@@ -108,6 +109,7 @@ function AppContent() {
 			<Route path="/dashboard" element={<DashboardPage />} />
 			<Route path="/logs" element={<TestPage />} />
 			<Route path="/test" element={<TestPage />} />
+			<Route path="/settings" element={<SettingsPage />} />
 			<Route path="/automation" element={<AutomationPage />} />
 			<Route path="*" element={<NotFoundPage />} />
 		</Routes>

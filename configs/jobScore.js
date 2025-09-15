@@ -8,7 +8,7 @@ function estimateApplicants({
 	passed_time_datapoint,
 	applicants_datapoint,
 	current_time,
-	max_applicants = 2000,
+	max_applicants = 300,
 	t0_peak_time_hours = 48.0
 }) {
 	// --- Step 1: Calculate Elapsed Times in Hours ---
@@ -93,8 +93,8 @@ export function calculateJobScores(job, userSkills) {
 			passed_time_datapoint: data_point_time,
 			applicants_datapoint: data_point_applicants,
 			current_time: current,
-			max_applicants: 700,
-			t0_peak_time_hours: 72.0 // This is our key assumption
+			max_applicants: 300,
+			t0_peak_time_hours: 48.0 // This is our key assumption
 		});
 
 		estimateApplicantNumber = estimation;
