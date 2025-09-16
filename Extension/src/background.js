@@ -11,6 +11,20 @@ const relayToExtension = ["fetchResult"];
 
 // Listen for messages from the UI and forward them to the content script or to backend
 chrome.runtime.onMessage.addListener((message/*, sender, sendResponse*/) => {
+	// UI -> background command: open multiple tabs (payload: { urls: [] })
+	if (message.action === 'open-tabs') {
+		const urls = message.payload && Array.isArray(message.payload.urls) ? message.payload.urls : [];
+		if (!urls.length) return;
+		for (const url of urls) {
+			try {
+				chrome.tabs.create({ url, active: false });
+			} catch (e) {
+				console.error('Failed to open tab for', url, e);
+			}
+		}
+		return;
+	}
+
 	if (actionsToForward.includes(message.action)) {
 		chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
 			if (tabs[0]?.id) {

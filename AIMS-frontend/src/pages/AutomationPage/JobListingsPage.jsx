@@ -149,12 +149,14 @@ function JobListingsPage() {
 	const handleApplySelected = () => {
 		// Open tabs for each selected job's applyLink
 		if (!selectedIds.length) return;
-		const jobsToApply = jobs.filter(job => selectedIds.includes(job._id || job.id) && job.applyLink);
-		console.log(jobsToApply);
+		const jobsToApply = jobs.filter(job => selectedIds.includes(job._id || job.id) && job.applyLink).map(j => j.applyLink);
+		if (!jobsToApply.length) return;
 
-		// Open all links in the same synchronous click context
-		for (const job of jobsToApply) {
-			window.open(job.applyLink, '_blank', 'noopener,noreferrer');
+		// Send links to backend relay which will forward them to the extension to open tabs
+		try {
+			post('http://localhost:3000/api/open-tabs', { urls: jobsToApply });
+		} catch (err) {
+			console.error('Failed to request extension to open tabs', err);
 		}
 	}
 	const handleAnalyzeSelected = async () => {

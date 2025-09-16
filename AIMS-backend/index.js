@@ -65,6 +65,25 @@ io.on("connection", (socket) => {
 	});
 });
 
+// Relay endpoint: frontend -> backend -> extension
+// Accepts { urls: [ ... ] } and emits to all connected socket clients
+app.post('/api/open-tabs', async (req, res) => {
+	try {
+		const { urls } = req.body || {};
+		if (!Array.isArray(urls) || !urls.length) {
+			return res.status(400).json({ success: false, error: 'Missing urls array' });
+		}
+
+		// Emit an event that extension background script listens for
+		io.emit('open-tabs', { urls });
+
+		return res.status(200).json({ success: true, forwarded: urls.length });
+	} catch (err) {
+		console.error('POST /api/open-tabs error', err);
+		return res.status(500).json({ success: false, error: err.message });
+	}
+});
+
 /* Example job document
 {
 	"applyLink": "https://jobs.lever.co/pano/a1769b96-d7e3-4a8e-a902-32944191af88/apply?utm_source=jobright",
