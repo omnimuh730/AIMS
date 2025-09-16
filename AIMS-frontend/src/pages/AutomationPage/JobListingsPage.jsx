@@ -146,6 +146,21 @@ function JobListingsPage() {
 		}
 	};
 
+	const handleApplySelected = () => {
+		// Open tabs for each selected job's applyLink
+		if (!selectedIds.length) return;
+		const jobsToApply = jobs.filter(job => selectedIds.includes(job._id || job.id) && job.applyLink);
+		console.log(jobsToApply);
+
+		// Open all links in the same synchronous click context
+		for (const job of jobsToApply) {
+			window.open(job.applyLink, '_blank', 'noopener,noreferrer');
+		}
+	}
+	const handleAnalyzeSelected = async () => {
+		console.log('Analyze selected jobs:', selectedIds);
+	}
+
 	return (
 		<Container
 			maxWidth="xl"
@@ -173,7 +188,9 @@ function JobListingsPage() {
 					selectAllChecked={selectedIds.length === jobs.length && jobs.length > 0}
 					onSelectAll={handleSelectAll}
 					onRemoveSelected={handleRemoveSelected}
-					disableRemove={!selectedIds.length}
+					onApplySelected={handleApplySelected}
+					onAnalyzeSelected={handleAnalyzeSelected}
+					disableButtons={!selectedIds.length}
 					showLinkedInOnly={!!filters.showLinkedInOnly}
 					onShowLinkedInOnlyChange={checked => setFilters(f => ({ ...f, showLinkedInOnly: checked }))}
 				/>

@@ -16,13 +16,19 @@ import {
 	Divider,
 	useMediaQuery,
 	Checkbox,
-	FormControlLabel
+	FormControlLabel,
+	Button
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { useTheme } from '@mui/material/styles';
+
+import {
+	Place
+} from '@mui/icons-material';
+
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
@@ -31,8 +37,9 @@ import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
 import WorkOutlineRoundedIcon from '@mui/icons-material/WorkOutlineRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
-import LocalOfferRoundedIcon from '@mui/icons-material/LocalOfferRounded';
 import useDebouncedValue from './../../../utils/useDebouncedValue';
+
+import { JobSource } from '../../../../../configs/pub';
 
 const SmartToolbar = ({
 	searchQuery,
@@ -48,7 +55,9 @@ const SmartToolbar = ({
 	selectAllChecked = false,
 	onSelectAll,
 	onRemoveSelected,
-	disableRemove = false,
+	onAnalyzeSelected,
+	onApplySelected,
+	disableButtons = false,
 	showLinkedInOnly = false,
 	onShowLinkedInOnlyChange,
 }) => {
@@ -294,7 +303,7 @@ const SmartToolbar = ({
 							InputProps={{
 								startAdornment: (
 									<InputAdornment position="start">
-										<WorkOutlineRoundedIcon color="action" />
+										<Place color="action" />
 									</InputAdornment>
 								),
 							}}
@@ -433,23 +442,55 @@ const SmartToolbar = ({
 				<Grid size={{ xs: 12, md: 6 }}>
 
 					{/* Posted date range filter */}
+					<Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
 
-					<LocalizationProvider dateAdapter={AdapterDayjs}>
-						<DemoContainer components={['DatePicker', 'DatePicker']}>
-							<DatePicker
-								label="From date"
-								value={localPostedAtFrom}
-								onChange={date => setLocalPostedAtFrom(date)}
-								slotProps={{ textField: { variant: 'filled', size: 'small', sx: { minWidth: 160, borderRadius: 1.5 } } }}
-							/>
-							<DatePicker
-								label="To date"
-								value={localPostedAtTo}
-								onChange={date => setLocalPostedAtTo(date)}
-								slotProps={{ textField: { variant: 'filled', size: 'small', sx: { minWidth: 160, borderRadius: 1.5 } } }}
-							/>
-						</DemoContainer>
-					</LocalizationProvider>
+						<LocalizationProvider dateAdapter={AdapterDayjs}>
+							<DemoContainer components={['DatePicker', 'DatePicker']}>
+								<DatePicker
+									label="From date"
+									value={localPostedAtFrom}
+									onChange={date => setLocalPostedAtFrom(date)}
+									slotProps={{ textField: { variant: 'filled', size: 'small', sx: { minWidth: 160, borderRadius: 1.5 } } }}
+								/>
+								<DatePicker
+									label="To date"
+									value={localPostedAtTo}
+									onChange={date => setLocalPostedAtTo(date)}
+									slotProps={{ textField: { variant: 'filled', size: 'small', sx: { minWidth: 160, borderRadius: 1.5 } } }}
+								/>
+							</DemoContainer>
+						</LocalizationProvider>
+
+						<FormControl
+							variant="filled"
+							size="small"
+							sx={{
+								minWidth: { xs: '100%', sm: 180 },
+								'& .MuiFilledInput-root': {
+									borderRadius: 1.5,
+								},
+							}}
+						>
+							<InputLabel>Source</InputLabel>
+							<Select
+								value={localTime || ''}
+								onChange={(e) => setLocalTime(e.target.value)}
+								label="source"
+								displayEmpty
+								renderValue={(val) => val || 'Any'}
+								startAdornment={
+									<InputAdornment position="start" sx={{ pl: 1 }}>
+										<WorkOutlineRoundedIcon color="action" />
+									</InputAdornment>
+								}
+							>
+								<MenuItem value="">Any</MenuItem>
+								{JobSource.map(src => (
+									<MenuItem key={'jobsource-' + src.value} value={src.value}>{src.label}</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+					</Stack>
 				</Grid>
 
 
@@ -461,13 +502,30 @@ const SmartToolbar = ({
 							onChange={e => onSelectAll && onSelectAll(e.target.checked)}
 						/>
 						<Typography variant="body2">Select All</Typography>
-						<button
+						<Button
 							onClick={onRemoveSelected}
-							disabled={disableRemove}
-							style={{ marginLeft: 32, padding: '4px 12px', borderRadius: 4, background: disableRemove ? '#eee' : '#d32f2f', color: '#fff', border: 'none', cursor: disableRemove ? 'not-allowed' : 'pointer' }}
+							disabled={disableButtons}
+							variant='contained'
+							color='error'
 						>
 							Remove
-						</button>
+						</Button>
+						<Button
+							variant='contained'
+							color='primary'
+							disabled={disableButtons}
+							onClick={onApplySelected}
+						>
+							Apply
+						</Button>
+						<Button
+							variant='contained'
+							color='secondary'
+							disabled={disableButtons}
+							onClick={onAnalyzeSelected}
+						>
+							Analyze
+						</Button>
 					</Stack>
 				</Grid>
 
