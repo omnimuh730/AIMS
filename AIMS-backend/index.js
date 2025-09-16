@@ -249,12 +249,12 @@ app.get('/api/jobs', async (req, res) => {
     }
 
     // Applied filter
-    // When applied === 'true' -> show only applied jobs
-    // When applied === 'false' -> show not-applied jobs (including docs without the field)
+    // When applied === 'true' -> show only jobs with at least one application
+    // When applied === 'false' -> show not-applied jobs (including docs without the field or empty array)
     if (applied === 'true' || applied === true) {
-        query.applied = true;
+        query['applied.0'] = { '$exists': true }; // Check if the array has at least one element
     } else if (applied === 'false' || applied === false) {
-        query.applied = { $ne: true };
+        query.$or = [{ applied: { $exists: false } }, { applied: { $size: 0 } }];
     }
 
 		// Posted date range filter (UTC)
@@ -324,7 +324,7 @@ app.get('/api/jobs', async (req, res) => {
 });
 
 // Mark a job as applied/unapplied
-// POST /api/jobs/:id/apply { applied?: boolean }
+// POST /api/jobs/:id/apply { applied?: boolean, applicant?: string }
 app.post('/api/jobs/:id/apply', async (req, res) => {
     try {
         if (!jobsCollection) return res.status(503).json({ success: false, error: 'Database not ready' });
@@ -335,19 +335,50 @@ app.post('/api/jobs/:id/apply', async (req, res) => {
         } catch {
             return res.status(400).json({ success: false, error: 'Invalid id' });
         }
-        const applied = (typeof req.body?.applied === 'boolean') ? req.body.applied : true;
-        const update = applied
-            ? { $set: { applied: true, appliedAt: new Date().toISOString() } }
-            : { $unset: { applied: "" }, $set: { appliedAt: null } };
-        const result = await jobsCollection.updateOne({ _id: objectId }, update);
-        return res.json({ success: true, matchedCount: result.matchedCount, modifiedCount: result.modifiedCount, applied });
+        const applyAction = (typeof req.body?.applied === 'boolean') ? req.body.applied : true; // true for apply, false for unapply
+        const applicantName = req.body?.applicant || "bot"; // Default applicant is "bot"
+
+        let updateResult;
+        if (applyAction) {
+            // Add a new application entry
+            updateResult = await jobsCollection.updateOne(
+                { _id: objectId },
+                {
+                    $addToSet: {
+                        applied: { applicant: applicantName, appliedDate: new Date().toISOString() }
+                    }
+                }
+            );
+        } else {
+            // Remove an application entry
+            updateResult = await jobsCollection.updateOne(
+                { _id: objectId },
+                {
+                    $pull: {
+                        applied: { applicant: applicantName }
+                    }
+                }
+            );
+        }
+
+        // After update, fetch the updated document to return the current applied status
+        const updatedJob = await jobsCollection.findOne({ _id: objectId }, { projection: { applied: 1 } });
+        const currentAppliedStatus = updatedJob?.applied?.length > 0 || false;
+
+        return res.json({
+            success: true,
+            matchedCount: updateResult.matchedCount,
+            modifiedCount: updateResult.modifiedCount,
+            applied: currentAppliedStatus,
+            appliedBy: updatedJob?.applied || []
+        });
     } catch (err) {
         console.error('POST /api/jobs/:id/apply error', err);
         return res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// Personal info endpoints - manage user's saved skills
+// Personal info endpoints - manage user\'s saved skills
 // GET - returns array of saved skill names
 app.get('/api/personal/skills', async (req, res) => {
 	try {
