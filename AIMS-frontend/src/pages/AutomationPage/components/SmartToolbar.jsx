@@ -435,8 +435,26 @@ const SmartToolbar = ({
 								alignItems: 'center',
 								minHeight: 56,
 							}}
-						/>
-					</Stack>
+                        />
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={!!filters.applied}
+                                    onChange={e => onFiltersChange && onFiltersChange({ ...filters, applied: e.target.checked })}
+                                    sx={{ p: 2 }}
+                                />
+                            }
+                            label={
+                                <Typography variant="body2">
+                                    Show Applied Jobs
+                                </Typography>
+                            }
+                            sx={{
+                                alignItems: 'center',
+                                minHeight: 56,
+                            }}
+                        />
+                    </Stack>
 				</Grid>
 
 				<Grid size={{ xs: 12, md: 6 }}>

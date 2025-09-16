@@ -225,7 +225,7 @@ app.get('/api/jobs', async (req, res) => {
 			return res.status(503).json({ success: false, error: 'Database not ready' });
 		}
 
-		const { q, sort, page = 1, limit = 10, showLinkedInOnly = 'true', postedAtFrom, postedAtTo, ...filters } = req.query;
+    const { q, sort, page = 1, limit = 10, showLinkedInOnly = 'true', postedAtFrom, postedAtTo, applied, ...filters } = req.query;
 		// For recommended sort, userSkills comes from DB
 		let userSkills = [];
 		if (sort === 'recommended') {
@@ -243,10 +243,19 @@ app.get('/api/jobs', async (req, res) => {
 			query.title = { $regex: q, $options: 'i' };
 		}
 
-		// LinkedIn jobs filter
-		if (showLinkedInOnly === 'false' || showLinkedInOnly === false) {
-			query.applyLink = { $not: /linkedin\.com/ };
-		}
+    // LinkedIn jobs filter
+    if (showLinkedInOnly === 'false' || showLinkedInOnly === false) {
+        query.applyLink = { $not: /linkedin\.com/ };
+    }
+
+    // Applied filter
+    // When applied === 'true' -> show only applied jobs
+    // When applied === 'false' -> show not-applied jobs (including docs without the field)
+    if (applied === 'true' || applied === true) {
+        query.applied = true;
+    } else if (applied === 'false' || applied === false) {
+        query.applied = { $ne: true };
+    }
 
 		// Posted date range filter (UTC)
 		if (postedAtFrom || postedAtTo) {
@@ -312,6 +321,30 @@ app.get('/api/jobs', async (req, res) => {
 		console.error('GET /api/jobs error', err);
 		return res.status(500).json({ success: false, error: err.message });
 	}
+});
+
+// Mark a job as applied/unapplied
+// POST /api/jobs/:id/apply { applied?: boolean }
+app.post('/api/jobs/:id/apply', async (req, res) => {
+    try {
+        if (!jobsCollection) return res.status(503).json({ success: false, error: 'Database not ready' });
+        const { id } = req.params;
+        let objectId;
+        try {
+            objectId = new ObjectId(id);
+        } catch {
+            return res.status(400).json({ success: false, error: 'Invalid id' });
+        }
+        const applied = (typeof req.body?.applied === 'boolean') ? req.body.applied : true;
+        const update = applied
+            ? { $set: { applied: true, appliedAt: new Date().toISOString() } }
+            : { $unset: { applied: "" }, $set: { appliedAt: null } };
+        const result = await jobsCollection.updateOne({ _id: objectId }, update);
+        return res.json({ success: true, matchedCount: result.matchedCount, modifiedCount: result.modifiedCount, applied });
+    } catch (err) {
+        console.error('POST /api/jobs/:id/apply error', err);
+        return res.status(500).json({ success: false, error: err.message });
+    }
 });
 
 // Personal info endpoints - manage user's saved skills

@@ -14,7 +14,7 @@ import FlashOnIcon from "@mui/icons-material/FlashOn";
 import CheckIcon from '@mui/icons-material/Check';
 import CancelIcon from '@mui/icons-material/Cancel';
 
-const JobDetailDrawer = ({ job, open, onClose, onAskgllama, onSkillsChanged }) => {
+const JobDetailDrawer = ({ job, open, onClose, onAskgllama, onSkillsChanged, onApply }) => {
 	const [skillsChanged, setSkillsChanged] = useState(false);
 	if (!job) return null;
 
@@ -45,9 +45,12 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama, onSkillsChanged }) =
 					<CloseIcon />
 				</IconButton>
 
-				<Typography variant="h5" fontWeight="bold">
-					{job.title}
-				</Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography variant="h5" fontWeight="bold">
+                        {job.title}
+                    </Typography>
+                    {job.applied ? <Chip label="Applied" size="small" color="success" icon={<CheckIcon />} /> : null}
+                </Stack>
 				<Typography variant="body1" color="text.secondary" gutterBottom>
 					{job.company.name} &middot; {(job.details && (job.details.location || job.details.position))}
 				</Typography>
@@ -105,19 +108,27 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama, onSkillsChanged }) =
 						>
 							Ask gllama
 						</Button>
-						<Button
-							variant="contained"
-							color="primary"
-							size="small"
-							sx={{
-								textTransform: "none",
-								bgcolor: "#00C853",
-								"&:hover": { bgcolor: "#00B843" },
-								borderRadius: "20px",
-							}}
-						>
-							Apply Now
-						</Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        sx={{
+                            textTransform: "none",
+                            bgcolor: "#00C853",
+                            "&:hover": { bgcolor: "#00B843" },
+                            borderRadius: "20px",
+                        }}
+                        onClick={async () => {
+                            try {
+                                if (onApply && job) await onApply(job);
+                            } catch (e) {}
+                            if (job && job.applyLink) {
+                                window.open(job.applyLink, "_blank", "noopener,noreferrer");
+                            }
+                        }}
+                    >
+                        Apply Now
+                    </Button>
 					</Stack>
 				</Box>
 			</Box>
