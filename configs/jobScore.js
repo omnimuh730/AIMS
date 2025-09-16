@@ -126,8 +126,8 @@ export function calculateJobScores(job, userSkills) {
 	// Overall score
 	const WEIGHT_SKILL = 3;
 	const WEIGHT_APPLICANTS = 2;
-	const WEIGHT_FRESHNESS = 0.5;
-	const WEIGHT_SALARY = 0.5;
+	const WEIGHT_FRESHNESS = 2;
+	const WEIGHT_SALARY = 1;
 
 	let overallScore = 0;
 	if (salaryScore === null) {
