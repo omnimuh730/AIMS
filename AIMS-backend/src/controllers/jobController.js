@@ -104,7 +104,6 @@ export async function getJobs(req, res) {
 		} else {
 			jobSourceItem = ['Not specified'];
 		}
-		console.log(jobSourceItem);
 
 		const knownSources = JobSource;
 
