@@ -7,6 +7,7 @@ import {
 	skillsCategoryCollection
 } from "../db/mongo.js";
 import { calculateJobScores } from "../../../configs/jobScore.js";
+import { JobSource } from '../../../configs/pub.js';
 
 export async function createJob(req, res) {
 	try {
@@ -79,7 +80,7 @@ export async function getJobs(req, res) {
 			return res.status(503).json({ success: false, error: 'Database not ready' });
 		}
 
-		const { q, sort, page = 1, limit = 10, showLinkedInOnly = 'true', postedAtFrom, postedAtTo, applied, ...filters } = req.query;
+		const { q, sort, page = 1, limit = 10, showLinkedInOnly = 'true', postedAtFrom, jobSources, postedAtTo, applied, ...filters } = req.query;
 		let userSkills = [];
 		if (sort === 'recommended') {
 			if (personalInfoCollection) {
@@ -93,10 +94,31 @@ export async function getJobs(req, res) {
 		if (q) {
 			query.title = { $regex: q, $options: 'i' };
 		}
-
-		if (showLinkedInOnly === 'false' || showLinkedInOnly === false) {
-			query.applyLink = { $not: /linkedin\.com/ };
+		//Check Job source platform
+		// Step 1 -> Fetching domain from url like from https://www.walmart.workday.com/1234... -> www.walmart.workday.com
+		// Step 2 -> check if fetched domain(www.walmart.workday.com) includes any of the jobSources values(like workday) -> if yes, then match
+		// Consieration -> Not just check if the url includes jobsource item, must cut domain located between https:// and next first '/'
+		let jobSourceItem = [];
+		console.log(JobSource);
+		console.log(jobSources);
+		if (jobSources !== undefined) {
+			jobSourceItem = jobSources.split(',');
+		} else {
+			jobSourceItem = ['Not specified'];
 		}
+		console.log(jobSourceItem);
+		let jobSourceQuery = "^https://.*(";
+		for (let i = 0; i < jobSourceItem.length; i++) {
+			jobSourceQuery += jobSourceItem[i];
+			if (i === jobSourceItem.length - 1) {
+				jobSourceQuery += "";
+			} else {
+				jobSourceQuery += "|";
+			}
+		}
+		jobSourceQuery += ")\\."
+		console.log(jobSourceQuery);
+		query.applyLink = { $regex: jobSourceQuery, $options: 'i' };
 
 		if (applied === 'true' || applied === true) {
 			query['applied.0'] = { '$exists': true };

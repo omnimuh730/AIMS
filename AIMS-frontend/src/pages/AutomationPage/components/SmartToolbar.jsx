@@ -17,7 +17,9 @@ import {
 	useMediaQuery,
 	Checkbox,
 	FormControlLabel,
-	Button
+	Button,
+	OutlinedInput,
+	ListItemText
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -58,8 +60,6 @@ const SmartToolbar = ({
 	onAnalyzeSelected,
 	onApplySelected,
 	disableButtons = false,
-	showLinkedInOnly = false,
-	onShowLinkedInOnlyChange,
 }) => {
 	const theme = useTheme();
 	const isSmDown = useMediaQuery(theme.breakpoints.down('sm'));
@@ -84,6 +84,32 @@ const SmartToolbar = ({
 	// Date pickers local state
 	const [localPostedAtFrom, setLocalPostedAtFrom] = useState(filters.postedAtFrom ? dayjs(filters.postedAtFrom) : null);
 	const [localPostedAtTo, setLocalPostedAtTo] = useState(filters.postedAtTo ? dayjs(filters.postedAtTo) : null);
+
+
+	const [jobsourceName, setJobsourceName] = React.useState(JobSource);
+
+	const handleJobSourceSelect = (event) => {
+		const {
+			target: { value },
+		} = event;
+		let selectedSource;
+		if (value.includes('Select All')) {
+			if (jobsourceName.length === JobSource.length) {
+				selectedSource = [];
+			} else {
+				//select all
+				selectedSource = JobSource;
+			}
+		} else {
+			selectedSource = typeof value === 'string' ? value.split(',') : value;
+		}
+		//Remove Select All from selectedSource
+		if (selectedSource.includes('Select All')) {
+			selectedSource = selectedSource.filter(item => item !== 'Select All');
+		}
+		console.log(selectedSource);
+		setJobsourceName(selectedSource);
+	};
 
 	// Keep local state in sync when parent filters/search change externally
 	useEffect(() => setLocalSearch(searchQuery || ''), [searchQuery]);
@@ -134,13 +160,19 @@ const SmartToolbar = ({
 			delete next.postedAtTo;
 		}
 
+		if (Array.isArray(jobsourceName) && jobsourceName.length > 0) {
+			next.jobSources = jobsourceName.join(',');
+		} else {
+			delete next.jobSources;
+		}
+
 		try {
 			const same = JSON.stringify(next) === JSON.stringify(filters);
 			if (!same) onFiltersChange(next);
 		} catch (e) {
 			onFiltersChange(next);
 		}
-	}, [debouncedCompany, debouncedPosition, localRemote, localTime, localTags, localPostedAtFrom, localPostedAtTo, filters, onFiltersChange]);
+	}, [debouncedCompany, debouncedPosition, localRemote, localTime, localTags, localPostedAtFrom, localPostedAtTo, filters, onFiltersChange, jobsourceName]);
 
 	return (
 		<Box
@@ -418,43 +450,22 @@ const SmartToolbar = ({
 						<FormControlLabel
 							control={
 								<Checkbox
-									checked={showLinkedInOnly}
-									onChange={e =>
-										onShowLinkedInOnlyChange && onShowLinkedInOnlyChange(e.target.checked)
-									}
+									checked={!!filters.applied}
+									onChange={e => onFiltersChange && onFiltersChange({ ...filters, applied: e.target.checked })}
 									sx={{ p: 2 }}
 								/>
 							}
 							label={
 								<Typography variant="body2">
-									LinkedIn Jobs
+									Show Applied Jobs
 								</Typography>
 							}
 							sx={{
-								ml: 'auto',         // 👈 pushes it to the right
 								alignItems: 'center',
 								minHeight: 56,
 							}}
-                        />
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    checked={!!filters.applied}
-                                    onChange={e => onFiltersChange && onFiltersChange({ ...filters, applied: e.target.checked })}
-                                    sx={{ p: 2 }}
-                                />
-                            }
-                            label={
-                                <Typography variant="body2">
-                                    Show Applied Jobs
-                                </Typography>
-                            }
-                            sx={{
-                                alignItems: 'center',
-                                minHeight: 56,
-                            }}
-                        />
-                    </Stack>
+						/>
+					</Stack>
 				</Grid>
 
 				<Grid size={{ xs: 12, md: 6 }}>
@@ -479,32 +490,26 @@ const SmartToolbar = ({
 							</DemoContainer>
 						</LocalizationProvider>
 
-						<FormControl
-							variant="filled"
-							size="small"
-							sx={{
-								minWidth: { xs: '100%', sm: 180 },
-								'& .MuiFilledInput-root': {
-									borderRadius: 1.5,
-								},
-							}}
-						>
-							<InputLabel>Source</InputLabel>
+
+						<FormControl sx={{ m: 1, width: 300 }}>
+							<InputLabel id="demo-multiple-checkbox-label">Job Source</InputLabel>
 							<Select
-								value={localTime || ''}
-								onChange={(e) => setLocalTime(e.target.value)}
-								label="source"
-								displayEmpty
-								renderValue={(val) => val || 'Any'}
-								startAdornment={
-									<InputAdornment position="start" sx={{ pl: 1 }}>
-										<WorkOutlineRoundedIcon color="action" />
-									</InputAdornment>
-								}
+								labelId="demo-multiple-checkbox-label"
+								id="demo-multiple-checkbox"
+								multiple
+								value={jobsourceName}
+								onChange={handleJobSourceSelect}
+								input={<OutlinedInput label="Job Source" />}
+								renderValue={(selected) => selected.join(', ')}
 							>
-								<MenuItem value="">Any</MenuItem>
-								{JobSource.map(src => (
-									<MenuItem key={'jobsource-' + src.value} value={src.value}>{src.label}</MenuItem>
+								<MenuItem value="Select All">
+									<ListItemText primary="Select All" />
+								</MenuItem>
+								{JobSource.map((item) => (
+									<MenuItem key={item} value={item}>
+										<Checkbox checked={jobsourceName.includes(item)} />
+										<ListItemText primary={item} />
+									</MenuItem>
 								))}
 							</Select>
 						</FormControl>
