@@ -16,13 +16,21 @@ import {
 	Divider,
 	useMediaQuery,
 	Checkbox,
-	FormControlLabel
+	FormControlLabel,
+	Button,
+	OutlinedInput,
+	ListItemText
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { useTheme } from '@mui/material/styles';
+
+import {
+	Place
+} from '@mui/icons-material';
+
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
@@ -31,8 +39,9 @@ import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
 import WorkOutlineRoundedIcon from '@mui/icons-material/WorkOutlineRounded';
 import PublicRoundedIcon from '@mui/icons-material/PublicRounded';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
-import LocalOfferRoundedIcon from '@mui/icons-material/LocalOfferRounded';
 import useDebouncedValue from './../../../utils/useDebouncedValue';
+
+import { JobSource } from '../../../../../configs/pub';
 
 const SmartToolbar = ({
 	searchQuery,
@@ -48,9 +57,9 @@ const SmartToolbar = ({
 	selectAllChecked = false,
 	onSelectAll,
 	onRemoveSelected,
-	disableRemove = false,
-	showLinkedInOnly = false,
-	onShowLinkedInOnlyChange,
+	onAnalyzeSelected,
+	onApplySelected,
+	disableButtons = false,
 }) => {
 	const theme = useTheme();
 	const isSmDown = useMediaQuery(theme.breakpoints.down('sm'));
@@ -75,6 +84,32 @@ const SmartToolbar = ({
 	// Date pickers local state
 	const [localPostedAtFrom, setLocalPostedAtFrom] = useState(filters.postedAtFrom ? dayjs(filters.postedAtFrom) : null);
 	const [localPostedAtTo, setLocalPostedAtTo] = useState(filters.postedAtTo ? dayjs(filters.postedAtTo) : null);
+
+
+	const [jobsourceName, setJobsourceName] = React.useState(JobSource);
+
+	const handleJobSourceSelect = (event) => {
+		const {
+			target: { value },
+		} = event;
+		let selectedSource;
+		if (value.includes('Select All')) {
+			if (jobsourceName.length === JobSource.length) {
+				selectedSource = [];
+			} else {
+				//select all
+				selectedSource = JobSource;
+			}
+		} else {
+			selectedSource = typeof value === 'string' ? value.split(',') : value;
+		}
+		//Remove Select All from selectedSource
+		if (selectedSource.includes('Select All')) {
+			selectedSource = selectedSource.filter(item => item !== 'Select All');
+		}
+		console.log(selectedSource);
+		setJobsourceName(selectedSource);
+	};
 
 	// Keep local state in sync when parent filters/search change externally
 	useEffect(() => setLocalSearch(searchQuery || ''), [searchQuery]);
@@ -125,13 +160,19 @@ const SmartToolbar = ({
 			delete next.postedAtTo;
 		}
 
+		if (Array.isArray(jobsourceName) && jobsourceName.length > 0) {
+			next.jobSources = jobsourceName.join(',');
+		} else {
+			delete next.jobSources;
+		}
+
 		try {
 			const same = JSON.stringify(next) === JSON.stringify(filters);
 			if (!same) onFiltersChange(next);
 		} catch (e) {
 			onFiltersChange(next);
 		}
-	}, [debouncedCompany, debouncedPosition, localRemote, localTime, localTags, localPostedAtFrom, localPostedAtTo, filters, onFiltersChange]);
+	}, [debouncedCompany, debouncedPosition, localRemote, localTime, localTags, localPostedAtFrom, localPostedAtTo, filters, onFiltersChange, jobsourceName]);
 
 	return (
 		<Box
@@ -294,7 +335,7 @@ const SmartToolbar = ({
 							InputProps={{
 								startAdornment: (
 									<InputAdornment position="start">
-										<WorkOutlineRoundedIcon color="action" />
+										<Place color="action" />
 									</InputAdornment>
 								),
 							}}
@@ -409,20 +450,17 @@ const SmartToolbar = ({
 						<FormControlLabel
 							control={
 								<Checkbox
-									checked={showLinkedInOnly}
-									onChange={e =>
-										onShowLinkedInOnlyChange && onShowLinkedInOnlyChange(e.target.checked)
-									}
+									checked={!!filters.applied}
+									onChange={e => onFiltersChange && onFiltersChange({ ...filters, applied: e.target.checked })}
 									sx={{ p: 2 }}
 								/>
 							}
 							label={
 								<Typography variant="body2">
-									LinkedIn Jobs
+									Show Applied Jobs
 								</Typography>
 							}
 							sx={{
-								ml: 'auto',         // 👈 pushes it to the right
 								alignItems: 'center',
 								minHeight: 56,
 							}}
@@ -433,23 +471,49 @@ const SmartToolbar = ({
 				<Grid size={{ xs: 12, md: 6 }}>
 
 					{/* Posted date range filter */}
+					<Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
 
-					<LocalizationProvider dateAdapter={AdapterDayjs}>
-						<DemoContainer components={['DatePicker', 'DatePicker']}>
-							<DatePicker
-								label="From date"
-								value={localPostedAtFrom}
-								onChange={date => setLocalPostedAtFrom(date)}
-								slotProps={{ textField: { variant: 'filled', size: 'small', sx: { minWidth: 160, borderRadius: 1.5 } } }}
-							/>
-							<DatePicker
-								label="To date"
-								value={localPostedAtTo}
-								onChange={date => setLocalPostedAtTo(date)}
-								slotProps={{ textField: { variant: 'filled', size: 'small', sx: { minWidth: 160, borderRadius: 1.5 } } }}
-							/>
-						</DemoContainer>
-					</LocalizationProvider>
+						<LocalizationProvider dateAdapter={AdapterDayjs}>
+							<DemoContainer components={['DatePicker', 'DatePicker']}>
+								<DatePicker
+									label="From date"
+									value={localPostedAtFrom}
+									onChange={date => setLocalPostedAtFrom(date)}
+									slotProps={{ textField: { variant: 'filled', size: 'small', sx: { minWidth: 160, borderRadius: 1.5 } } }}
+								/>
+								<DatePicker
+									label="To date"
+									value={localPostedAtTo}
+									onChange={date => setLocalPostedAtTo(date)}
+									slotProps={{ textField: { variant: 'filled', size: 'small', sx: { minWidth: 160, borderRadius: 1.5 } } }}
+								/>
+							</DemoContainer>
+						</LocalizationProvider>
+
+
+						<FormControl sx={{ m: 1, width: 300 }}>
+							<InputLabel id="demo-multiple-checkbox-label">Job Source</InputLabel>
+							<Select
+								labelId="demo-multiple-checkbox-label"
+								id="demo-multiple-checkbox"
+								multiple
+								value={jobsourceName}
+								onChange={handleJobSourceSelect}
+								input={<OutlinedInput label="Job Source" />}
+								renderValue={(selected) => selected.join(', ')}
+							>
+								<MenuItem value="Select All">
+									<ListItemText primary="Select All" />
+								</MenuItem>
+								{JobSource.map((item) => (
+									<MenuItem key={item} value={item}>
+										<Checkbox checked={jobsourceName.includes(item)} />
+										<ListItemText primary={item} />
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+					</Stack>
 				</Grid>
 
 
@@ -461,13 +525,30 @@ const SmartToolbar = ({
 							onChange={e => onSelectAll && onSelectAll(e.target.checked)}
 						/>
 						<Typography variant="body2">Select All</Typography>
-						<button
+						<Button
 							onClick={onRemoveSelected}
-							disabled={disableRemove}
-							style={{ marginLeft: 32, padding: '4px 12px', borderRadius: 4, background: disableRemove ? '#eee' : '#d32f2f', color: '#fff', border: 'none', cursor: disableRemove ? 'not-allowed' : 'pointer' }}
+							disabled={disableButtons}
+							variant='contained'
+							color='error'
 						>
 							Remove
-						</button>
+						</Button>
+						<Button
+							variant='contained'
+							color='primary'
+							disabled={disableButtons}
+							onClick={onApplySelected}
+						>
+							Apply
+						</Button>
+						<Button
+							variant='contained'
+							color='secondary'
+							disabled={disableButtons}
+							onClick={onAnalyzeSelected}
+						>
+							Analyze
+						</Button>
 					</Stack>
 				</Grid>
 

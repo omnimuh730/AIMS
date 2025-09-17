@@ -15,6 +15,8 @@ import NotFoundPage from "./pages/NotFoundPage";
 import TestPage from "./pages/TestPage";
 import SettingsPage from "./pages/SettingsPage";
 import AutomationPage from "./pages/AutomationPage";
+import AIReportPage from "./pages/ReportsPage/AIReport";
+import MannualReportPage from "./pages/ReportsPage/MannualReport";
 import { AutoAwesome, Settings, Visibility } from "@mui/icons-material";
 
 import useSocket from "./api/useSocket";
@@ -51,13 +53,13 @@ const NAVIGATION = [
 		icon: <BarChartIcon />,
 		children: [
 			{
-				segment: "sales",
-				title: "Sales",
+				segment: "mannual",
+				title: "Mannual",
 				icon: <DescriptionIcon />,
 			},
 			{
-				segment: "traffic",
-				title: "Traffic",
+				segment: "ai",
+				title: "AI",
 				icon: <DescriptionIcon />,
 			},
 		],
@@ -111,6 +113,8 @@ function AppContent() {
 			<Route path="/test" element={<TestPage />} />
 			<Route path="/settings" element={<SettingsPage />} />
 			<Route path="/automation" element={<AutomationPage />} />
+			<Route path="/reports/mannual" element={<MannualReportPage />} />
+			<Route path="/reports/ai" element={<AIReportPage />} />
 			<Route path="*" element={<NotFoundPage />} />
 		</Routes>
 	);

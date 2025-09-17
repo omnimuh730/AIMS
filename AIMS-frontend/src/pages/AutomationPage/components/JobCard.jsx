@@ -50,7 +50,7 @@ const formatPostedAt = (postedAt) => {
 	}
 };
 
-const JobCardHeader = ({ company, postedAgo, postedAt, tags }) => (
+const JobCardHeader = ({ company, postedAgo, postedAt, tags, applied }) => (
 	<Box sx={{ display: "flex", alignItems: "start", mb: 1.5 }}>
 		<Avatar
 			src={company.logo || undefined}
@@ -68,6 +68,7 @@ const JobCardHeader = ({ company, postedAgo, postedAt, tags }) => (
 			>
 				<Chip label={postedAgo} size="small" />
 				{postedAt && <Chip label={formatPostedAt(postedAt)} size="small" color="success" />}
+				{applied ? <Chip label="Applied" size="small" color="success" variant="filled" icon={<Check fontSize="small" />} /> : null}
 				{Array.isArray(tags) && tags.map((tag) => (
 					<Chip key={tag} label={tag} size="small" color="info" variant="outlined" />
 				))}
@@ -151,9 +152,19 @@ const JobCardDetails = ({ details = {} }) => {
 	);
 };
 
-const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama }) => {
-	const ApplyNow = () => {
-		window.open(applyLink || "https://example.com", "_blank", "noopener,noreferrer");
+const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, job }) => {
+	const ApplyNow = async () => {
+		try {
+			if (onApply && job) {
+				await onApply(job);
+			}
+		} catch (e) {
+			// ignore error and still open the tab
+		} finally {
+			if (applyLink) {
+				window.open(applyLink, "_blank", "noopener,noreferrer");
+			}
+		}
 	}
 	return (
 		<Box
@@ -262,7 +273,7 @@ const MatchPanel = ({ job, userSkills }) => {
 					<MetricItem label="Skill" score={scores.skillMatch} />
 				</Grid>
 				<Grid size={{ md: 6 }}>
-					<MetricItem label={`Bid.Est ${scores.estimateApplicantNumber}`} score={scores.applicantScore} />
+					<MetricItem label={`Bid.Est ${scores.estimateApplicantNumber >= '200' ? '200+' : scores.estimateApplicantNumber}`} score={scores.applicantScore} />
 				</Grid>
 				<Grid size={{ md: 6 }}>
 					<MetricItem label="Freshness" score={scores.postedDateScore} />
@@ -276,7 +287,7 @@ const MatchPanel = ({ job, userSkills }) => {
 };
 
 // --- Main Exported Component - MODIFIED FOR LAYOUT ---
-const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, checked, onCheck }) => (
+const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, checked, onCheck }) => (
 	<Box sx={{ display: 'flex', alignItems: 'center' }}>
 		<input
 			type="checkbox"
@@ -303,6 +314,7 @@ const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, checked, onCheck
 					}}
 					postedAgo={job.postedAgo}
 					postedAt={job.postedAt}
+					applied={!!job.applied}
 					tags={job.tags}
 				/>
 				<Divider sx={{ my: 1 }} />
@@ -312,6 +324,8 @@ const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, checked, onCheck
 					applyLink={job.applyLink}
 					onViewDetails={() => onViewDetails(job)}
 					onAskgllama={onAskgllama}
+					onApply={onApply}
+					job={job}
 				/>
 			</CardContent>
 		</Card>
