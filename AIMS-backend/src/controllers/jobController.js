@@ -89,47 +89,59 @@ export async function getJobs(req, res) {
 			}
 		}
 
-		const query = {};
+		const query = { $and: [] };
 
 		if (q) {
-			query.title = { $regex: q, $options: 'i' };
+			query.$and.push({ title: { $regex: q, $options: 'i' } });
 		}
 		//Check Job source platform
 		// Step 1 -> Fetching domain from url like from https://www.walmart.workday.com/1234... -> www.walmart.workday.com
 		// Step 2 -> check if fetched domain(www.walmart.workday.com) includes any of the jobSources values(like workday) -> if yes, then match
 		// Consieration -> Not just check if the url includes jobsource item, must cut domain located between https:// and next first '/'
 		let jobSourceItem = [];
-		console.log(JobSource);
-		console.log(jobSources);
 		if (jobSources !== undefined) {
 			jobSourceItem = jobSources.split(',');
 		} else {
 			jobSourceItem = ['Not specified'];
 		}
 		console.log(jobSourceItem);
-		let jobSourceQuery = "^https://.*(";
-		for (let i = 0; i < jobSourceItem.length; i++) {
-			jobSourceQuery += jobSourceItem[i];
-			if (i === jobSourceItem.length - 1) {
-				jobSourceQuery += "";
-			} else {
-				jobSourceQuery += "|";
-			}
+
+		const knownSources = JobSource;
+
+		// Build regexes
+		let selectedKnown = jobSourceItem.filter(src => src !== 'Other');
+		let jobSourceQuery = "^https://.*(" + selectedKnown.join('|') + ")\\.";
+		let knownSourcesRegex = "^https://.*(" + knownSources.join('|') + ")\\.";
+
+		if (jobSourceItem.includes('Other') && selectedKnown.length > 0) {
+			query.$and.push({
+				$or: [
+					{ applyLink: { $regex: jobSourceQuery, $options: 'i' } },
+					{ applyLink: { $not: { $regex: knownSourcesRegex, $options: 'i' } } }
+				]
+			});
+		} else if (jobSourceItem.includes('Other')) {
+			query.$and.push({ applyLink: { $not: { $regex: knownSourcesRegex, $options: 'i' } } });
+		} else {
+			query.$and.push({ applyLink: { $regex: jobSourceQuery, $options: 'i' } });
 		}
-		jobSourceQuery += ")\\."
-		console.log(jobSourceQuery);
-		query.applyLink = { $regex: jobSourceQuery, $options: 'i' };
 
 		if (applied === 'true' || applied === true) {
-			query['applied.0'] = { '$exists': true };
+			query.$and.push({ 'applied.0': { $exists: true } });
 		} else if (applied === 'false' || applied === false) {
-			query.$or = [{ applied: { $exists: false } }, { applied: { $size: 0 } }];
+			query.$and.push({ $or: [{ applied: { $exists: false } }, { applied: { $size: 0 } }] });
 		}
 
 		if (postedAtFrom || postedAtTo) {
-			query.postedAt = {};
-			if (postedAtFrom) query.postedAt.$gte = postedAtFrom;
-			if (postedAtTo) query.postedAt.$lte = postedAtTo;
+			const range = {};
+			if (postedAtFrom) range.$gte = postedAtFrom;
+			if (postedAtTo) range.$lte = postedAtTo;
+			query.$and.push({ postedAt: range });
+		}
+
+		if (query.$and.length === 1) {
+			Object.assign(query, query.$and[0]);
+			delete query.$and;
 		}
 
 		const pageNum = Math.max(1, parseInt(page, 10) || 1);
