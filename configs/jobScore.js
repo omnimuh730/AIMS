@@ -1,20 +1,21 @@
 // utils/jobScore.js
 // Calculates job match scores for UI
 
-
+const MAXIMUM_APPLICANTS = 200;
+const MAXIMUM_BID_DELAY = 48.0;
 
 function estimateApplicants({
 	started_time,
 	passed_time_datapoint,
 	applicants_datapoint,
 	current_time,
-	max_applicants = 300,
-	t0_peak_time_hours = 48.0
+	max_applicants = MAXIMUM_APPLICANTS,
+	t0_peak_time_hours = MAXIMUM_BID_DELAY
 }) {
 	// --- Step 1: Calculate Elapsed Times in Hours ---
 
 	// Validate the known data point to prevent mathematical errors (e.g., log of a negative number)
-	if (applicants_datapoint < 0 || applicants_datapoint >= max_applicants) {
+	if (applicants_datapoint < 0 || applicants_datapoint > max_applicants) {
 		console.log("applicants_datapoint must be a positive number and less than max_applicants.");
 		return 0;
 	}
@@ -74,7 +75,7 @@ export function calculateJobScores(job, userSkills) {
 	const skillMatch = requiredSkills.length > 0 ? (matchedCount / requiredSkills.length) * 100 : 0;
 
 	// Applicants score
-	const applicantCount = job.applicants?.count;
+	const applicantCount = job.applicants?.count <= 25 ? Math.floor(Math.random() * 15 + 10) : job.applicants?.count;
 	let applicantScore = 0;
 	let estimateApplicantNumber = 0;
 
@@ -93,14 +94,15 @@ export function calculateJobScores(job, userSkills) {
 			passed_time_datapoint: data_point_time,
 			applicants_datapoint: data_point_applicants,
 			current_time: current,
-			max_applicants: 300,
-			t0_peak_time_hours: 48.0 // This is our key assumption
+			max_applicants: MAXIMUM_APPLICANTS,
+			t0_peak_time_hours: MAXIMUM_BID_DELAY // This is our key assumption
 		});
 
 		estimateApplicantNumber = estimation;
-		applicantScore = estimation > 2000 ? 0 : (2000 - estimation) / 20; if (applicantCount <= 25) applicantScore = 100;
-		else if (applicantCount >= 200) applicantScore = 0;
-		else applicantScore = 100 - (((applicantCount - 25) / 175) * 100);
+		applicantScore = estimation > MAXIMUM_APPLICANTS ? 0 : (MAXIMUM_APPLICANTS - estimation) / 20;
+		if (applicantCount <= 25) applicantScore = 100;
+		else if (applicantCount >= MAXIMUM_APPLICANTS) applicantScore = 0;
+		else applicantScore = 100 - (((applicantCount - 25) / (MAXIMUM_APPLICANTS - 25)) * 100);
 	}
 
 	// Freshness score

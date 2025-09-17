@@ -4,7 +4,7 @@ export const JobSource = [
 	'Workday',
 	'Greenhouse',
 	'Lever',
-	'Ashby',
+	'Ashbyhq',
 	'ADP',
 	'Rippling',
 	'Other',
