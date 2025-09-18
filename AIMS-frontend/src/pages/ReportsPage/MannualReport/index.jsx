@@ -150,35 +150,6 @@ const MannualReportPage = () => {
 				<Typography variant="h6">Application Flow</Typography>
 				<SankeyChart data={sankeyData} />
 			</Paper>
-			<Typography variant="h4" sx={{ mt: 4 }}>Market Microstructure</Typography>
-			<JobPostingStreamgraph data={jobPostingVelocity} />
-			<WeeklyPostingHeatmap data={weeklyPostingCadence} />
-		</Box>
-	);
-};
-
-export default MannualReportPage;
-/*
-
-
-
-			<Typography variant="h4" sx={{ mt: 4 }}>The Opportunity Landscape</Typography>
-			<JobSpaceScatterPlot data={jobSpaceData} />
-
-			<Typography variant="h4" sx={{ mt: 4 }}>My Targeting Analysis</Typography>
-			<CompanyTreemap data={companyFocus} />
-			<SkillsDotPlot data={targetedSkills} />
-			<JobTitleStackedBar data={jobTitleBreakdown} />
-			<SkillProfileRadarChart data={skillProfileAlignment} />
-			<SkillSynergyHeatmap data={skillSynergy.data} keys={skillSynergy.keys} />
-
-			<Typography variant="h4" sx={{ mt: 4 }}>My Application Habits</Typography>
-			<CalendarHeatmapChart data={applicationRhythm} />
-
-			<Typography variant="h4" sx={{ mt: 4 }}>Performance & Latency Diagnostics</Typography>
-			<ApplicationResponseLatencyBoxPlot data={applicationResponseLatency} />
-
-			<Typography variant="h4" sx={{ mt: 4 }}>Legacy Reports</Typography>
 			<Paper elevation={3} sx={{ p: 2 }}>
 				<Typography variant="h6">Daily Job Postings</Typography>
 				<LineChart
@@ -208,4 +179,29 @@ export default MannualReportPage;
 					height={300}
 				/>
 			</Paper>
+		</Box>
+	);
+};
+
+export default MannualReportPage;
+/*
+
+
+
+			<Typography variant="h4" sx={{ mt: 4 }}>Market Microstructure</Typography>
+			<JobPostingStreamgraph data={jobPostingVelocity} />
+			<WeeklyPostingHeatmap data={weeklyPostingCadence} />
+			<Typography variant="h4" sx={{ mt: 4 }}>The Opportunity Landscape</Typography>
+			<JobSpaceScatterPlot data={jobSpaceData} />
+
+			<Typography variant="h4" sx={{ mt: 4 }}>My Targeting Analysis</Typography>
+			<CompanyTreemap data={companyFocus} />
+			<SkillsDotPlot data={targetedSkills} />
+			<JobTitleStackedBar data={jobTitleBreakdown} />
+			<SkillProfileRadarChart data={skillProfileAlignment} />
+			<SkillSynergyHeatmap data={skillSynergy.data} keys={skillSynergy.keys} />
+
+			<Typography variant="h4" sx={{ mt: 4 }}>My Application Habits</Typography>
+			<CalendarHeatmapChart data={applicationRhythm} />
+
 			*/
