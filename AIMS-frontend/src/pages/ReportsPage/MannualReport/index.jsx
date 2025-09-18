@@ -185,6 +185,11 @@ const MannualReportPage = () => {
 					height={300}
 				/>
 			</Paper>
+			<Typography variant="h4" sx={{ mt: 4 }}>My Targeting Analysis</Typography>
+			<CompanyTreemap data={companyFocus} />
+			<SkillsDotPlot data={targetedSkills} />
+			<JobTitleStackedBar data={jobTitleBreakdown} />
+			<SkillProfileRadarChart data={skillProfileAlignment} />
 		</Box>
 	);
 };
@@ -194,11 +199,6 @@ export default MannualReportPage;
 
 			<WeeklyPostingHeatmap data={weeklyPostingCadence} />
 
-			<Typography variant="h4" sx={{ mt: 4 }}>My Targeting Analysis</Typography>
-			<CompanyTreemap data={companyFocus} />
-			<SkillsDotPlot data={targetedSkills} />
-			<JobTitleStackedBar data={jobTitleBreakdown} />
-			<SkillProfileRadarChart data={skillProfileAlignment} />
 			<SkillSynergyHeatmap data={skillSynergy.data} keys={skillSynergy.keys} />
 
 
