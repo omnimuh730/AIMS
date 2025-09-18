@@ -6,6 +6,7 @@ const SankeyChart = ({ data }) => {
 	// Source and target are indices of the nodes array.
 
 	// Check if data is available and has the expected structure
+	console.log(data);
 	if (!data || !data.nodes || !data.links || data.nodes.length === 0) {
 		return <p>No Sankey data available.</p>;
 	}
@@ -16,7 +17,7 @@ const SankeyChart = ({ data }) => {
 				data={data}
 				node={({ x, y, width, height, index, payload }) => (
 					<Rectangle
-						key={`node-${index}`}
+						key={`node-${index}` + '-sankey-chart' + Math.floor(Math.random() * 100000)}
 						x={x}
 						y={y}
 						width={width}

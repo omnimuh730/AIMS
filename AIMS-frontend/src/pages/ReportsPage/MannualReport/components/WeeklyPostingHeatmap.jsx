@@ -28,15 +28,20 @@ const WeeklyPostingHeatmap = ({ data }) => {
 		return dayData;
 	});
 
+	const allValues = data.map(d => d.count);
+	const minValue = data.length > 0 ? Math.min(...allValues) : 0;
+	const maxValue = data.length > 0 ? Math.max(...allValues) : 0;
+
 	return (
 		<Paper elevation={3} sx={{ p: 2, height: 400 }}>
 			<Typography variant="h6">Weekly Posting Cadence</Typography>
 			<ResponsiveHeatMap
 				data={transformedData}
-				
 				indexBy="id"
 				margin={{ top: 60, right: 90, bottom: 60, left: 90 }}
 				forceSquare={true}
+				minValue={minValue}
+				maxValue={maxValue}
 				axisTop={{
 					tickSize: 5,
 					tickPadding: 5,
@@ -59,7 +64,7 @@ const WeeklyPostingHeatmap = ({ data }) => {
 					legend: 'Day',
 					legendOffset: -70,
 				}}
-				colors={{ scheme: 'greens' }}
+				colors="YlGn"
 				emptyColor="#eeeeee"
 				nodeOpacity={1}
 				borderWidth={0}

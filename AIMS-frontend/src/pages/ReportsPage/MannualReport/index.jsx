@@ -6,7 +6,7 @@ import { ScatterChart } from '@mui/x-charts/ScatterChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { Box, CircularProgress, Paper, Typography, Grid } from '@mui/material';
 import KpiCard from './components/KpiCard';
-import SankeyChart from './components/SankeyChart';
+//import SankeyChart from './components/SankeyChart';
 import CompanyTreemap from './components/CompanyTreemap';
 import SkillsDotPlot from './components/SkillsDotPlot';
 import JobTitleStackedBar from './components/JobTitleStackedBar';
@@ -132,26 +132,29 @@ const MannualReportPage = () => {
 		<Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
 			<Typography variant="h4">Command Center Overview</Typography>
 			<Grid container spacing={3}>
-				<Grid item xs={12} sm={6} md={3}>
+				<Grid item size={{ xs: 12, sm: 6, md: 3 }}>
 					<KpiCard title="Total Applications" value={kpis.totalApplications} />
 				</Grid>
-				<Grid item xs={12} sm={6} md={3}>
+				<Grid item size={{ xs: 12, sm: 6, md: 3 }}>
 					<KpiCard title="Active Applications" value={kpis.activeApplications} />
 				</Grid>
-				<Grid item xs={12} sm={6} md={3}>
+				<Grid item size={{ xs: 12, sm: 6, md: 3 }}>
 					<KpiCard title="Interview Rate" value={kpis.interviewRate.toFixed(2)} unit="%" />
 				</Grid>
-				<Grid item xs={12} sm={6} md={3}>
+				<Grid item size={{ xs: 12, sm: 6, md: 3 }}>
 					<KpiCard title="Application Velocity" value={kpis.applicationVelocity.toFixed(2)} unit="/ week" />
 				</Grid>
 			</Grid>
 
-			<Paper elevation={3} sx={{ p: 2, mt: 4 }}>
-				<Typography variant="h6">Application Flow</Typography>
-				<SankeyChart data={sankeyData} />
-			</Paper>
 			<Typography variant="h4" sx={{ mt: 4 }}>Market Microstructure</Typography>
 			<JobPostingStreamgraph data={jobPostingVelocity} />
+
+
+			<Typography variant="h4" sx={{ mt: 4 }}>The Opportunity Landscape</Typography>
+			<JobSpaceScatterPlot data={jobSpaceData} />
+
+			<Typography variant="h4" sx={{ mt: 4 }}>My Application Habits</Typography>
+			<CalendarHeatmapChart data={applicationRhythm} />
 
 			<Paper elevation={3} sx={{ p: 2 }}>
 				<Typography variant="h6">Daily Job Postings</Typography>
@@ -189,8 +192,7 @@ const MannualReportPage = () => {
 export default MannualReportPage;
 /*
 
-
-
+			<WeeklyPostingHeatmap data={weeklyPostingCadence} />
 
 			<Typography variant="h4" sx={{ mt: 4 }}>My Targeting Analysis</Typography>
 			<CompanyTreemap data={companyFocus} />
@@ -199,7 +201,13 @@ export default MannualReportPage;
 			<SkillProfileRadarChart data={skillProfileAlignment} />
 			<SkillSynergyHeatmap data={skillSynergy.data} keys={skillSynergy.keys} />
 
-			<Typography variant="h4" sx={{ mt: 4 }}>My Application Habits</Typography>
-			<CalendarHeatmapChart data={applicationRhythm} />
 
 			*/
+
+/*
+	
+<Paper elevation={3} sx={{ p: 2, mt: 4 }}>
+	<Typography variant="h6">Application Flow</Typography>
+	<SankeyChart data={sankeyData} />
+</Paper>
+*/
