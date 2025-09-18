@@ -8,6 +8,16 @@ import {
 import { calculateJobScores } from "../../../configs/jobScore.js";
 import { JobSource } from '../../../configs/pub.js';
 
+// Helper function to generate source regexes
+const getSourceRegex = (sourceName) => {
+	if (sourceName === 'LinkedIn') return /linkedin/i;
+	if (sourceName === 'Indeed') return /indeed/i;
+	if (sourceName === 'MyWorkdayJobs') return /myworkdayjobs/i;
+	if (sourceName === 'Greenhouse') return /greenhouse/i;
+	if (sourceName === 'Lever') return /lever/i;
+	return null;
+};
+
 export async function createJob(req, res) {
 	try {
 		const job = req.body;
@@ -41,11 +51,11 @@ export async function createJob(req, res) {
 			const companyTags = Array.isArray(job.company?.tags) ? job.company.tags.map(t => String(t).trim()).filter(Boolean) : [];
 			if (companyCategoryCollection && companyTags.length) {
 				const ops = companyTags.map(tag => ({
-					updateOne: {
-						filter: { name: tag },
-						update: { $setOnInsert: { name: tag, createdAt: new Date().toISOString() } },
-						upsert: true,
-					}
+						updateOne: {
+							filter: { name: tag },
+							update: { $setOnInsert: { name: tag, createdAt: new Date().toISOString() } },
+							upsert: true,
+						}
 				}));
 				await companyCategoryCollection.bulkWrite(ops, { ordered: false });
 			}
@@ -53,11 +63,11 @@ export async function createJob(req, res) {
 			const skills = Array.isArray(job.skills) ? job.skills.map(s => String(s).trim()).filter(Boolean) : [];
 			if (skillsCategoryCollection && skills.length) {
 				const ops = skills.map(skill => ({
-					updateOne: {
-						filter: { name: skill },
-						update: { $setOnInsert: { name: skill, createdAt: new Date().toISOString() } },
-						upsert: true,
-					}
+						updateOne: {
+							filter: { name: skill },
+							update: { $setOnInsert: { name: skill, createdAt: new Date().toISOString() } },
+							upsert: true,
+						}
 				}));
 				await skillsCategoryCollection.bulkWrite(ops, { ordered: false });
 			}
@@ -82,7 +92,7 @@ export async function getJobs(req, res) {
 		const { q, sort, page = 1, limit = 10, showLinkedInOnly = 'true', postedAtFrom, jobSources, postedAtTo, applied, ...filters } = req.query;
 		let userSkills = [];
 		if (sort === 'recommended') {
-			if (personalInfoCollection) {
+				if (personalInfoCollection) {
 				const docs = await personalInfoCollection.find({}).toArray();
 				userSkills = docs.map(d => d.name);
 			}
@@ -111,7 +121,7 @@ export async function getJobs(req, res) {
 		let jobSourceQuery = "^https://[^/]*(" + selectedKnown.join('|') + ")\.";
 		let knownSourcesRegex = "^https://[^/]*(" + knownSources.join('|') + ")\.";
 
-		//{\"applyLink\": {\"$regex\": \"https://.*(workday).*\"}}
+		//{"applyLink": {"$regex": "https://.*(workday).*"}}
 
 		if (jobSourceItem.includes('Other') && selectedKnown.length > 0) {
 			query.$and.push({
@@ -152,7 +162,6 @@ export async function getJobs(req, res) {
 		let total = await jobsCollection.countDocuments(query);
 
 		if (sort === 'recommended') {
-			if (userSkills && userSkills.length > 0) {
 				docs = await jobsCollection.find(query).toArray();
 				docs.forEach(job => {
 					job._score = calculateJobScores(job, userSkills).overallScore;
@@ -160,26 +169,22 @@ export async function getJobs(req, res) {
 				docs.sort((a, b) => b._score - a._score);
 				docs = docs.slice(skip, skip + limitNum);
 			} else {
-				const sortOption = { _createdAt: -1 };
-				docs = await jobsCollection.find(query).sort(sortOption).skip(skip).limit(limitNum).toArray();
-			}
-		} else {
-			const sortOption = {};
-			if (sort && typeof sort === 'string') {
-				let sortField = '', sortOrder;
-				[sortField, sortOrder] = sort.split('_');
-				if (sortField === 'postedAt') {
-					sortOption.postedAt = sortOrder === 'asc' ? 1 : -1;
-				} else if (sortField && sortField.trim().length > 0) {
-					sortOption[sortField] = sortOrder === 'desc' ? -1 : 1;
+				const sortOption = {};
+				if (sort && typeof sort === 'string') {
+					let sortField = '', sortOrder;
+					[sortField, sortOrder] = sort.split('_');
+					if (sortField === 'postedAt') {
+						sortOption.postedAt = sortOrder === 'asc' ? 1 : -1;
+					} else if (sortField && sortField.trim().length > 0) {
+						sortOption[sortField] = sortOrder === 'desc' ? -1 : 1;
+					} else {
+						sortOption.postedAt = -1;
+					}
 				} else {
 					sortOption.postedAt = -1;
 				}
-			} else {
-				sortOption.postedAt = -1;
+				docs = await jobsCollection.find(query).sort(sortOption).skip(skip).limit(limitNum).toArray();
 			}
-			docs = await jobsCollection.find(query).sort(sortOption).skip(skip).limit(limitNum).toArray();
-		}
 
 		return res.json({
 			success: true,
@@ -220,6 +225,7 @@ export async function applyToJob(req, res) {
 						applied: { applicant: applicantName, appliedDate: new Date().toISOString(), status: 'Applied' }
 					}
 				}
+
 			);
 		} else {
 			updateResult = await jobsCollection.updateOne(
@@ -322,28 +328,12 @@ export async function getJobStats(req, res) {
 					source: {
 						$switch: {
 							branches: [
-								{
-									case: { $regexMatch: { input: '$applyLink', regex: /linkedin/i } },
-									then: 'LinkedIn'
-								},
-								{
-									case: { $regexMatch: { input: '$applyLink', regex: /myworkdayjobs/i } },
-									then: 'Workday'
-								},
-								{
-									case: { $regexMatch: { input: '$applyLink', regex: /indeed/i } },
-									then: 'Indeed'
-								},
-								{
-									case: { $regexMatch: { input: '$applyLink', regex: /greenhouse/i } },
-									then: 'Greenhouse'
-								},
-								{
-									case: { $regexMatch: { input: '$applyLink', regex: /lever/i } },
-									then: 'Lever'
-								}
+								...JobSource.filter(s => s !== 'Other').map(sourceName => ({
+									case: { $regexMatch: { input: '$applyLink', regex: getSourceRegex(sourceName) } },
+									then: sourceName
+								})),
+								{ case: true, then: 'Other' } // Default case
 							],
-							default: 'Other'
 						}
 					}
 				}
@@ -351,8 +341,8 @@ export async function getJobStats(req, res) {
 			{
 				$group: {
 					_id: {
-						date: '$postedAt',
-						source: '$source'
+							date: '$postedAt',
+							source: '$source'
 					},
 					count: { $sum: 1 }
 				}
@@ -363,7 +353,7 @@ export async function getJobStats(req, res) {
 					sources: {
 						$push: {
 							source: '$_id.source',
-							count: '$count'
+								count: '$count'
 						}
 					},
 				total: { $sum: '$count' }
@@ -406,46 +396,6 @@ export async function getJobStats(req, res) {
 		res.json({ success: true, dailyStats, appliedStats });
 	} catch (err) {
 		console.error('GET /api/jobs/stats error', err);
-		res.status(500).json({ success: false, error: err.message });
-	}
-}
-
-export async function getJobKpis(req, res) {
-	try {
-		if (!jobsCollection) {
-			return res.status(503).json({ success: false, error: 'Database not ready' });
-		}
-
-		const totalApplications = await jobsCollection.countDocuments({ 'applied.0': { $exists: true } });
-
-		const activeApplications = await jobsCollection.countDocuments({
-			'applied.0': { $exists: true },
-			'applied.status': { $nin: ['Rejected', 'Offer'] },
-		});
-
-		const interviews = await jobsCollection.countDocuments({ 'applied.status': 'Interview' });
-
-		const interviewRate = totalApplications > 0 ? (interviews / totalApplications) * 100 : 0;
-
-		const firstApplication = await jobsCollection.findOne({ 'applied.0': { $exists: true } }, { sort: { 'applied.appliedDate': 1 } });
-		let applicationVelocity = 0;
-		if (firstApplication) {
-			const firstDate = new Date(firstApplication.applied[0].appliedDate);
-			const weeks = (new Date() - firstDate) / (1000 * 60 * 60 * 24 * 7);
-			applicationVelocity = weeks > 0 ? totalApplications / weeks : 0;
-		}
-
-		res.json({
-			success: true,
-			kpis: {
-				totalApplications,
-				activeApplications,
-				interviewRate,
-				applicationVelocity,
-			},
-		});
-	} catch (err) {
-		console.error('GET /api/jobs/kpis error', err);
 		res.status(500).json({ success: false, error: err.message });
 	}
 }

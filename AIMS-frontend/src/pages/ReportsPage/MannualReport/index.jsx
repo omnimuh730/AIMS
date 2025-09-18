@@ -1,27 +1,71 @@
 import { useEffect, useState } from 'react';
-import useApi from '../../../api/useApi';
+import { useApi } from '../../../../api/useApi';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { ScatterChart } from '@mui/x-charts/ScatterChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { Box, CircularProgress, Paper, Typography, Grid } from '@mui/material';
 import KpiCard from './components/KpiCard';
+import SankeyChart from './components/SankeyChart';
+import CompanyTreemap from './components/CompanyTreemap';
+import SkillsDotPlot from './components/SkillsDotPlot';
+import JobTitleStackedBar from './components/JobTitleStackedBar';
+import CalendarHeatmapChart from './components/CalendarHeatmap';
+import JobPostingStreamgraph from './components/JobPostingStreamgraph';
+import WeeklyPostingHeatmap from './components/WeeklyPostingHeatmap';
+import JobSpaceScatterPlot from './components/JobSpaceScatterPlot';
+import SkillProfileRadarChart from './components/SkillProfileRadarChart';
+import SkillSynergyHeatmap from './components/SkillSynergyHeatmap';
+import ApplicationResponseLatencyBoxPlot from './components/ApplicationResponseLatencyBoxPlot';
 
 const MannualReportPage = () => {
 	const [stats, setStats] = useState(null);
 	const [kpis, setKpis] = useState(null);
+	const [sankeyData, setSankeyData] = useState(null);
+	const [companyFocus, setCompanyFocus] = useState(null);
+	const [targetedSkills, setTargetedSkills] = useState(null);
+	const [jobTitleBreakdown, setJobTitleBreakdown] = useState(null);
+	const [applicationRhythm, setApplicationRhythm] = useState(null);
+	const [jobPostingVelocity, setJobPostingVelocity] = useState(null);
+	const [weeklyPostingCadence, setWeeklyPostingCadence] = useState(null);
+	const [jobSpaceData, setJobSpaceData] = useState(null);
+	const [skillProfileAlignment, setSkillProfileAlignment] = useState(null);
+	const [skillSynergy, setSkillSynergy] = useState(null);
+	const [applicationResponseLatency, setApplicationResponseLatency] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const { get } = useApi();
 
 	useEffect(() => {
 		const fetchAllData = async () => {
 			try {
-				const [statsData, kpisData] = await Promise.all([
+				const [statsData, kpisData, sankeyResponse, companyFocusData, targetedSkillsData, jobTitleBreakdownData, applicationRhythmData, jobPostingVelocityData, weeklyPostingCadenceData, jobSpaceDataResponse, skillProfileAlignmentData, skillSynergyData, applicationResponseLatencyData] = await Promise.all([
 					get('/api/jobs/stats'),
 					get('/api/jobs/kpis'),
+					get('/api/jobs/sankey'),
+					get('/api/jobs/company-focus'),
+					get('/api/jobs/targeted-skills'),
+					get('/api/jobs/job-title-breakdown'),
+					get('/api/jobs/application-rhythm'),
+					get('/api/jobs/posting-velocity'),
+					get('/api/jobs/posting-cadence'),
+					get('/api/jobs/job-space'),
+					get('/api/jobs/skill-profile-alignment'),
+					get('/api/jobs/skill-synergy'),
+					get('/api/jobs/response-latency'),
 				]);
 				setStats(statsData);
 				setKpis(kpisData.kpis);
+				setSankeyData(sankeyResponse.data);
+				setCompanyFocus(companyFocusData.data);
+				setTargetedSkills(targetedSkillsData.data);
+				setJobTitleBreakdown(jobTitleBreakdownData.data);
+				setApplicationRhythm(applicationRhythmData.data);
+				setJobPostingVelocity(jobPostingVelocityData.data);
+				setWeeklyPostingCadence(weeklyPostingCadenceData.data);
+				setJobSpaceData(jobSpaceDataResponse.data);
+				setSkillProfileAlignment(skillProfileAlignmentData.data);
+				setSkillSynergy(skillSynergyData);
+				setApplicationResponseLatency(applicationResponseLatencyData.data);
 			} catch (error) {
 				console.error('Failed to fetch report data', error);
 			} finally {
@@ -36,7 +80,7 @@ const MannualReportPage = () => {
 		return <CircularProgress />;
 	}
 
-	if (!stats || !kpis) {
+	if (!stats || !kpis || !sankeyData || !companyFocus || !targetedSkills || !jobTitleBreakdown || !applicationRhythm || !jobPostingVelocity || !weeklyPostingCadence || !jobSpaceData || !skillProfileAlignment || !skillSynergy || !applicationResponseLatency) {
 		return <Typography>No data available</Typography>;
 	}
 
@@ -99,8 +143,33 @@ const MannualReportPage = () => {
 				</Grid>
 				<Grid item xs={12} sm={6} md={3}>
 					<KpiCard title="Application Velocity" value={kpis.applicationVelocity.toFixed(2)} unit="/ week" />
-				</Grid>
+					</Grid>
 			</Grid>
+
+			<Paper elevation={3} sx={{ p: 2, mt: 4 }}>
+				<Typography variant="h6">Application Flow</Typography>
+				<SankeyChart data={sankeyData} />
+			</Paper>
+
+			<Typography variant="h4" sx={{ mt: 4 }}>Market Microstructure</Typography>
+			<JobPostingStreamgraph data={jobPostingVelocity} />
+			<WeeklyPostingHeatmap data={weeklyPostingCadence} />
+
+			<Typography variant="h4" sx={{ mt: 4 }}>The Opportunity Landscape</Typography>
+			<JobSpaceScatterPlot data={jobSpaceData} />
+
+			<Typography variant="h4" sx={{ mt: 4 }}>My Targeting Analysis</Typography>
+			<CompanyTreemap data={companyFocus} />
+			<SkillsDotPlot data={targetedSkills} />
+			<JobTitleStackedBar data={jobTitleBreakdown} />
+			<SkillProfileRadarChart data={skillProfileAlignment} />
+			<SkillSynergyHeatmap data={skillSynergy.data} keys={skillSynergy.keys} />
+
+			<Typography variant="h4" sx={{ mt: 4 }}>My Application Habits</Typography>
+			<CalendarHeatmapChart data={applicationRhythm} />
+
+			<Typography variant="h4" sx={{ mt: 4 }}>Performance & Latency Diagnostics</Typography>
+			<ApplicationResponseLatencyBoxPlot data={applicationResponseLatency} />
 
 			<Typography variant="h4" sx={{ mt: 4 }}>Legacy Reports</Typography>
 			<Paper elevation={3} sx={{ p: 2 }}>
