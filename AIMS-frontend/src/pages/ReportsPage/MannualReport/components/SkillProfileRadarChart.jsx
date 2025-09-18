@@ -8,6 +8,16 @@ const SkillProfileRadarChart = ({ data }) => {
 	//   ...
 	// ]
 
+	// If data is []
+	if (!data || !data.keys || data.keys.length === 0) {
+		return (
+			<Paper elevation={3} sx={{ p: 2, height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+				<Typography variant="h6">Skill Profile Alignment</Typography>
+				<Typography variant="body1" sx={{ mt: 2 }}>No data available</Typography>
+			</Paper>
+		);
+	}
+
 	const chartData = data.keys.map(key => ({
 		skillCategory: key,
 		applied: data.applied[key],

@@ -13,7 +13,7 @@ function JobListingsPage() {
 	const [jobs, setJobs] = useState([]);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [sortOption, setSortOption] = useState("postedAt_desc");
-    const [filters, setFilters] = useState({ showLinkedInOnly: true, applied: false });
+	const [filters, setFilters] = useState({ showLinkedInOnly: true, applied: false });
 	const [pagination, setPagination] = useState({ page: 1, limit: 25, total: 0, totalPages: 1 });
 	const { loading, error, get, post } = useApi();
 
@@ -50,7 +50,7 @@ function JobListingsPage() {
 				if (String(v).trim() !== '') params.set(k, String(v));
 			});
 
-			let url = `http://localhost:3000/api/jobs?${params.toString()}`;
+			let url = `http://localhost:3001/api/jobs?${params.toString()}`;
 			if (sortOption === 'recommended') {
 				url += `&sort=recommended`;
 			}
@@ -67,7 +67,7 @@ function JobListingsPage() {
 	// Fetch user skills
 	const fetchUserSkills = useCallback(async () => {
 		try {
-			const res = await get('http://localhost:3000/api/personal/skills');
+			const res = await get('http://localhost:3001/api/personal/skills');
 			if (res && res.success && Array.isArray(res.skills)) {
 				setUserSkills(res.skills);
 			}
@@ -97,9 +97,9 @@ function JobListingsPage() {
 		}
 	};
 
-    const handleAskgllama = () => {
-        setIsModalOpen(true);
-    };
+	const handleAskgllama = () => {
+		setIsModalOpen(true);
+	};
 
 	const handleCloseModal = () => {
 		setIsModalOpen(false);
@@ -109,23 +109,23 @@ function JobListingsPage() {
 		setPagination(prev => ({ ...prev, page: newPage }));
 	};
 
-    const handleLimitChange = (newLimit) => {
-        setPagination(prev => ({ ...prev, limit: newLimit, page: 1 }));
-    };
+	const handleLimitChange = (newLimit) => {
+		setPagination(prev => ({ ...prev, limit: newLimit, page: 1 }));
+	};
 
-    // Mark a job as applied before opening Apply link
-    const handleApplyJob = async (job) => {
-        try {
-            const id = job._id || job.id;
-            if (!id) return;
-            const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
-            await post(`http://localhost:3000/api/jobs/${strId}/apply`, { applied: true });
-            // Refresh list so applied jobs disappear when showing not-applied
-            fetchJobs();
-        } catch (e) {
-            console.warn('Failed to mark job applied', e);
-        }
-    };
+	// Mark a job as applied before opening Apply link
+	const handleApplyJob = async (job) => {
+		try {
+			const id = job._id || job.id;
+			if (!id) return;
+			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
+			await post(`http://localhost:3001/api/jobs/${strId}/apply`, { applied: true });
+			// Refresh list so applied jobs disappear when showing not-applied
+			fetchJobs();
+		} catch (e) {
+			console.warn('Failed to mark job applied', e);
+		}
+	};
 
 	// Select all jobs on current page
 	const handleSelectAll = (checked) => {
@@ -147,7 +147,7 @@ function JobListingsPage() {
 		try {
 			// Send ids as strings for backend compatibility
 			const ids = selectedIds.map(id => typeof id === 'object' && id.$oid ? id.$oid : String(id));
-			const res = await post('http://localhost:3000/api/jobs/remove', { ids });
+			const res = await post('http://localhost:3001/api/jobs/remove', { ids });
 			if (res && res.success) {
 				notification.success(`Removed ${res.deletedCount || 0} job(s)`);
 				setSelectedIds([]);
@@ -168,7 +168,7 @@ function JobListingsPage() {
 
 		// Send links to backend relay which will forward them to the extension to open tabs
 		try {
-			post('http://localhost:3000/api/open-tabs', { urls: jobsToApply });
+			post('http://localhost:3001/api/open-tabs', { urls: jobsToApply });
 		} catch (err) {
 			console.error('Failed to request extension to open tabs', err);
 		}
@@ -221,28 +221,28 @@ function JobListingsPage() {
 							return !(job.applyLink && job.applyLink.includes('linkedin.com'));
 						})
 						.map((job, idx) => (
-                        <JobCard
-                            key={job._id || job.id || idx}
-                            job={job}
-                            userSkills={userSkills}
-                            onViewDetails={handleViewDetails}
-                            onAskgllama={handleAskgllama}
-                            onApply={handleApplyJob}
-                            checked={selectedIds.includes(job._id || job.id)}
-                            onCheck={(checked) => handleSelectJob(job._id || job.id, checked)}
-                        />
+							<JobCard
+								key={job._id || job.id || idx}
+								job={job}
+								userSkills={userSkills}
+								onViewDetails={handleViewDetails}
+								onAskgllama={handleAskgllama}
+								onApply={handleApplyJob}
+								checked={selectedIds.includes(job._id || job.id)}
+								onCheck={(checked) => handleSelectJob(job._id || job.id, checked)}
+							/>
 						))
 				)}
 			</Stack>
 
-            <JobDetailDrawer
-                job={selectedJob}
-                open={!!selectedJob}
-                onClose={handleCloseDrawer}
-                onAskgllama={handleAskgllama}
-                onApply={handleApplyJob}
-                onSkillsChanged={() => setSkillsChanged(true)}
-            />
+			<JobDetailDrawer
+				job={selectedJob}
+				open={!!selectedJob}
+				onClose={handleCloseDrawer}
+				onAskgllama={handleAskgllama}
+				onApply={handleApplyJob}
+				onSkillsChanged={() => setSkillsChanged(true)}
+			/>
 
 			<AskgllamaModal open={isModalOpen} onClose={handleCloseModal} />
 		</Container>

@@ -222,7 +222,7 @@ export async function applyToJob(req, res) {
 				{ _id: objectId },
 				{
 					$addToSet: {
-						applied: { applicant: applicantName, appliedDate: new Date().toISOString(), status: 'Applied' }
+						applied: { applicant: applicantName, appliedDate: new Date().toISOString(), status: 'Applied', statusHistory: [{ status: 'Applied', date: new Date().toISOString() }] }
 					}
 				}
 
@@ -270,7 +270,10 @@ export async function updateJobStatus(req, res) {
 
 		const updateResult = await jobsCollection.updateOne(
 			{ _id: objectId, 'applied.applicant': applicantName },
-			{ $set: { 'applied.$.status': status } }
+			{ 
+                $set: { 'applied.$.status': status },
+                $push: { 'applied.$.statusHistory': { status, date: new Date().toISOString() } }
+            }
 		);
 
 		return res.json({
@@ -303,99 +306,5 @@ export async function removeJobs(req, res) {
 	} catch (err) {
 		console.error('POST /api/jobs/remove error', err);
 		return res.status(500).json({ success: false, error: err.message });
-	}
-}
-
-export async function getJobStats(req, res) {
-	console.log(req.body);
-	try {
-		if (!jobsCollection) {
-			return res.status(503).json({ success: false, error: 'Database not ready' });
-		}
-
-		const { time_zone } = req.query;
-
-		const dailyStats = await jobsCollection.aggregate([
-			{
-				$project: {
-					postedAt: {
-						$dateToString: {
-							format: '%Y-%m-%d',
-							date: { $toDate: '$postedAt' },
-							timezone: time_zone || 'America/New_York',
-						}
-					},
-					source: {
-						$switch: {
-							branches: [
-								...JobSource.filter(s => s !== 'Other').map(sourceName => ({
-									case: { $regexMatch: { input: '$applyLink', regex: getSourceRegex(sourceName) } },
-									then: sourceName
-								})),
-								{ case: true, then: 'Other' } // Default case
-							],
-						}
-					}
-				}
-			},
-			{
-				$group: {
-					_id: {
-							date: '$postedAt',
-							source: '$source'
-					},
-					count: { $sum: 1 }
-				}
-			},
-			{
-				$group: {
-					_id: '$_id.date',
-					sources: {
-						$push: {
-							source: '$_id.source',
-								count: '$count'
-						}
-					},
-				total: { $sum: '$count' }
-				}
-			},
-			{
-				$sort: { _id: 1 }
-			}
-		]).toArray();
-
-		const appliedStats = await jobsCollection.aggregate([
-			{
-				$unwind: '$applied'
-			},
-			{
-				$project: {
-					appliedDate: {
-						$dateToString: {
-							format: '%Y-%m-%d',
-							date: { $toDate: '$applied.appliedDate' },
-							timezone: time_zone || 'America/New_York',
-						}
-					}
-				}
-			},
-			{
-				$group: {
-					_id: '$appliedDate',
-					count: { $sum: 1 }
-				}
-			},
-			{
-				$sort: { _id: 1 }
-			}
-		]).toArray();
-
-		console.log('dailyStats', dailyStats);
-		console.log('appliedStats', appliedStats);
-
-		res.json({ success: true, dailyStats, appliedStats });
-	} catch (err) {
-		console.error('GET /api/jobs/stats error', err);
-		res.status(500).json({ success: false, error: err.message });
 	}
 }

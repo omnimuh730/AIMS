@@ -310,8 +310,8 @@ const ScrapComponent = () => {
 		notification.info('Scrap completed, saving job to backend...');
 		// Send to backend
 		try {
-			// post to backend (assumes backend runs on localhost:3000)
-			await api.post('http://localhost:3000/api/jobs', resultData);
+			// post to backend (assumes backend runs on localhost:3001)
+			await api.post('http://localhost:3001/api/jobs', resultData);
 			notification.success('Job saved successfully');
 			setScrappedCount(prev => prev + 1);
 		} catch (err) {

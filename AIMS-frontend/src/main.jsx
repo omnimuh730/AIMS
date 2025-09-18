@@ -6,7 +6,7 @@ import { NotificationProvider } from "./api/notification.jsx";
 import { BrowserRouter } from "react-router-dom";
 
 createRoot(document.getElementById("root")).render(
-	<SocketProvider url="http://localhost:3000">
+	<SocketProvider url="http://localhost:3001">
 		<NotificationProvider>
 			<BrowserRouter>
 				<App />

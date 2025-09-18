@@ -52,19 +52,7 @@ const JobSpaceScatterPlot = ({ data }) => {
 					},
 				]}
 				height={300}
-				tooltip={({ point }) => (
-					<div style={{
-						background: 'white',
-						padding: '9px 12px',
-						border: '1px solid #ccc',
-					}}>
-						<strong>{point.data.label}</strong><br/>
-						Status: {point.data.interactionStatus}<br/>
-						Source: {point.data.source}<br/>
-						Skills Matched: {point.data.x}<br/>
-						Seniority: {['Intern', 'Junior/Entry', 'Mid-level', 'Senior/Lead'][point.data.y]}
-					</div>
-				)}
+				
 				// Customizing point appearance based on data
 				// This part might need direct SVG manipulation or a more flexible charting library
 				// @mui/x-charts doesn't directly support custom shapes per point in series data

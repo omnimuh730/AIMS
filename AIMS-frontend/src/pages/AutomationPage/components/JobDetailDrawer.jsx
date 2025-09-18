@@ -45,12 +45,12 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama, onSkillsChanged, onA
 					<CloseIcon />
 				</IconButton>
 
-                <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography variant="h5" fontWeight="bold">
-                        {job.title}
-                    </Typography>
-                    {job.applied ? <Chip label="Applied" size="small" color="success" icon={<CheckIcon />} /> : null}
-                </Stack>
+				<Stack direction="row" spacing={1} alignItems="center">
+					<Typography variant="h5" fontWeight="bold">
+						{job.title}
+					</Typography>
+					{job.applied ? <Chip label="Applied" size="small" color="success" icon={<CheckIcon />} /> : null}
+				</Stack>
 				<Typography variant="body1" color="text.secondary" gutterBottom>
 					{job.company.name} &middot; {(job.details && (job.details.location || job.details.position))}
 				</Typography>
@@ -108,27 +108,27 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama, onSkillsChanged, onA
 						>
 							Ask gllama
 						</Button>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        sx={{
-                            textTransform: "none",
-                            bgcolor: "#00C853",
-                            "&:hover": { bgcolor: "#00B843" },
-                            borderRadius: "20px",
-                        }}
-                        onClick={async () => {
-                            try {
-                                if (onApply && job) await onApply(job);
-                            } catch (e) {}
-                            if (job && job.applyLink) {
-                                window.open(job.applyLink, "_blank", "noopener,noreferrer");
-                            }
-                        }}
-                    >
-                        Apply Now
-                    </Button>
+						<Button
+							variant="contained"
+							color="primary"
+							size="small"
+							sx={{
+								textTransform: "none",
+								bgcolor: "#00C853",
+								"&:hover": { bgcolor: "#00B843" },
+								borderRadius: "20px",
+							}}
+							onClick={async () => {
+								try {
+									if (onApply && job) await onApply(job);
+								} catch (e) { }
+								if (job && job.applyLink) {
+									window.open(job.applyLink, "_blank", "noopener,noreferrer");
+								}
+							}}
+						>
+							Apply Now
+						</Button>
 					</Stack>
 				</Box>
 			</Box>
@@ -144,7 +144,7 @@ const SkillChips = ({ skills = [], onSkillsChanged }) => {
 	const [selected, setSelected] = useState(() => new Set());
 	const [loadingMap, setLoadingMap] = useState(() => ({})); // prevent concurrent toggles per-skill
 
-	const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE) ? import.meta.env.VITE_API_BASE : 'http://localhost:3000';
+	const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE) ? import.meta.env.VITE_API_BASE : 'http://localhost:3001';
 
 	// Fetch saved skills on mount
 	useEffect(() => {

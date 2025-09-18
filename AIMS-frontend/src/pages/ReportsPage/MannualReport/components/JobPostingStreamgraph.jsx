@@ -1,6 +1,8 @@
 import { ResponsiveStream } from '@nivo/stream';
 import { Paper, Typography } from '@mui/material';
 import dayjs from 'dayjs';
+import dayOfYear from 'dayjs/plugin/dayOfYear';
+dayjs.extend(dayOfYear);
 
 const JobPostingStreamgraph = ({ data }) => {
 	// Data format for Nivo Stream:
@@ -93,9 +95,9 @@ const JobPostingStreamgraph = ({ data }) => {
 						stagger: true,
 					},
 				]}
-				fill={[
-					{ match: '{id: 'Senior/Lead'}', id: 'dots' },
-					{ match: '{id: 'Mid-level'}', id: 'squares' },
+				                fill={[
+					{ match: "{id: 'Senior/Lead'}", id: 'dots' },
+					{ match: "{id: 'Mid-level'}", id: 'squares' },
 				]}
 				dotSize={10}
 				dotBorderWidth={2}
