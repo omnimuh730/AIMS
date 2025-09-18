@@ -11,6 +11,10 @@ const SkillSynergyHeatmap = ({ data, keys }) => {
 	//   ]
 	// }, ...]
 
+	const allValues = data.flatMap(d => keys.map(k => d[k]));
+	const minValue = Math.min(...allValues, 0);
+	const maxValue = Math.max(...allValues, 1);
+
 	return (
 		<Paper elevation={3} sx={{ p: 2, height: 600 }}>
 			<Typography variant="h6">In-Demand Skill Synergy</Typography>
@@ -20,6 +24,8 @@ const SkillSynergyHeatmap = ({ data, keys }) => {
 				indexBy="id"
 				margin={{ top: 60, right: 90, bottom: 60, left: 90 }}
 				forceSquare={true}
+				minValue={minValue}
+				maxValue={maxValue}
 				axisTop={{
 					tickSize: 5,
 					tickPadding: 5,

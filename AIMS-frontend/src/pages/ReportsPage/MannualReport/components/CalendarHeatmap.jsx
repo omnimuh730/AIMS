@@ -3,6 +3,7 @@ import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { Paper, Typography } from '@mui/material';
 import dayjs from 'dayjs';
+import './CalendarHeatmap.css'; // Custom CSS for color classes
 
 const CalendarHeatmapChart = ({ data }) => {
 	// data format: [{ _id: 'YYYY-MM-DD', count: N }]
@@ -36,24 +37,6 @@ const CalendarHeatmapChart = ({ data }) => {
 				}}
 				showWeekdayLabels={true}
 			/>
-			{/* Basic styling for heatmap colors - ideally these would be in a CSS file */}
-			<style jsx>{`
-				.react-calendar-heatmap .color-scale-0 {
-					fill: #ebedf0;
-				}
-				.react-calendar-heatmap .color-scale-1 {
-					fill: #9be9a8;
-				}
-				.react-calendar-heatmap .color-scale-2 {
-					fill: #40c463;
-				}
-				.react-calendar-heatmap .color-scale-3 {
-					fill: #30a14e;
-				}
-				.react-calendar-heatmap .color-scale-4 {
-					fill: #216e39;
-				}
-			`}</style>
 		</Paper>
 	);
 };

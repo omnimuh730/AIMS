@@ -616,7 +616,7 @@ export async function getSkillSynergy(req, res) {
 			data.push(row);
 		}
 
-		res.json({ data: { data, keys: skillNames } });
+		res.json({ data: data, keys: skillNames });
 	} catch (err) {
 		console.error('GET /api/jobs/skill-synergy error', err);
 		res.status(500).json({ success: false, error: err.message });

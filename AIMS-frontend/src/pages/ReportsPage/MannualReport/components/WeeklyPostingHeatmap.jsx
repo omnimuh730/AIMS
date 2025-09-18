@@ -64,7 +64,7 @@ const WeeklyPostingHeatmap = ({ data }) => {
 					legend: 'Day',
 					legendOffset: -70,
 				}}
-				colors="YlGn"
+				
 				emptyColor="#eeeeee"
 				nodeOpacity={1}
 				borderWidth={0}

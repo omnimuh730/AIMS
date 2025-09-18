@@ -132,16 +132,16 @@ const MannualReportPage = () => {
 		<Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
 			<Typography variant="h4">Command Center Overview</Typography>
 			<Grid container spacing={3}>
-				<Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
 					<KpiCard title="Total Applications" value={kpis.totalApplications} />
 				</Grid>
-				<Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
 					<KpiCard title="Active Applications" value={kpis.activeApplications} />
 				</Grid>
-				<Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
 					<KpiCard title="Interview Rate" value={kpis.interviewRate.toFixed(2)} unit="%" />
 				</Grid>
-				<Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+				<Grid size={{ xs: 12, sm: 6, md: 3 }}>
 					<KpiCard title="Application Velocity" value={kpis.applicationVelocity.toFixed(2)} unit="/ week" />
 				</Grid>
 			</Grid>
