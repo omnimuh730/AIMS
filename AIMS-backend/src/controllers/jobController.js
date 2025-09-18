@@ -1,4 +1,3 @@
-
 import { ObjectId } from "mongodb";
 import {
 	jobsCollection,
@@ -109,10 +108,10 @@ export async function getJobs(req, res) {
 
 		// Build regexes
 		let selectedKnown = jobSourceItem.filter(src => src !== 'Other');
-		let jobSourceQuery = "^https://[^/]*(" + selectedKnown.join('|') + ")\\.";
-		let knownSourcesRegex = "^https://[^/]*(" + knownSources.join('|') + ")\\.";
+		let jobSourceQuery = "^https://[^/]*(" + selectedKnown.join('|') + ")\.";
+		let knownSourcesRegex = "^https://[^/]*(" + knownSources.join('|') + ")\.";
 
-		//{"applyLink": {"$regex": "https://.*(workday).*"}}
+		//{\"applyLink\": {\"$regex\": \"https://.*(workday).*\"}}
 
 		if (jobSourceItem.includes('Other') && selectedKnown.length > 0) {
 			query.$and.push({
@@ -268,5 +267,111 @@ export async function removeJobs(req, res) {
 	} catch (err) {
 		console.error('POST /api/jobs/remove error', err);
 		return res.status(500).json({ success: false, error: err.message });
+	}
+}
+
+export async function getJobStats(req, res) {
+	try {
+		if (!jobsCollection) {
+			return res.status(503).json({ success: false, error: 'Database not ready' });
+		}
+
+		const { time_zone } = req.query;
+
+		const dailyStats = await jobsCollection.aggregate([
+			{
+				$project: {
+					postedAt: {
+						$dateToString: {
+							format: '%Y-%m-%d',
+							date: { $toDate: '$postedAt' },
+							timezone: time_zone || 'America/New_York',
+						}
+					},
+					source: {
+						$switch: {
+							branches: [
+								{
+									case: { $regexMatch: { input: '$applyLink', regex: /linkedin/i } },
+								then: 'LinkedIn'
+								},
+								{
+									case: { $regexMatch: { input: '$applyLink', regex: /myworkdayjobs/i } },
+								then: 'Workday'
+								},
+								{
+									case: { $regexMatch: { input: '$applyLink', regex: /indeed/i } },
+								then: 'Indeed'
+								},
+								{
+									case: { $regexMatch: { input: '$applyLink', regex: /greenhouse/i } },
+								then: 'Greenhouse'
+								},
+								{
+									case: { $regexMatch: { input: '$applyLink', regex: /lever/i } },
+								then: 'Lever'
+								}
+							],
+							default: 'Other'
+						}
+					}
+				}
+			},
+			{
+				$group: {
+					_id: {
+						date: '$postedAt',
+						source: '$source'
+					},
+					count: { $sum: 1 }
+				}
+			},
+			{
+				$group: {
+					_id: '$_id.date',
+					sources: {
+						$push: {
+							source: '$_id.source',
+							count: '$count'
+						}
+					},
+				total: { $sum: '$count' }
+				}
+			},
+			{
+				$sort: { _id: 1 }
+			}
+		]).toArray();
+
+		const appliedStats = await jobsCollection.aggregate([
+			{
+				$unwind: '$applied'
+			},
+			{
+				$project: {
+					appliedDate: {
+						$dateToString: {
+							format: '%Y-%m-%d',
+							date: { $toDate: '$applied.appliedDate' },
+							timezone: time_zone || 'America/New_York',
+						}
+					}
+				}
+			},
+			{
+				$group: {
+					_id: '$appliedDate',
+					count: { $sum: 1 }
+				}
+			},
+			{
+				$sort: { _id: 1 }
+			}
+		]).toArray();
+
+		res.json({ success: true, dailyStats, appliedStats });
+	} catch (err) {
+		console.error('GET /api/jobs/stats error', err);
+		res.status(500).json({ success: false, error: err.message });
 	}
 }
