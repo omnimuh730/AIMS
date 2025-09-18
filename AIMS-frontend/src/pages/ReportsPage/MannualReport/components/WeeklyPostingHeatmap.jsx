@@ -64,12 +64,14 @@ const WeeklyPostingHeatmap = ({ data }) => {
 					legend: 'Day',
 					legendOffset: -70,
 				}}
-				
+
 				emptyColor="#eeeeee"
 				nodeOpacity={1}
 				borderWidth={0}
-				borderColor={{ from: 'inherit', modifiers: ['darker', 0.4] }}
-				labelTextColor={{ from: 'inherit', modifiers: ['darker', 1.8] }}
+				// FIX: Wrap the modifier array in another array
+				borderColor={{ from: 'inherit', modifiers: [['darker', 0.4]] }}
+				// FIX: Wrap the modifier array in another array
+				labelTextColor={{ from: 'inherit', modifiers: [['darker', 1.8]] }}
 				legends={[
 					{
 						anchor: 'bottom-right',
@@ -83,14 +85,6 @@ const WeeklyPostingHeatmap = ({ data }) => {
 						textOffset: 10,
 						symbolSize: 12,
 						symbolShape: 'circle',
-						// effects: [
-						// 	{
-						// 		on: 'hover',
-						// 		style: {
-						// 			itemOpacity: 1,
-						// 		},
-						// 	},
-						// ],
 					},
 				]}
 				tooltip={({ xKey, yKey, value }) => (

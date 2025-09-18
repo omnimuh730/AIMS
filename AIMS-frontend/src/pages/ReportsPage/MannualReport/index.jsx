@@ -6,7 +6,7 @@ import { ScatterChart } from '@mui/x-charts/ScatterChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { Box, CircularProgress, Paper, Typography, Grid } from '@mui/material';
 import KpiCard from './components/KpiCard';
-//import SankeyChart from './components/SankeyChart';
+import SankeyChart from './components/SankeyChart';
 import CompanyTreemap from './components/CompanyTreemap';
 import SkillsDotPlot from './components/SkillsDotPlot';
 import JobTitleStackedBar from './components/JobTitleStackedBar';
@@ -146,6 +146,10 @@ const MannualReportPage = () => {
 				</Grid>
 			</Grid>
 
+			<Paper elevation={3} sx={{ p: 2, mt: 4 }}>
+				<Typography variant="h6">Application Flow</Typography>
+				<SankeyChart data={sankeyData} />
+			</Paper>
 			<Typography variant="h4" sx={{ mt: 4 }}>Market Microstructure</Typography>
 			<JobPostingStreamgraph data={jobPostingVelocity} />
 
@@ -190,15 +194,13 @@ const MannualReportPage = () => {
 			<SkillsDotPlot data={targetedSkills} />
 			<JobTitleStackedBar data={jobTitleBreakdown} />
 			<SkillProfileRadarChart data={skillProfileAlignment} />
+			<WeeklyPostingHeatmap data={weeklyPostingCadence} />
 		</Box>
 	);
 };
 
 export default MannualReportPage;
 /*
-
-			<WeeklyPostingHeatmap data={weeklyPostingCadence} />
-
 
 			<ApplicationResponseLatencyBoxPlot data={applicationResponseLatency} />
 			<SkillSynergyHeatmap data={skillSynergy.data} keys={skillSynergy.keys} />
@@ -207,8 +209,4 @@ export default MannualReportPage;
 
 /*
 	
-<Paper elevation={3} sx={{ p: 2, mt: 4 }}>
-	<Typography variant="h6">Application Flow</Typography>
-	<SankeyChart data={sankeyData} />
-</Paper>
 */
