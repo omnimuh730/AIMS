@@ -3,15 +3,13 @@ import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { Paper, Typography } from '@mui/material';
 import dayjs from 'dayjs';
-import './CalendarHeatmap.css'; // Custom CSS for color classes
+import { Tooltip } from 'react-tooltip'; // <-- 1. Change to a named import
+import './CalendarHeatmap.css';
 
 const CalendarHeatmapChart = ({ data }) => {
-	// data format: [{ _id: 'YYYY-MM-DD', count: N }]
-	// CalendarHeatmap expects: [{ date: 'YYYY-MM-DD', count: N }]
-
 	const values = data.map(item => ({
-		date: item._id,
-		count: item.count,
+		date: item.day,
+		count: item.value,
 	}));
 
 	const endDate = dayjs();
@@ -30,13 +28,22 @@ const CalendarHeatmapChart = ({ data }) => {
 					}
 					return `color-scale-${Math.min(value.count, 4)}`;
 				}}
+				// 2. Update the attributes to match the new API
 				tooltipDataAttrs={(value) => {
+					if (!value || !value.date) {
+						return { 'data-tooltip-id': null }; // Don't show tooltip for empty cells
+					}
+					const date = dayjs(value.date).format('MMM D, YYYY');
+					const content = `${date}: ${value.count} applications`;
 					return {
-						'data-tip': `${value.date}: ${value.count || 0} applications`,
+						'data-tooltip-id': 'heatmap-tooltip', // Link to the Tooltip component
+						'data-tooltip-content': content,     // Set the content
 					};
 				}}
 				showWeekdayLabels={true}
 			/>
+			{/* 3. Render the Tooltip component with a matching id */}
+			<Tooltip id="heatmap-tooltip" />
 		</Paper>
 	);
 };

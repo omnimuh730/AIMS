@@ -131,7 +131,7 @@ To get a local copy up and running, follow these simple steps.
    ```
 4. Create a `.env` file in the root of the `AIMS-backend` directory and add the following environment variable:
     ```
-    PORT=3001
+    PORT=5001
     ```
 5. Start the development server
    ```sh

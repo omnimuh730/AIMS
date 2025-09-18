@@ -6,7 +6,7 @@ const useNotification = () => {
 	const showNotification = (message, options = {}) => {
 		const {
 			variant = "default",
-			autoHideDuration = 3001,
+			autoHideDuration = 5001,
 			...otherOptions
 		} = options;
 
