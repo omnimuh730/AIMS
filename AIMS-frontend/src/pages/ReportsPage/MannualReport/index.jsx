@@ -194,6 +194,7 @@ const MannualReportPage = () => {
 			<SkillsDotPlot data={targetedSkills} />
 			<JobTitleStackedBar data={jobTitleBreakdown} />
 			<SkillProfileRadarChart data={skillProfileAlignment} />
+			<ApplicationResponseLatencyBoxPlot data={applicationResponseLatency} />
 			<WeeklyPostingHeatmap data={weeklyPostingCadence} />
 		</Box>
 	);
@@ -202,7 +203,6 @@ const MannualReportPage = () => {
 export default MannualReportPage;
 /*
 
-			<ApplicationResponseLatencyBoxPlot data={applicationResponseLatency} />
 			<SkillSynergyHeatmap data={skillSynergy.data} keys={skillSynergy.keys} />
 
 			*/
