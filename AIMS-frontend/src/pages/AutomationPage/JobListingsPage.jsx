@@ -50,7 +50,7 @@ function JobListingsPage() {
 				if (String(v).trim() !== '') params.set(k, String(v));
 			});
 
-			let url = `http://192.168.9.110:5001/api/jobs?${params.toString()}`;
+			let url = `http://localhost:5001/api/jobs?${params.toString()}`;
 			if (sortOption === 'recommended') {
 				url += `&sort=recommended`;
 			}
@@ -67,7 +67,7 @@ function JobListingsPage() {
 	// Fetch user skills
 	const fetchUserSkills = useCallback(async () => {
 		try {
-			const res = await get('http://192.168.9.110:5001/api/personal/skills');
+			const res = await get('http://localhost:5001/api/personal/skills');
 			if (res && res.success && Array.isArray(res.skills)) {
 				setUserSkills(res.skills);
 			}
@@ -119,7 +119,7 @@ function JobListingsPage() {
 			const id = job._id || job.id;
 			if (!id) return;
 			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
-			await post(`http://192.168.9.110:5001/api/jobs/${strId}/apply`, { applied: true });
+			await post(`http://localhost:5001/api/jobs/${strId}/apply`, { applied: true });
 			// Refresh list so applied jobs disappear when showing not-applied
 			fetchJobs();
 		} catch (e) {
@@ -147,7 +147,7 @@ function JobListingsPage() {
 		try {
 			// Send ids as strings for backend compatibility
 			const ids = selectedIds.map(id => typeof id === 'object' && id.$oid ? id.$oid : String(id));
-			const res = await post('http://192.168.9.110:5001/api/jobs/remove', { ids });
+			const res = await post('http://localhost:5001/api/jobs/remove', { ids });
 			if (res && res.success) {
 				notification.success(`Removed ${res.deletedCount || 0} job(s)`);
 				setSelectedIds([]);

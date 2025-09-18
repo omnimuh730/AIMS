@@ -46,5 +46,5 @@ import reportRoutes from "./src/routes/reportRoutes.js";
 app.use('/api/jobs', reportRoutes);
 
 server.listen(port, () => {
-	console.log(`Server running on http://192.168.9.110:${port}`);
+	console.log(`Server running on http://localhost:${port}`);
 });
