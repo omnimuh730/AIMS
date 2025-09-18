@@ -537,17 +537,8 @@ const SmartToolbar = ({
 							variant='contained'
 							color='primary'
 							disabled={disableButtons}
-							onClick={onApplySelected}
 						>
-							Apply
-						</Button>
-						<Button
-							variant='contained'
-							color='secondary'
-							disabled={disableButtons}
-							onClick={onAnalyzeSelected}
-						>
-							Analyze
+							Declined All
 						</Button>
 					</Stack>
 				</Grid>

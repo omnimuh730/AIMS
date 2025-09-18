@@ -160,23 +160,6 @@ function JobListingsPage() {
 		}
 	};
 
-	const handleApplySelected = () => {
-		// Open tabs for each selected job's applyLink
-		if (!selectedIds.length) return;
-		const jobsToApply = jobs.filter(job => selectedIds.includes(job._id || job.id) && job.applyLink).map(j => j.applyLink);
-		if (!jobsToApply.length) return;
-
-		// Send links to backend relay which will forward them to the extension to open tabs
-		try {
-			post('http://localhost:3001/api/open-tabs', { urls: jobsToApply });
-		} catch (err) {
-			console.error('Failed to request extension to open tabs', err);
-		}
-	}
-	const handleAnalyzeSelected = async () => {
-		console.log('Analyze selected jobs:', selectedIds);
-	}
-
 	return (
 		<Container
 			maxWidth="xl"
@@ -204,8 +187,6 @@ function JobListingsPage() {
 					selectAllChecked={selectedIds.length === jobs.length && jobs.length > 0}
 					onSelectAll={handleSelectAll}
 					onRemoveSelected={handleRemoveSelected}
-					onApplySelected={handleApplySelected}
-					onAnalyzeSelected={handleAnalyzeSelected}
 					disableButtons={!selectedIds.length}
 					showLinkedInOnly={!!filters.showLinkedInOnly}
 					onShowLinkedInOnlyChange={checked => setFilters(f => ({ ...f, showLinkedInOnly: checked }))}

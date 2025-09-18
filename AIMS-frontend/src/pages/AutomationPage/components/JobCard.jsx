@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { calculateJobScores } from '../../../../../configs/jobScore';
 
 // MUI Imports
@@ -14,13 +14,20 @@ import {
 	IconButton,
 	Divider,
 	Box,
+	ButtonGroup,
+	Popper,
 	Paper,
-	CircularProgress
+	CircularProgress,
+	ClickAwayListener,
+	MenuList,
+	MenuItem,
+	Grow
 } from "@mui/material";
 
 import {
 	Check,
-	LinkedIn
+	LinkedIn,
+	ArrowDropDown
 } from '@mui/icons-material';
 
 // MUI Icon Imports
@@ -152,7 +159,33 @@ const JobCardDetails = ({ details = {} }) => {
 	);
 };
 
-const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, job }) => {
+const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, applied, job }) => {
+	const options = [applied === true ? 'Applied' : 'Apply', 'Declined', 'Scheduled'];
+	const [open, setOpen] = useState(false);
+	const anchorRef = useRef(null);
+	const [selectedIndex, setSelectedIndex] = React.useState(0);
+	const handleClick = () => {
+		if (options[selectedIndex] === 'Apply') {
+			ApplyNow();
+		}
+		console.info(`You clicked ${options[selectedIndex]}`);
+	};
+
+	const handleMenuItemClick = (event, index) => {
+		setSelectedIndex(index);
+		setOpen(false);
+	};
+
+	const handleToggle = () => {
+		setOpen((prevOpen) => !prevOpen);
+	};
+
+	const handleClose = (event) => {
+		if (anchorRef.current && anchorRef.current.contains(event.target)) {
+			return;
+		}
+		setOpen(false);
+	};
 	const ApplyNow = async () => {
 		try {
 			if (onApply && job) {
@@ -204,23 +237,72 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 				>
 					Ask gllama
 				</Button>
-				<Button
+
+				<ButtonGroup
 					variant="contained"
+					ref={anchorRef}
+					aria-label="Button group with a nested menu"
 					sx={{
-						textTransform: "none",
-						bgcolor: "#00C853",
-						"&:hover": { bgcolor: "#00B843" },
-						borderRadius: "20px",
-						display: "flex",        // 👈 ensures flex layout
-						alignItems: "center",   // 👈 vertical center
+						borderRadius: "20px", textTransform: "none"
 					}}
-					onClick={ApplyNow}
 				>
-					{applyLink && applyLink.includes("linkedin.com") && (
-						<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
+					<Button onClick={handleClick}
+						sx={{
+							borderRadius: "20px", textTransform: "none"
+						}}
+					>
+						{applyLink && applyLink.includes("linkedin.com") && (
+							<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
+						)}{options[selectedIndex]}</Button>
+					<Button
+						size="small"
+						aria-controls={open ? 'split-button-menu' : undefined}
+						aria-expanded={open ? 'true' : undefined}
+						aria-label="select merge strategy"
+						aria-haspopup="menu"
+						sx={{
+							borderRadius: "20px", textTransform: "none"
+						}}
+						onClick={handleToggle}
+					>
+						<ArrowDropDown />
+					</Button>
+				</ButtonGroup>
+				<Popper
+					sx={{ zIndex: 1 }}
+					open={open}
+					anchorEl={anchorRef.current}
+					role={undefined}
+					transition
+					disablePortal
+				>
+					{({ TransitionProps, placement }) => (
+						<Grow
+							{...TransitionProps}
+							style={{
+								transformOrigin:
+									placement === 'bottom' ? 'center top' : 'center bottom',
+							}}
+						>
+							<Paper>
+								<ClickAwayListener onClickAway={handleClose}>
+									<MenuList id="split-button-menu" autoFocusItem>
+										{options.map((option, index) => (
+											<MenuItem
+												key={option}
+												disabled={!((index === 0 && applied === false) || (index !== 0 && applied === true))}
+												selected={index === selectedIndex}
+												onClick={(event) => handleMenuItemClick(event, index)}
+											>
+												{option}
+											</MenuItem>
+										))}
+									</MenuList>
+								</ClickAwayListener>
+							</Paper>
+						</Grow>
 					)}
-					Apply Now
-				</Button>
+				</Popper>
 
 			</Stack>
 		</Box>
@@ -331,6 +413,7 @@ const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, checked
 					onViewDetails={() => onViewDetails(job)}
 					onAskgllama={onAskgllama}
 					onApply={onApply}
+					applied={!!job.applied}
 					job={job}
 				/>
 			</CardContent>
