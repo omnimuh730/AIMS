@@ -33,7 +33,7 @@ const WeeklyPostingHeatmap = ({ data }) => {
 			<Typography variant="h6">Weekly Posting Cadence</Typography>
 			<ResponsiveHeatMap
 				data={transformedData}
-				keys={hoursOfDay}
+				
 				indexBy="id"
 				margin={{ top: 60, right: 90, bottom: 60, left: 90 }}
 				forceSquare={true}

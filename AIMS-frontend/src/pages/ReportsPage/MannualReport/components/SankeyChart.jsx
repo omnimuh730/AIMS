@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sankey, Tooltip, ResponsiveContainer } from 'recharts';
+import { Sankey, Tooltip, ResponsiveContainer, Rectangle } from 'recharts';
 
 const SankeyChart = ({ data }) => {
 	// Recharts Sankey requires nodes to have a 'name' and links to have 'source', 'target', and 'value'.
@@ -14,6 +14,18 @@ const SankeyChart = ({ data }) => {
 		<ResponsiveContainer width="100%" height={400}>
 			<Sankey
 				data={data}
+				node={({ x, y, width, height, index, payload }) => (
+					<Rectangle
+						key={`node-${index}`}
+						x={x}
+						y={y}
+						width={width}
+						height={height}
+						fill="#8884d8"
+						fillOpacity="1"
+					/>
+				)}
+				link={{ stroke: '#777' }}
 				nodeWidth={10}
 				nodePadding={60}
 				linkCurvature={0.5}

@@ -150,6 +150,9 @@ const MannualReportPage = () => {
 				<Typography variant="h6">Application Flow</Typography>
 				<SankeyChart data={sankeyData} />
 			</Paper>
+			<Typography variant="h4" sx={{ mt: 4 }}>Market Microstructure</Typography>
+			<JobPostingStreamgraph data={jobPostingVelocity} />
+
 			<Paper elevation={3} sx={{ p: 2 }}>
 				<Typography variant="h6">Daily Job Postings</Typography>
 				<LineChart
@@ -188,11 +191,6 @@ export default MannualReportPage;
 
 
 
-			<Typography variant="h4" sx={{ mt: 4 }}>Market Microstructure</Typography>
-			<JobPostingStreamgraph data={jobPostingVelocity} />
-			<WeeklyPostingHeatmap data={weeklyPostingCadence} />
-			<Typography variant="h4" sx={{ mt: 4 }}>The Opportunity Landscape</Typography>
-			<JobSpaceScatterPlot data={jobSpaceData} />
 
 			<Typography variant="h4" sx={{ mt: 4 }}>My Targeting Analysis</Typography>
 			<CompanyTreemap data={companyFocus} />
