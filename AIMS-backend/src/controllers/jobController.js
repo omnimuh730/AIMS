@@ -109,8 +109,10 @@ export async function getJobs(req, res) {
 
 		// Build regexes
 		let selectedKnown = jobSourceItem.filter(src => src !== 'Other');
-		let jobSourceQuery = "^https://.*(" + selectedKnown.join('|') + ")\\.";
-		let knownSourcesRegex = "^https://.*(" + knownSources.join('|') + ")\\.";
+		let jobSourceQuery = "^https://[^/]*(" + selectedKnown.join('|') + ")\\.";
+		let knownSourcesRegex = "^https://[^/]*(" + knownSources.join('|') + ")\\.";
+
+		//{"applyLink": {"$regex": "https://.*(workday).*"}}
 
 		if (jobSourceItem.includes('Other') && selectedKnown.length > 0) {
 			query.$and.push({

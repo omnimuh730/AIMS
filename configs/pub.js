@@ -1,11 +1,14 @@
 export const JobSource = [
 	'LinkedIn',
 	'Indeed',
-	'Workday',
+	'MyWorkdayJobs',
 	'Greenhouse',
 	'Lever',
 	'Ashbyhq',
 	'ADP',
 	'Rippling',
+	'SmartRecruiters',
+	'BambooHR',
+	'Workable',
 	'Other',
 ]

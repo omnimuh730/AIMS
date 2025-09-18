@@ -162,7 +162,13 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 			// ignore error and still open the tab
 		} finally {
 			if (applyLink) {
-				window.open(applyLink, "_blank", "noopener,noreferrer");
+				if (applyLink.includes("linkedin.com")) {
+					const searchString = job.title + ' at ' + job.company.name;
+					const googlingUrl = `https://www.google.com/search?q=${searchString.replace(/\s+/g, '+')}`;
+					window.open(googlingUrl, "_blank", "noopener,noreferrer");
+				}
+				else
+					window.open(applyLink, "_blank", "noopener,noreferrer");
 			}
 		}
 	}
