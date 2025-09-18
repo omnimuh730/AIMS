@@ -199,8 +199,9 @@ export default MannualReportPage;
 
 			<WeeklyPostingHeatmap data={weeklyPostingCadence} />
 
-			<SkillSynergyHeatmap data={skillSynergy.data} keys={skillSynergy.keys} />
 
+			<ApplicationResponseLatencyBoxPlot data={applicationResponseLatency} />
+			<SkillSynergyHeatmap data={skillSynergy.data} keys={skillSynergy.keys} />
 
 			*/
 
