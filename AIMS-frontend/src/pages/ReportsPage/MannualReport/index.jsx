@@ -1,37 +1,42 @@
-
 import { useEffect, useState } from 'react';
-import { useApi } from '../../../api/useApi';
+import useApi from '../../../api/useApi';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { ScatterChart } from '@mui/x-charts/ScatterChart';
 import { PieChart } from '@mui/x-charts/PieChart';
-import { Box, CircularProgress, Paper, Typography } from '@mui/material';
+import { Box, CircularProgress, Paper, Typography, Grid } from '@mui/material';
+import KpiCard from './components/KpiCard';
 
 const MannualReportPage = () => {
 	const [stats, setStats] = useState(null);
+	const [kpis, setKpis] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const { get } = useApi();
 
 	useEffect(() => {
-		const fetchStats = async () => {
+		const fetchAllData = async () => {
 			try {
-				const { data } = await get('/jobs/stats');
-				setStats(data);
+				const [statsData, kpisData] = await Promise.all([
+					get('/api/jobs/stats'),
+					get('/api/jobs/kpis'),
+				]);
+				setStats(statsData);
+				setKpis(kpisData.kpis);
 			} catch (error) {
-				console.error('Failed to fetch job stats', error);
+				console.error('Failed to fetch report data', error);
 			} finally {
 				setLoading(false);
 			}
 		};
 
-		fetchStats();
+		fetchAllData();
 	}, [get]);
 
 	if (loading) {
 		return <CircularProgress />;
 	}
 
-	if (!stats) {
+	if (!stats || !kpis) {
 		return <Typography>No data available</Typography>;
 	}
 
@@ -81,6 +86,23 @@ const MannualReportPage = () => {
 
 	return (
 		<Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+			<Typography variant="h4">Command Center Overview</Typography>
+			<Grid container spacing={3}>
+				<Grid item xs={12} sm={6} md={3}>
+					<KpiCard title="Total Applications" value={kpis.totalApplications} />
+				</Grid>
+				<Grid item xs={12} sm={6} md={3}>
+					<KpiCard title="Active Applications" value={kpis.activeApplications} />
+				</Grid>
+				<Grid item xs={12} sm={6} md={3}>
+					<KpiCard title="Interview Rate" value={kpis.interviewRate.toFixed(2)} unit="%" />
+				</Grid>
+				<Grid item xs={12} sm={6} md={3}>
+					<KpiCard title="Application Velocity" value={kpis.applicationVelocity.toFixed(2)} unit="/ week" />
+				</Grid>
+			</Grid>
+
+			<Typography variant="h4" sx={{ mt: 4 }}>Legacy Reports</Typography>
 			<Paper elevation={3} sx={{ p: 2 }}>
 				<Typography variant="h6">Daily Job Postings</Typography>
 				<LineChart

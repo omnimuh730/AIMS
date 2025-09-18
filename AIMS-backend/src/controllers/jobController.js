@@ -217,7 +217,7 @@ export async function applyToJob(req, res) {
 				{ _id: objectId },
 				{
 					$addToSet: {
-						applied: { applicant: applicantName, appliedDate: new Date().toISOString() }
+						applied: { applicant: applicantName, appliedDate: new Date().toISOString(), status: 'Applied' }
 					}
 				}
 			);
@@ -248,6 +248,36 @@ export async function applyToJob(req, res) {
 	}
 }
 
+export async function updateJobStatus(req, res) {
+	try {
+		if (!jobsCollection) return res.status(503).json({ success: false, error: 'Database not ready' });
+		const { id } = req.params;
+		const { status, applicant } = req.body;
+		const applicantName = applicant || "bot";
+
+		let objectId;
+		try {
+			objectId = new ObjectId(id);
+		} catch {
+			return res.status(400).json({ success: false, error: 'Invalid id' });
+		}
+
+		const updateResult = await jobsCollection.updateOne(
+			{ _id: objectId, 'applied.applicant': applicantName },
+			{ $set: { 'applied.$.status': status } }
+		);
+
+		return res.json({
+			success: true,
+			matchedCount: updateResult.matchedCount,
+			modifiedCount: updateResult.modifiedCount,
+		});
+	} catch (err) {
+		console.error('POST /api/jobs/:id/status error', err);
+		return res.status(500).json({ success: false, error: err.message });
+	}
+}
+
 export async function removeJobs(req, res) {
 	try {
 		if (!jobsCollection) return res.status(503).json({ success: false, error: 'Database not ready' });
@@ -271,6 +301,7 @@ export async function removeJobs(req, res) {
 }
 
 export async function getJobStats(req, res) {
+	console.log(req.body);
 	try {
 		if (!jobsCollection) {
 			return res.status(503).json({ success: false, error: 'Database not ready' });
@@ -293,23 +324,23 @@ export async function getJobStats(req, res) {
 							branches: [
 								{
 									case: { $regexMatch: { input: '$applyLink', regex: /linkedin/i } },
-								then: 'LinkedIn'
+									then: 'LinkedIn'
 								},
 								{
 									case: { $regexMatch: { input: '$applyLink', regex: /myworkdayjobs/i } },
-								then: 'Workday'
+									then: 'Workday'
 								},
 								{
 									case: { $regexMatch: { input: '$applyLink', regex: /indeed/i } },
-								then: 'Indeed'
+									then: 'Indeed'
 								},
 								{
 									case: { $regexMatch: { input: '$applyLink', regex: /greenhouse/i } },
-								then: 'Greenhouse'
+									then: 'Greenhouse'
 								},
 								{
 									case: { $regexMatch: { input: '$applyLink', regex: /lever/i } },
-								then: 'Lever'
+									then: 'Lever'
 								}
 							],
 							default: 'Other'
@@ -369,9 +400,52 @@ export async function getJobStats(req, res) {
 			}
 		]).toArray();
 
+		console.log('dailyStats', dailyStats);
+		console.log('appliedStats', appliedStats);
+
 		res.json({ success: true, dailyStats, appliedStats });
 	} catch (err) {
 		console.error('GET /api/jobs/stats error', err);
+		res.status(500).json({ success: false, error: err.message });
+	}
+}
+
+export async function getJobKpis(req, res) {
+	try {
+		if (!jobsCollection) {
+			return res.status(503).json({ success: false, error: 'Database not ready' });
+		}
+
+		const totalApplications = await jobsCollection.countDocuments({ 'applied.0': { $exists: true } });
+
+		const activeApplications = await jobsCollection.countDocuments({
+			'applied.0': { $exists: true },
+			'applied.status': { $nin: ['Rejected', 'Offer'] },
+		});
+
+		const interviews = await jobsCollection.countDocuments({ 'applied.status': 'Interview' });
+
+		const interviewRate = totalApplications > 0 ? (interviews / totalApplications) * 100 : 0;
+
+		const firstApplication = await jobsCollection.findOne({ 'applied.0': { $exists: true } }, { sort: { 'applied.appliedDate': 1 } });
+		let applicationVelocity = 0;
+		if (firstApplication) {
+			const firstDate = new Date(firstApplication.applied[0].appliedDate);
+			const weeks = (new Date() - firstDate) / (1000 * 60 * 60 * 24 * 7);
+			applicationVelocity = weeks > 0 ? totalApplications / weeks : 0;
+		}
+
+		res.json({
+			success: true,
+			kpis: {
+				totalApplications,
+				activeApplications,
+				interviewRate,
+				applicationVelocity,
+			},
+		});
+	} catch (err) {
+		console.error('GET /api/jobs/kpis error', err);
 		res.status(500).json({ success: false, error: err.message });
 	}
 }
