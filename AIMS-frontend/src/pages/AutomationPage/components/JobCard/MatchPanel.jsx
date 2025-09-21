@@ -9,9 +9,23 @@ const MatchPanel = ({ job, userSkills }) => {
 	const scores = useMemo(() => calculateJobScores(job, userSkills), [job, userSkills]);
 
 	return (
-		<Paper variant="outlined" sx={{ width: 340, minWidth: 240, p: 2, borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeft: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+		<Paper
+			variant="outlined"
+			sx={{
+				p: 2,
+				borderTopLeftRadius: 0,
+				borderBottomLeftRadius: 0,
+				borderLeft: "none",
+				display: "flex",
+				flexDirection: "column",
+				alignItems: "center",
+				justifyContent: "center",
+				width: { xs: "100%", sm: 240 }, // Responsive width
+				minWidth: { xs: "auto", sm: 200 }, // Responsive minWidth
+			}}
+		>
 			{/* Overall Score */}
-			<Box sx={{ mb: 1.5, textAlign: 'center' }}>
+			<Box sx={{ mb: 1.5, textAlign: "center" }}>
 				<CircularProgressWithLabel value={scores.overallScore} size={60} thickness={5} />
 				<Typography variant="subtitle2" fontWeight="bold" sx={{ mt: 1 }}>
 					OVERALL SCORE
@@ -19,12 +33,12 @@ const MatchPanel = ({ job, userSkills }) => {
 			</Box>
 
 			{/* 2x2 Grid for Sub-Metrics */}
-			<Grid container rowSpacing={1} columnSpacing={1}>
+			<Grid container spacing={1}>
 				<Grid size={{ md: 6 }}>
 					<MetricItem label="Skill" score={scores.skillMatch} />
 				</Grid>
 				<Grid size={{ md: 6 }}>
-					<MetricItem label={`Bid.Est ${scores.estimateApplicantNumber >= '200' ? '200+' : scores.estimateApplicantNumber}`} score={scores.applicantScore} />
+					<MetricItem label={`Bid.Est ${scores.estimateApplicantNumber >= "200" ? "200+" : scores.estimateApplicantNumber}`} score={scores.applicantScore} />
 				</Grid>
 				<Grid size={{ md: 6 }}>
 					<MetricItem label="Freshness" score={scores.postedDateScore} />
