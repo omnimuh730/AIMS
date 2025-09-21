@@ -1,7 +1,9 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
-import dotenv from "dotenv";
 import cors from 'cors';
 
 import { initMongo } from "./src/db/mongo.js";
@@ -12,8 +14,6 @@ import openTabsRoutes from "./src/routes/openTabsRoutes.js";
 import jobRoutes from "./src/routes/jobRoutes.js";
 import personalInfoRoutes from "./src/routes/personalInfoRoutes.js";
 import skillCategoryRoutes from "./src/routes/skillCategoryRoutes.js";
-
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT;
@@ -42,8 +42,6 @@ app.use('/api', openTabsRoutes);
 app.use('/api', jobRoutes);
 app.use('/api', personalInfoRoutes);
 app.use('/api', skillCategoryRoutes);
-import reportRoutes from "./src/routes/reportRoutes.js";
-app.use('/api/jobs', reportRoutes);
 
 server.listen(port, process.env.HOST || 'localhost', () => {
 	console.log(`Server running on http://${process.env.HOST || 'localhost'}:${port}`);

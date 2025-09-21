@@ -1,9 +1,6 @@
 
 import { MongoClient } from "mongodb";
 
-const mongoUrl = process.env.MONGO_URL;
-const mongoDbName = process.env.MONGO_DB || 'AIMS_local';
-
 let mongoClient;
 let jobsCollection;
 let companyCategoryCollection;
@@ -11,6 +8,8 @@ let skillsCategoryCollection;
 let personalInfoCollection;
 
 async function initMongo() {
+	const mongoUrl = process.env.MONGO_URL;
+	const mongoDbName = process.env.MONGO_DB || 'AIMS_local';
 	mongoClient = new MongoClient(mongoUrl);
 	await mongoClient.connect();
 	const db = mongoClient.db(mongoDbName);
