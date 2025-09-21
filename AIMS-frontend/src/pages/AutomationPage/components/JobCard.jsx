@@ -35,12 +35,9 @@ import {
 	Leaderboard,
 	CalendarToday,
 	AttachMoney,
-	FlashOn
-} from '@mui/icons-material';;
-
-import {
+	FlashOn,
 	Cancel
-} from '@mui/icons-material';
+} from '@mui/icons-material';;
 
 import { styled } from '@mui/material/styles';
 
@@ -253,7 +250,7 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 					Ask gllama
 				</Button>
 				{job.status && (job.status.declinedDate || job.status.scheduledDate) ? (
-					<IconButton sx={{ borderRadius: "20px" }} size="small" color='error' variant='contained'>
+					<IconButton sx={{ borderRadius: "20px" }} size="small" color='error' variant='contained' onClick={() => onUpdateStatus(job, 'Applied')}>
 						<Cancel />
 					</IconButton>
 				) :
