@@ -26,7 +26,7 @@ const PersonalizationPage = () => {
 			try {
 				const params = new URLSearchParams({ sort, page, limit });
 				if (search && search.trim().length > 0) params.set('q', search.trim());
-				const res = await get(`http://localhost:3000/api/skills-category?${params.toString()}`);
+				const res = await get(`/api/skills-category?${params.toString()}`);
 				if (res && res.success && Array.isArray(res.skills)) {
 					setAllSkills(res.skills);
 					const newTotalPages = res.pagination?.totalPages || 1;
@@ -51,7 +51,7 @@ const PersonalizationPage = () => {
 	useEffect(() => {
 		const fetchUserSkills = async () => {
 			try {
-				const res = await get('http://localhost:3000/api/personal/skills');
+				const res = await get('/api/personal/skills');
 				if (res && res.success && Array.isArray(res.skills)) {
 					setUserSkills(res.skills);
 				}

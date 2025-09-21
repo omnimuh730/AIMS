@@ -144,7 +144,7 @@ const SkillChips = ({ skills = [], onSkillsChanged }) => {
 	const [selected, setSelected] = useState(() => new Set());
 	const [loadingMap, setLoadingMap] = useState(() => ({})); // prevent concurrent toggles per-skill
 
-	const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE) ? import.meta.env.VITE_API_BASE : 'http://localhost:3000';
+	const API_BASE = import.meta.env.VITE_API_BASE;
 
 	// Fetch saved skills on mount
 	useEffect(() => {
