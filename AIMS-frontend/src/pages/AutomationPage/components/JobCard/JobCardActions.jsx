@@ -28,13 +28,11 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 	const [open, setOpen] = useState(false);
 	const anchorRef = useRef(null);
 	const [selectedIndex, setSelectedIndex] = React.useState(0);
-	console.log('applied', applied, options[selectedIndex], 'job', job);
 	const handleClick = () => {
 		if (options[selectedIndex] === 'Apply') {
 			ApplyNow();
 		} else if (options[selectedIndex] === 'Declined' || options[selectedIndex] === 'Scheduled') {
 			if (onUpdateStatus) {
-				console.log('entered here');
 				onUpdateStatus(job, options[selectedIndex]);
 			}
 		}
@@ -43,12 +41,9 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 
 	const handleMenuItemClick = (event, index) => {
 		setSelectedIndex(index);
-		console.log(options[index]);
 		setOpen(false);
 		if (options[index] === 'Declined' || options[index] === 'Scheduled') {
-			console.log('entered here');
 			if (onUpdateStatus) {
-				console.log('entered here');
 				onUpdateStatus(job, options[index]);
 			}
 		}

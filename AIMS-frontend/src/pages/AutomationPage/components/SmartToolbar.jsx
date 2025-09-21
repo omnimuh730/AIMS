@@ -118,7 +118,6 @@ const SmartToolbar = ({
 		if (selectedSource.includes('Select All')) {
 			selectedSource = selectedSource.filter(item => item !== 'Select All');
 		}
-		console.log(selectedSource);
 		setJobsourceName(selectedSource);
 	};
 

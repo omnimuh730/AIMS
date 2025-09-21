@@ -13,6 +13,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
 import CheckIcon from '@mui/icons-material/Check';
 import CancelIcon from '@mui/icons-material/Cancel';
+import useApi from '../../../api/useApi';
+import useNotification from '../../../api/useNotification';
 
 const JobDetailDrawer = ({ job, open, onClose, onAskgllama, onSkillsChanged, onApply }) => {
 	const [skillsChanged, setSkillsChanged] = useState(false);
@@ -140,81 +142,55 @@ export default JobDetailDrawer;
 
 // Small internal component to handle clickable/toggleable skill chips
 const SkillChips = ({ skills = [], onSkillsChanged }) => {
-	// selected is a Set<string> of skills saved in personal_info
+	const { get, post } = useApi();
+	const notification = useNotification();
 	const [selected, setSelected] = useState(() => new Set());
-	const [loadingMap, setLoadingMap] = useState(() => ({})); // prevent concurrent toggles per-skill
-
-	const API_BASE = import.meta.env.VITE_API_BASE;
+	const [updating, setUpdating] = useState(false);
 
 	// Fetch saved skills on mount
 	useEffect(() => {
-		let mounted = true;
-		(async () => {
+		const fetchUserSkills = async () => {
 			try {
-				const res = await fetch(`${API_BASE}/api/personal/skills`);
-				if (!mounted) return;
-				if (!res.ok) {
-					console.warn('GET /api/personal/skills returned', res.status, res.statusText);
-					return;
-				}
-				// try to parse JSON safely
-				let data;
-				try { data = await res.json(); } catch (e) { console.warn('Failed to parse JSON from /api/personal/skills', e); return; }
-				if (data && data.success && Array.isArray(data.skills)) {
-					setSelected(new Set(data.skills));
+				const res = await get('/personal/skills');
+				if (res && res.success && Array.isArray(res.skills)) {
+					setSelected(new Set(res.skills));
+				} else if (res && res.success && !Array.isArray(res.skills)) {
+					console.warn('GET /api/personal/skills response data.skills is not an array:', res.skills);
+					setSelected(new Set()); // Reset to empty set if data.skills is not an array
 				}
 			} catch (err) {
-				console.warn('Failed to fetch personal skills', err);
+				notification.error('Failed to fetch user skills');
 			}
-		})();
-		return () => { mounted = false; };
-	}, []);
+		};
+		fetchUserSkills();
+	}, [get, notification]);
 
-	// Reset nothing when skills prop changes; keep user's saved selection
-
+	// Toggle skill
 	const toggle = async (skill) => {
-		if (loadingMap[skill]) return; // already toggling
-		const isSelected = selected.has(skill);
+		if (updating) return; // Prevent concurrent toggles
+		setUpdating(true);
 		try {
-			setLoadingMap(prev => ({ ...prev, [skill]: true }));
-			let res, data;
-			if (!isSelected) {
-				// add
-				res = await fetch(`${API_BASE}/api/personal/skills`, {
-					method: 'POST', headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ skill })
-				});
+			let nextSkills;
+			if (selected.has(skill)) {
+				// Remove skill
+				nextSkills = Array.from(selected).filter(s => s !== skill);
 			} else {
-				// remove
-				res = await fetch(`${API_BASE}/api/personal/skills`, {
-					method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ skill })
-				});
+				// Add skill
+				nextSkills = [...Array.from(selected), skill];
 			}
-
-			if (!res.ok) {
-				// server returned 404/500 etc
-				const text = await res.text().catch(() => null);
-				console.warn('Toggle skill request failed', res.status, res.statusText, text);
+			// Update backend (send full array)
+			const res = await post('/personal/skills/update', { skills: nextSkills });
+				if (res && res.success && Array.isArray(res.skills)) {
+				setSelected(new Set(res.skills));
+				if (onSkillsChanged) onSkillsChanged();
+				notification.success('Skills updated');
 			} else {
-				// try parse JSON
-				try { data = await res.json(); } catch (e) { console.warn('Failed to parse JSON from toggle response', e); }
-				if (data && data.success && Array.isArray(data.skills)) {
-					setSelected(new Set(data.skills));
-					if (onSkillsChanged) onSkillsChanged();
-				} else {
-					// If server returned ok but no skills array, log and do nothing
-					if (!(data && data.success)) console.warn('Toggle skill response did not include success/skills', data);
-				}
+				notification.error('Failed to update skills');
 			}
-		} catch (e) {
-			console.error('Toggle skill failed', e);
+		} catch (err) {
+			notification.error('Failed to update skills');
 		} finally {
-			setLoadingMap(prev => {
-				const next = { ...prev };
-				delete next[skill];
-				return next;
-			});
+			setUpdating(false);
 		}
 	};
 
@@ -222,7 +198,6 @@ const SkillChips = ({ skills = [], onSkillsChanged }) => {
 		<Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 0.5 }}>
 			{skills.map(s => {
 				const isSelected = selected.has(s);
-				const busy = !!loadingMap[s];
 				return (
 					<Chip
 						key={s}
@@ -231,8 +206,9 @@ const SkillChips = ({ skills = [], onSkillsChanged }) => {
 						variant={isSelected ? 'filled' : 'outlined'}
 						color={isSelected ? 'primary' : 'error'}
 						onClick={() => toggle(s)}
+						disabled={updating}
 						icon={isSelected ? <CheckIcon sx={{ color: 'white' }} /> : <CancelIcon />}
-						sx={{ cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.7 : 1 }}
+						sx={{ cursor: updating ? 'wait' : 'pointer', opacity: updating ? 0.7 : 1 }}
 					/>
 				);
 			})}
