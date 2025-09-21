@@ -159,7 +159,7 @@ const JobCardDetails = ({ details = {} }) => {
 	);
 };
 
-const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, applied, job }) => {
+const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, applied, job }) => {
 	const options = [applied === true ? 'Applied' : 'Apply', 'Declined', 'Scheduled'];
 	const [open, setOpen] = useState(false);
 	const anchorRef = useRef(null);
@@ -167,6 +167,10 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 	const handleClick = () => {
 		if (options[selectedIndex] === 'Apply') {
 			ApplyNow();
+		} else if (options[selectedIndex] === 'Declined' || options[selectedIndex] === 'Scheduled') {
+			if (onUpdateStatus) {
+				onUpdateStatus(job, options[selectedIndex]);
+			}
 		}
 		console.info(`You clicked ${options[selectedIndex]}`);
 	};
@@ -174,6 +178,11 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 	const handleMenuItemClick = (event, index) => {
 		setSelectedIndex(index);
 		setOpen(false);
+		if (options[index] === 'Declined' || options[index] === 'Scheduled') {
+			if (onUpdateStatus) {
+				onUpdateStatus(job, options[index]);
+			}
+		}
 	};
 
 	const handleToggle = () => {
@@ -375,7 +384,7 @@ const MatchPanel = ({ job, userSkills }) => {
 };
 
 // --- Main Exported Component - MODIFIED FOR LAYOUT ---
-const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, checked, onCheck }) => (
+const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, onUpdateStatus, checked, onCheck }) => (
 	<Box sx={{ display: 'flex', alignItems: 'center' }}>
 		<input
 			type="checkbox"
@@ -413,6 +422,7 @@ const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, checked
 					onViewDetails={() => onViewDetails(job)}
 					onAskgllama={onAskgllama}
 					onApply={onApply}
+					onUpdateStatus={onUpdateStatus}
 					applied={!!job.applied}
 					job={job}
 				/>
