@@ -126,7 +126,7 @@ const ScrapComponent = () => {
 		const promise_applyLink = new Promise((resolve) => pendingResolvers.current.set(id, resolve));
 		handleAction("a", "class", "?index_origin__?", 0, "fetch", null, "content", id);
 		const LinkComponent = await promise_applyLink;
-		// <a class="index_origin__7NnDG" type="text" href="https://myjobs.adp.com/revecorecareers?__tx_annotation=false&amp;c=2207439&amp;d=External&amp;r=5001146699306&amp;rb=INDEED&amp;&amp;sor=adprm" target="_blank"><img alt="job-post-link" loading="lazy" width="16" height="16" decoding="async" data-nimg="1" src="/newimages/public/file.svg" style="color: transparent;"><span>Original Job Post</span></a>
+		// <a class="index_origin__7NnDG" type="text" href="https://myjobs.adp.com/revecorecareers?__tx_annotation=false&amp;c=2207439&amp;d=External&amp;r=3000146699306&amp;rb=INDEED&amp;&amp;sor=adprm" target="_blank"><img alt="job-post-link" loading="lazy" width="16" height="16" decoding="async" data-nimg="1" src="/newimages/public/file.svg" style="color: transparent;"><span>Original Job Post</span></a>
 
 		const ApplyLink = LinkComponent?.success ? (new DOMParser().parseFromString(LinkComponent.data, 'text/html')).querySelector('a')?.href : null;
 		setProgress(15);
@@ -310,8 +310,8 @@ const ScrapComponent = () => {
 		notification.info('Scrap completed, saving job to backend...');
 		// Send to backend
 		try {
-			// post to backend (assumes backend runs on localhost:5001)
-			await api.post('http://localhost:5001/api/jobs', resultData);
+			// post to backend (assumes backend runs on localhost:3000)
+			await api.post('http://localhost:3000/api/jobs', resultData);
 			notification.success('Job saved successfully');
 			setScrappedCount(prev => prev + 1);
 		} catch (err) {
