@@ -12,7 +12,8 @@ import {
 	ClickAwayListener,
 	MenuList,
 	MenuItem,
-	Grow
+	Grow,
+	Chip
 } from "@mui/material";
 import {
 	LinkedIn,
@@ -93,9 +94,7 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 				gap: 1,
 			}}
 		>
-			<Typography variant="caption" color="text.secondary">
-				{applicants.text}
-			</Typography>
+			<Chip color='success' label={job.postedAt ? `Posted at ${new Date(job.postedAt).toLocaleDateString()} ${new Date(job.postedAt).toLocaleTimeString()}` : ''} />
 			<Stack direction="row" spacing={1} alignItems="center">
 				<IconButton
 					onClick={onViewDetails}

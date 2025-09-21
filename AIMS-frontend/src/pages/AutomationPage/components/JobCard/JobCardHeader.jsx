@@ -24,18 +24,6 @@ const JobCardHeader = ({ company, postedAgo, postedAt, tags, applied }) => (
 			{!company.logo && company.name ? String(company.name).charAt(0).toUpperCase() : null}
 		</Avatar>
 		<Box sx={{ flexGrow: 1 }}>
-			<Stack
-				direction="row"
-				spacing={1}
-				sx={{ mb: 0.5, flexWrap: "wrap", gap: 0.5 }}
-			>
-				<Chip label={postedAgo} size="small" />
-				{postedAt && <Chip label={formatPostedAt(postedAt)} size="small" color="success" />}
-				{applied ? <Chip label="Applied" size="small" color="success" variant="filled" icon={<Check fontSize="small" />} /> : null}
-				{Array.isArray(tags) && tags.map((tag) => (
-					<Chip key={tag} label={tag} size="small" color="info" variant="outlined" />
-				))}
-			</Stack>
 			<Typography variant="h6" component="div" fontWeight="bold">
 				{company.title}
 			</Typography>

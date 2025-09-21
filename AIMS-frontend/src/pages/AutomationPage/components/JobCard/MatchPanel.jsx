@@ -20,8 +20,7 @@ const MatchPanel = ({ job, userSkills }) => {
 				flexDirection: "column",
 				alignItems: "center",
 				justifyContent: "center",
-				width: { xs: "100%", sm: 240 }, // Responsive width
-				minWidth: { xs: "auto", sm: 200 }, // Responsive minWidth
+				height: "100%", // Ensure consistent height
 			}}
 		>
 			{/* Overall Score */}
