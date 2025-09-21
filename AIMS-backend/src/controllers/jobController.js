@@ -266,6 +266,13 @@ export async function updateJobStatus(req, res) {
 				$set: { 'status.scheduledDate': now },
 				$unset: { 'status.declinedDate': "" }
 			};
+		} else if (status === 'Applied') { // This is our "Cancel" action
+			update = {
+				$unset: {
+					'status.declinedDate': "",
+					'status.scheduledDate': ""
+				}
+			};
 		} else {
 			return res.status(400).json({ success: false, error: 'Invalid status' });
 		}

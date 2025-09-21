@@ -48,13 +48,13 @@ import { JobSource } from '../../../../../configs/pub';
 
 const getJobStatusFilter = (filters) => {
 	if (filters.applied === true) {
-	  return filters.status || 'Applied';
+		return filters.status || 'Applied';
 	}
 	if (filters.applied === false) {
-	  return 'Posted';
+		return 'Posted';
 	}
 	return 'All';
-  };
+};
 
 const SmartToolbar = ({
 	searchQuery,
@@ -70,8 +70,6 @@ const SmartToolbar = ({
 	selectAllChecked = false,
 	onSelectAll,
 	onRemoveSelected,
-	onAnalyzeSelected,
-	onApplySelected,
 	disableButtons = false,
 }) => {
 	const theme = useTheme();
@@ -553,13 +551,6 @@ const SmartToolbar = ({
 							color='error'
 						>
 							Remove
-						</Button>
-						<Button
-							variant='contained'
-							color='primary'
-							disabled={disableButtons}
-						>
-							Declined All
 						</Button>
 					</Stack>
 				</Grid>

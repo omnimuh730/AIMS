@@ -27,19 +27,20 @@ import {
 import {
 	Check,
 	LinkedIn,
-	ArrowDropDown
-} from '@mui/icons-material';
+	ArrowDropDown,
+	LocationOn,
+	AccessTime,
+	HomeWork,
+	Visibility,
+	Leaderboard,
+	CalendarToday,
+	AttachMoney,
+	FlashOn
+} from '@mui/icons-material';;
 
-// MUI Icon Imports
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import HomeWorkIcon from "@mui/icons-material/HomeWork";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import LeaderboardIcon from "@mui/icons-material/Leaderboard";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import BlockIcon from "@mui/icons-material/Block";
-import FlashOnIcon from "@mui/icons-material/FlashOn";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+import {
+	Cancel
+} from '@mui/icons-material';
 
 import { styled } from '@mui/material/styles';
 
@@ -124,34 +125,34 @@ const JobCardDetails = ({ details = {} }) => {
 			<Grid container spacing={2}>
 				<Grid size={{ xs: 'auto' }}>
 					<Item>
-						<DetailItem icon={<LocationOnIcon fontSize="small" />} text={location} />
+						<DetailItem icon={<LocationOn fontSize="small" />} text={location} />
 					</Item>
 				</Grid>
 				{isRemote && (
 					<Grid size={{ xs: 'auto' }}>
 						<Item>
-							<DetailItem icon={<HomeWorkIcon fontSize="small" />} text={"Remote"} />
+							<DetailItem icon={<HomeWork fontSize="small" />} text={"Remote"} />
 						</Item>
 					</Grid>
 				)}
 				<Grid size={{ xs: 'auto' }}>
 					<Item>
-						<DetailItem icon={<AccessTimeIcon fontSize="small" />} text={type} />
+						<DetailItem icon={<AccessTime fontSize="small" />} text={type} />
 					</Item>
 				</Grid>
 				<Grid size={{ xs: 'auto' }}>
 					<Item>
-						<DetailItem icon={<LeaderboardIcon fontSize="small" />} text={level} />
+						<DetailItem icon={<Leaderboard fontSize="small" />} text={level} />
 					</Item>
 				</Grid>
 				<Grid size={{ xs: 'auto' }}>
 					<Item>
-						<DetailItem icon={<CalendarTodayIcon fontSize="small" />} text={experience} />
+						<DetailItem icon={<CalendarToday fontSize="small" />} text={experience} />
 					</Item>
 				</Grid>
 				<Grid size={{ xs: 'auto' }}>
 					<Item>
-						<DetailItem icon={<AttachMoneyIcon fontSize="small" />} text={salary} />
+						<DetailItem icon={<AttachMoney fontSize="small" />} text={salary} />
 					</Item>
 				</Grid>
 			</Grid>
@@ -160,15 +161,17 @@ const JobCardDetails = ({ details = {} }) => {
 };
 
 const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, applied, job }) => {
-	const options = [applied === true ? 'Applied' : 'Apply', 'Declined', 'Scheduled'];
+	const options = job.status === undefined ? ['Apply'] : job.status.scheduledDate === undefined && job.status.declinedDate === undefined ? ['Declined', 'Scheduled'] : [];
 	const [open, setOpen] = useState(false);
 	const anchorRef = useRef(null);
 	const [selectedIndex, setSelectedIndex] = React.useState(0);
+	console.log('applied', applied, options[selectedIndex], 'job', job);
 	const handleClick = () => {
 		if (options[selectedIndex] === 'Apply') {
 			ApplyNow();
 		} else if (options[selectedIndex] === 'Declined' || options[selectedIndex] === 'Scheduled') {
 			if (onUpdateStatus) {
+				console.log('entered here');
 				onUpdateStatus(job, options[selectedIndex]);
 			}
 		}
@@ -177,9 +180,12 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 
 	const handleMenuItemClick = (event, index) => {
 		setSelectedIndex(index);
+		console.log(options[index]);
 		setOpen(false);
 		if (options[index] === 'Declined' || options[index] === 'Scheduled') {
+			console.log('entered here');
 			if (onUpdateStatus) {
+				console.log('entered here');
 				onUpdateStatus(job, options[index]);
 			}
 		}
@@ -233,11 +239,11 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 					onClick={onViewDetails}
 					sx={{ border: "1px solid", borderColor: "grey.300" }}
 				>
-					<VisibilityIcon fontSize="small" />
+					<Visibility fontSize="small" />
 				</IconButton>
 				<Button
 					variant="outlined"
-					startIcon={<FlashOnIcon />}
+					startIcon={<FlashOn />}
 					onClick={onAskgllama}
 					sx={{
 						textTransform: "none",
@@ -246,37 +252,43 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 				>
 					Ask gllama
 				</Button>
-
-				<ButtonGroup
-					variant="contained"
-					ref={anchorRef}
-					aria-label="Button group with a nested menu"
-					sx={{
-						borderRadius: "20px", textTransform: "none"
-					}}
-				>
-					<Button onClick={handleClick}
+				{job.status && (job.status.declinedDate || job.status.scheduledDate) ? (
+					<IconButton sx={{ borderRadius: "20px" }} size="small" color='error' variant='contained'>
+						<Cancel />
+					</IconButton>
+				) :
+					<><ButtonGroup
+						variant="contained"
+						ref={anchorRef}
+						aria-label="Button group with a nested menu"
 						sx={{
 							borderRadius: "20px", textTransform: "none"
 						}}
 					>
-						{applyLink && applyLink.includes("linkedin.com") && (
-							<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
-						)}{options[selectedIndex]}</Button>
-					<Button
-						size="small"
-						aria-controls={open ? 'split-button-menu' : undefined}
-						aria-expanded={open ? 'true' : undefined}
-						aria-label="select merge strategy"
-						aria-haspopup="menu"
-						sx={{
-							borderRadius: "20px", textTransform: "none"
-						}}
-						onClick={handleToggle}
-					>
-						<ArrowDropDown />
-					</Button>
-				</ButtonGroup>
+						<Button onClick={handleClick}
+							sx={{
+								borderRadius: "20px", textTransform: "none"
+							}}
+						>
+							{applyLink && applyLink.includes("linkedin.com") && (
+								<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
+							)}{options[selectedIndex]}</Button>
+						<Button
+							size="small"
+							aria-controls={open ? 'split-button-menu' : undefined}
+							aria-expanded={open ? 'true' : undefined}
+							aria-label="select merge strategy"
+							aria-haspopup="menu"
+							sx={{
+								borderRadius: "20px", textTransform: "none"
+							}}
+							onClick={handleToggle}
+						>
+							<ArrowDropDown />
+						</Button>
+					</ButtonGroup>
+					</>
+				}
 				<Popper
 					sx={{ zIndex: 1 }}
 					open={open}
@@ -299,7 +311,6 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 										{options.map((option, index) => (
 											<MenuItem
 												key={option}
-												disabled={!((index === 0 && applied === false) || (index !== 0 && applied === true))}
 												selected={index === selectedIndex}
 												onClick={(event) => handleMenuItemClick(event, index)}
 											>
@@ -411,7 +422,7 @@ const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, onUpdat
 					}}
 					postedAgo={job.postedAgo}
 					postedAt={job.postedAt}
-					applied={!!job.applied}
+					applied={!!job.status}
 					tags={job.tags}
 				/>
 				<Divider sx={{ my: 1 }} />
@@ -423,7 +434,6 @@ const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, onUpdat
 					onAskgllama={onAskgllama}
 					onApply={onApply}
 					onUpdateStatus={onUpdateStatus}
-					applied={!!job.applied}
 					job={job}
 				/>
 			</CardContent>

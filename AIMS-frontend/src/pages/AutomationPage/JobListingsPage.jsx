@@ -127,6 +127,24 @@ function JobListingsPage() {
 		}
 	};
 
+	const handleUpdateJobStatus = async (job, status) => {
+		try {
+			const id = job._id || job.id;
+			if (!id) return;
+			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
+			const res = await post(`/jobs/${strId}/status`, { status });
+			if (res && res.success) {
+				notification.success(`Job status updated to ${status}`);
+				fetchJobs();
+			} else {
+				notification.error('Failed to update job status');
+			}
+		} catch (e) {
+			console.warn('Failed to update job status', e);
+			notification.error('Failed to update job status');
+		}
+	};
+
 	// Select all jobs on current page
 	const handleSelectAll = (checked) => {
 		if (checked) {
@@ -209,6 +227,7 @@ function JobListingsPage() {
 								onViewDetails={handleViewDetails}
 								onAskgllama={handleAskgllama}
 								onApply={handleApplyJob}
+								onUpdateStatus={handleUpdateJobStatus}
 								checked={selectedIds.includes(job._id || job.id)}
 								onCheck={(checked) => handleSelectJob(job._id || job.id, checked)}
 							/>
