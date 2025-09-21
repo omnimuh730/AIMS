@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import useApi from "../../../api/useApi";
 import { Box, CircularProgress, Typography } from "@mui/material";
-import { ResponsiveRadar } from "@nivo/radar";
+import { RadarChart } from '@mui/x-charts/RadarChart'; // Changed import
 import { JobSource as JobSourceList } from '../../../../../configs/pub';
 
 const JobSource = () => {
@@ -15,6 +15,7 @@ const JobSource = () => {
 			try {
 				setLoading(true);
 				const response = await get("/reports/job-sources");
+				console.log("Job Sources Response:", response);
 				if (response.success) {
 					setRawData(response.data || []);
 				} else {
@@ -29,24 +30,22 @@ const JobSource = () => {
 		fetchData();
 	}, [get]);
 
-	const radarData = useMemo(() => {
-		if (!rawData) return [];
+	// Reworked data processing for MUI X Charts
+	const chartData = useMemo(() => {
+		if (!rawData) return { data: [], labels: [] };
 
-		// Initialize a map with all possible job sources from pub.js to ensure all are present in the chart
 		const sourceMap = new Map(JobSourceList.map(source => [source, 0]));
 
-		// Populate the map with actual counts from the fetched data
 		rawData.forEach(item => {
 			if (sourceMap.has(item.source)) {
 				sourceMap.set(item.source, item.value);
 			}
 		});
 
-		// Convert the map to the format expected by the radar chart
-		return Array.from(sourceMap.entries()).map(([source, value]) => ({
-			source,
-			applications: value,
-		}));
+		const labels = JobSourceList;
+		const data = JobSourceList.map(source => sourceMap.get(source) || 0);
+
+		return { data, labels };
 	}, [rawData]);
 
 	if (loading) {
@@ -57,7 +56,7 @@ const JobSource = () => {
 		return <Typography color="error">{error}</Typography>;
 	}
 
-	if (radarData.length === 0) {
+	if (chartData.data.length === 0) {
 		return (
 			<Box sx={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
 				<Typography>No job source data available.</Typography>
@@ -65,45 +64,28 @@ const JobSource = () => {
 		);
 	}
 
+	// Calculate a dynamic max value for the chart's scale
+	const maxValue = Math.max(...chartData.data);
+
 	return (
 		<Box sx={{ height: '400px', width: '100%', maxWidth: '900px', margin: 'auto', mt: 4 }}>
 			<Typography variant="h6" gutterBottom>
 				Job Postings by Source
 			</Typography>
-			<ResponsiveRadar
-				data={radarData}
-				keys={['applications']}
-				indexBy="source"
-				margin={{ top: 70, right: 80, bottom: 40, left: 80 }}
-				borderColor={{ from: 'color' }}
-				gridLabelOffset={36}
-				dotSize={10}
-				dotColor={{ theme: 'background' }}
-				dotBorderWidth={2}
-				colors={{ scheme: 'nivo' }}
-				blendMode="multiply"
-				motionConfig="wobbly"
-				legends={[
+			{/* Replaced Nivo chart with MUI X RadarChart */}
+			<RadarChart
+				height={400}
+				series={[
 					{
-						anchor: 'top-left',
-						direction: 'column',
-						translateX: -50,
-						translateY: -40,
-						itemWidth: 80,
-						itemHeight: 20,
-						itemTextColor: '#999',
-						symbolSize: 12,
-						symbolShape: 'circle',
-						effects: [
-							{
-								on: 'hover',
-								style: {
-									itemTextColor: '#000'
-								}
-							}
-						]
+						name: 'Applications',
+						data: chartData.data
 					}
 				]}
+				radar={{
+					// Add a small buffer to the max value for better visuals, or set a default
+					max: maxValue > 0 ? Math.ceil(maxValue * 1.1) : 10,
+					metrics: chartData.labels,
+				}}
 			/>
 		</Box>
 	);
