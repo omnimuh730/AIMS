@@ -75,7 +75,7 @@ const PersonalizationPage = () => {
 				nextSkills = [...userSkills, skill];
 			}
 			// Update backend (send full array)
-			const res = await post('http://localhost:3000/api/personal/skills/update', { skills: nextSkills });
+			const res = await post('/api/personal/skills/update', { skills: nextSkills });
 			if (res && res.success && Array.isArray(res.skills)) {
 				setUserSkills(res.skills);
 				notification.success('Skills updated');

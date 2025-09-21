@@ -1,7 +1,7 @@
 
 import { MongoClient } from "mongodb";
 
-const mongoUrl = process.env.MONGO_URL || 'mongodb://192.168.9.110:27017';
+const mongoUrl = process.env.MONGO_URL;
 const mongoDbName = process.env.MONGO_DB || 'AIMS_local';
 
 let mongoClient;

@@ -15,7 +15,7 @@ function JobListingsPage() {
 	const [sortOption, setSortOption] = useState("postedAt_desc");
 	const [filters, setFilters] = useState({ showLinkedInOnly: true, applied: false });
 	const [pagination, setPagination] = useState({ page: 1, limit: 25, total: 0, totalPages: 1 });
-	const { loading, error, get, post } = useApi();
+	const { loading, error, get, post } = useApi(import.meta.env.VITE_API_URL);
 
 	const [selectedJob, setSelectedJob] = useState(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,7 +50,7 @@ function JobListingsPage() {
 				if (String(v).trim() !== '') params.set(k, String(v));
 			});
 
-			let url = `http://localhost:3000/api/jobs?${params.toString()}`;
+			let url = `/jobs?${params.toString()}`;
 			if (sortOption === 'recommended') {
 				url += `&sort=recommended`;
 			}
@@ -67,7 +67,7 @@ function JobListingsPage() {
 	// Fetch user skills
 	const fetchUserSkills = useCallback(async () => {
 		try {
-			const res = await get('http://localhost:3000/api/personal/skills');
+			const res = await get('/personal/skills');
 			if (res && res.success && Array.isArray(res.skills)) {
 				setUserSkills(res.skills);
 			}
@@ -119,7 +119,7 @@ function JobListingsPage() {
 			const id = job._id || job.id;
 			if (!id) return;
 			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
-			await post(`http://localhost:3000/api/jobs/${strId}/apply`, { applied: true });
+			await post(`/jobs/${strId}/apply`, { applied: true });
 			// Refresh list so applied jobs disappear when showing not-applied
 			fetchJobs();
 		} catch (e) {
@@ -147,7 +147,7 @@ function JobListingsPage() {
 		try {
 			// Send ids as strings for backend compatibility
 			const ids = selectedIds.map(id => typeof id === 'object' && id.$oid ? id.$oid : String(id));
-			const res = await post('http://localhost:3000/api/jobs/remove', { ids });
+			const res = await post('/jobs/remove', { ids });
 			if (res && res.success) {
 				notification.success(`Removed ${res.deletedCount || 0} job(s)`);
 				setSelectedIds([]);

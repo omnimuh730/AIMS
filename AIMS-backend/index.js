@@ -16,7 +16,7 @@ import skillCategoryRoutes from "./src/routes/skillCategoryRoutes.js";
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 app.use(express.json());
 app.use(cors({ origin: '*' }));
@@ -45,6 +45,6 @@ app.use('/api', skillCategoryRoutes);
 import reportRoutes from "./src/routes/reportRoutes.js";
 app.use('/api/jobs', reportRoutes);
 
-server.listen(port, () => {
-	console.log(`Server running on http://localhost:${port}`);
+server.listen(port, process.env.HOST || 'localhost', () => {
+	console.log(`Server running on http://${process.env.HOST || 'localhost'}:${port}`);
 });
