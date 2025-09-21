@@ -1,7 +1,7 @@
 export default function MannualReportPage() {
 	return (
-		<Box>
+		<div>
 			Mannual Report Page
-		</Box>
+		</div>
 	)
 }

@@ -1,5 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import * as d3 from "d3";
+import useApi from "../../../api/useApi";
+import { Box, CircularProgress, Typography } from "@mui/material";
 
 const ContributionGraph = ({ values }) => {
 	const cellSize = 12; // block size
@@ -9,31 +11,15 @@ const ContributionGraph = ({ values }) => {
 	const year = new Date().getFullYear();
 	const startDate = new Date(year, 0, 1); // Jan 1st
 	const endDate = new Date(year, 11, 31); // Dec 31st
-	const daysInYear = d3.timeDay.count(startDate, d3.timeDay.offset(endDate, 1));
-
-	// Generate daily data
-	const data = useMemo(() => {
-		if (values) return values;
-
-		const arr = [];
-		for (let i = 0; i < daysInYear; i++) {
-			const date = d3.timeDay.offset(startDate, i);
-			arr.push({
-				date,
-				value: Math.floor(Math.random() * 200), // commits
-			});
-		}
-		return arr;
-	}, [values, daysInYear, startDate]);
 
 	// Color scale (dynamic)
 	const color = d3
 		.scaleLinear()
-		.domain([0, d3.max(data, (d) => d.value) || 1])
+		.domain([0, d3.max(values, (d) => d.value) || 1])
 		.range(["#e6f4ea", "#216e39"]);
 
 	// Position each day by week + weekday
-	const cells = data.map((d) => {
+	const cells = values.map((d) => {
 		const weekIndex = d3.timeWeek.count(startDate, d.date);
 		const dayIndex = d.date.getDay(); // 0=Sun, … 6=Sat
 		return { ...d, week: weekIndex, day: dayIndex };
@@ -46,7 +32,6 @@ const ContributionGraph = ({ values }) => {
 			width={totalWeeks * (cellSize + 2) + 50}
 			height={7 * (cellSize + 2) + padding * 2}
 		>
-			{/* Month labels */}
 			{d3.timeMonths(startDate, endDate).map((monthDate, i) => {
 				const weekIndex = d3.timeWeek.count(startDate, monthDate);
 				return (
@@ -62,7 +47,6 @@ const ContributionGraph = ({ values }) => {
 				);
 			})}
 
-			{/* Day labels */}
 			{["Mon", "Wed", "Fri"].map((d, i) => (
 				<text
 					key={d}
@@ -75,7 +59,6 @@ const ContributionGraph = ({ values }) => {
 				</text>
 			))}
 
-			{/* Heatmap cells */}
 			{cells.map((d) => (
 				<rect
 					key={d.date}
@@ -88,7 +71,7 @@ const ContributionGraph = ({ values }) => {
 					fill={color(d.value)}
 				>
 					<title>
-						{d3.timeFormat("%b %d, %Y")(d.date)}: {d.value} commits
+						{d3.timeFormat("%b %d, %Y")(d.date)}: {d.value} applications
 					</title>
 				</rect>
 			))}
@@ -96,4 +79,44 @@ const ContributionGraph = ({ values }) => {
 	);
 };
 
-export default ContributionGraph;
+const DailyApplication = () => {
+	const { get } = useApi();
+	const [data, setData] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
+
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				setLoading(true);
+				const response = await get("/reports/daily-applications");
+				if (response.success) {
+					const parsedData = response.data.map(d => ({
+						date: d3.timeParse("%Y-%m-%d")(d.date),
+						value: d.value
+					}));
+					setData(parsedData);
+				} else {
+					setError(response.error || "Failed to fetch data");
+				}
+			} catch (err) {
+				setError(err.message || "An error occurred");
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchData();
+	}, [get]);
+
+	if (loading) {
+		return <CircularProgress />;
+	}
+
+	if (error) {
+		return <Typography color="error">{error}</Typography>;
+	}
+
+	return <ContributionGraph values={data} />;
+};
+
+export default DailyApplication;
