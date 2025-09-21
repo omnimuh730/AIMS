@@ -36,6 +36,7 @@ export async function createJob(req, res) {
 
 		job._createdAt = createdAt;
 		job.postedAt = postedAt;
+		job.modelVersion = '1.0.0';
 
 		try {
 			const companyTags = Array.isArray(job.company?.tags) ? job.company.tags.map(t => String(t).trim()).filter(Boolean) : [];
@@ -305,6 +306,31 @@ export async function removeJobs(req, res) {
 		return res.json({ success: true, deletedCount: result.deletedCount });
 	} catch (err) {
 		console.error('POST /api/jobs/remove error', err);
+		return res.status(500).json({ success: false, error: err.message });
+	}
+}
+
+export async function unapplyFromJob(req, res) {
+	try {
+		if (!jobsCollection) return res.status(503).json({ success: false, error: 'Database not ready' });
+		const { id } = req.params;
+		let objectId;
+		try {
+			objectId = new ObjectId(id);
+		} catch {
+			return res.status(400).json({ success: false, error: 'Invalid id' });
+		}
+
+		const update = {
+			$unset: { status: "" }
+		};
+
+		await jobsCollection.updateOne({ _id: objectId }, update);
+		const updatedJob = await jobsCollection.findOne({ _id: objectId });
+
+		return res.json({ success: true, data: updatedJob });
+	} catch (err) {
+		console.error('POST /api/jobs/:id/unapply error', err);
 		return res.status(500).json({ success: false, error: err.message });
 	}
 }

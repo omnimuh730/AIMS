@@ -5,6 +5,7 @@ import {
 	applyToJob,
 	removeJobs,
 	updateJobStatus,
+	unapplyFromJob,
 } from "../controllers/jobController.js";
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.get('/jobs', getJobs);
 router.post('/jobs/remove', removeJobs);
 router.post('/jobs/:id/apply', applyToJob);
 router.post('/jobs/:id/status', updateJobStatus);
+router.post('/jobs/:id/unapply', unapplyFromJob);
 
 export default router;

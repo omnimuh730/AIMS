@@ -145,6 +145,24 @@ function JobListingsPage() {
 		}
 	};
 
+	const handleUnapplyJob = async (job) => {
+		try {
+			const id = job._id || job.id;
+			if (!id) return;
+			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
+			const res = await post(`/jobs/${strId}/unapply`);
+			if (res && res.success) {
+				notification.success('Successfully unapplied from job');
+				fetchJobs();
+			} else {
+				notification.error('Failed to unapply from job');
+			}
+		} catch (e) {
+			console.warn('Failed to unapply from job', e);
+			notification.error('Failed to unapply from job');
+		}
+	};
+
 	// Select all jobs on current page
 	const handleSelectAll = (checked) => {
 		if (checked) {
@@ -228,6 +246,7 @@ function JobListingsPage() {
 								onAskgllama={handleAskgllama}
 								onApply={handleApplyJob}
 								onUpdateStatus={handleUpdateJobStatus}
+								onUnapply={handleUnapplyJob}
 								checked={selectedIds.includes(job._id || job.id)}
 								onCheck={(checked) => handleSelectJob(job._id || job.id, checked)}
 							/>

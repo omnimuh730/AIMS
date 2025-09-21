@@ -157,7 +157,7 @@ const JobCardDetails = ({ details = {} }) => {
 	);
 };
 
-const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, applied, job }) => {
+const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, onUnapply, applied, job }) => {
 	const options = job.status === undefined ? ['Apply'] : job.status.scheduledDate === undefined && job.status.declinedDate === undefined ? ['Declined', 'Scheduled'] : [];
 	const [open, setOpen] = useState(false);
 	const anchorRef = useRef(null);
@@ -270,19 +270,23 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 							{applyLink && applyLink.includes("linkedin.com") && (
 								<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
 							)}{options[selectedIndex]}</Button>
-						<Button
-							size="small"
-							aria-controls={open ? 'split-button-menu' : undefined}
-							aria-expanded={open ? 'true' : undefined}
-							aria-label="select merge strategy"
-							aria-haspopup="menu"
-							sx={{
-								borderRadius: "20px", textTransform: "none"
-							}}
-							onClick={handleToggle}
-						>
-							<ArrowDropDown />
-						</Button>
+						{job.status !== undefined && (
+							<>
+								<Button
+									size="small"
+									aria-controls={open ? 'split-button-menu' : undefined}
+									aria-expanded={open ? 'true' : undefined}
+									aria-label="select merge strategy"
+									aria-haspopup="menu"
+									onClick={handleToggle}
+								>
+									<ArrowDropDown />
+								</Button>
+								<Button size='small' color='error' sx={{ borderRadius: "20px", textTransform: "none" }} onClick={() => onUnapply(job)}>
+									<Cancel />
+								</Button>
+							</>
+						)}
 					</ButtonGroup>
 					</>
 				}
@@ -392,7 +396,7 @@ const MatchPanel = ({ job, userSkills }) => {
 };
 
 // --- Main Exported Component - MODIFIED FOR LAYOUT ---
-const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, onUpdateStatus, checked, onCheck }) => (
+const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, onUpdateStatus, onUnapply, checked, onCheck }) => (
 	<Box sx={{ display: 'flex', alignItems: 'center' }}>
 		<input
 			type="checkbox"
@@ -431,6 +435,7 @@ const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, onUpdat
 					onAskgllama={onAskgllama}
 					onApply={onApply}
 					onUpdateStatus={onUpdateStatus}
+					onUnapply={onUnapply}
 					job={job}
 				/>
 			</CardContent>
