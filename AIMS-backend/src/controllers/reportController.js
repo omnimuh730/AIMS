@@ -39,3 +39,32 @@ export async function getDailyApplications(req, res) {
         res.status(500).json({ success: false, error: err.message });
     }
 }
+
+export async function getJobSources(req, res) {
+    try {
+        if (!jobsCollection) {
+            return res.status(503).json({ success: false, error: "Database not ready" });
+        }
+
+        const jobSources = await jobsCollection.aggregate([
+            {
+                $group: {
+                    _id: "$source",
+                    value: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    source: "$_id",
+                    value: 1
+                }
+            }
+        ]).toArray();
+
+        res.json({ success: true, data: jobSources });
+    } catch (err) {
+        console.error('GET /api/reports/job-sources error', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+}

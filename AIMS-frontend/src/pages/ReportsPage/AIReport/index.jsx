@@ -11,6 +11,7 @@ import {
 } from '@mui/icons-material';
 
 import DailyApplication from './DailyApplication';
+import JobSource from './JobSource';
 
 
 const AIReportPage = () => {
@@ -21,6 +22,7 @@ const AIReportPage = () => {
 			</Typography>
 			<Box sx={{ mt: 4 }}>
 				<DailyApplication />
+				<JobSource />
 			</Box>
 		</Container>
 	)
