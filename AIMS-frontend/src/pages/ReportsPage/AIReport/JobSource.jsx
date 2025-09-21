@@ -1,8 +1,12 @@
 import React, { useEffect, useState, useMemo } from "react";
 import useApi from "../../../api/useApi";
 import { Box, CircularProgress, Typography } from "@mui/material";
-import { RadarChart } from '@mui/x-charts/RadarChart'; // Changed import
+import { RadarChart } from '@mui/x-charts/RadarChart';
 import { JobSource as JobSourceList } from '../../../../../configs/pub';
+
+// Define the power for scaling. 0.5 is a square root scale.
+// A smaller number (e.g., 0.3) will compress the range even more.
+const SCALING_POWER = 0.3;
 
 const JobSource = () => {
 	const { get } = useApi();
@@ -15,7 +19,6 @@ const JobSource = () => {
 			try {
 				setLoading(true);
 				const response = await get("/reports/job-sources");
-				console.log("Job Sources Response:", response);
 				if (response.success) {
 					setRawData(response.data || []);
 				} else {
@@ -30,9 +33,9 @@ const JobSource = () => {
 		fetchData();
 	}, [get]);
 
-	// Reworked data processing for MUI X Charts
+	// Prepare original, scaled, and label data
 	const chartData = useMemo(() => {
-		if (!rawData) return { data: [], labels: [] };
+		if (!rawData) return { labels: [], originalData: [], scaledData: [] };
 
 		const sourceMap = new Map(JobSourceList.map(source => [source, 0]));
 
@@ -43,9 +46,12 @@ const JobSource = () => {
 		});
 
 		const labels = JobSourceList;
-		const data = JobSourceList.map(source => sourceMap.get(source) || 0);
+		const originalData = JobSourceList.map(source => sourceMap.get(source) || 0);
 
-		return { data, labels };
+		// Apply the power scale transformation for the visual chart line
+		const scaledData = originalData.map(value => Math.pow(value, SCALING_POWER));
+
+		return { labels, originalData, scaledData };
 	}, [rawData]);
 
 	if (loading) {
@@ -56,7 +62,7 @@ const JobSource = () => {
 		return <Typography color="error">{error}</Typography>;
 	}
 
-	if (chartData.data.length === 0) {
+	if (chartData.originalData.length === 0) {
 		return (
 			<Box sx={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
 				<Typography>No job source data available.</Typography>
@@ -64,27 +70,33 @@ const JobSource = () => {
 		);
 	}
 
-	// Calculate a dynamic max value for the chart's scale
-	const maxValue = Math.max(...chartData.data);
+	// Calculate the max value based on the SCALED data
+	const maxScaledValue = Math.max(...chartData.scaledData);
 
 	return (
 		<Box sx={{ height: '400px', width: '100%', maxWidth: '900px', margin: 'auto', mt: 4 }}>
 			<Typography variant="h6" gutterBottom>
 				Job Postings by Source
 			</Typography>
-			{/* Replaced Nivo chart with MUI X RadarChart */}
 			<RadarChart
 				height={400}
 				series={[
 					{
 						name: 'Applications',
-						data: chartData.data
+						data: chartData.scaledData, // Use scaled data for rendering
+						// --- Tooltip Customization ---
+						// Show the original value on hover
+						valueFormatter: (value, { dataIndex }) => `${chartData.originalData[dataIndex]} applications`,
 					}
 				]}
 				radar={{
-					// Add a small buffer to the max value for better visuals, or set a default
-					max: maxValue > 0 ? Math.ceil(maxValue * 1.1) : 10,
+					max: maxScaledValue > 0 ? Math.ceil(maxScaledValue * 1.1) : 10,
 					metrics: chartData.labels,
+					// --- Axis Label Customization ---
+					// Show the original scale on the grid lines
+					scale: {
+						valueFormatter: (value) => Math.round(Math.pow(value, 1 / SCALING_POWER)).toString(),
+					},
 				}}
 			/>
 		</Box>
