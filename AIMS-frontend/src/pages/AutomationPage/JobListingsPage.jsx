@@ -13,9 +13,9 @@ function JobListingsPage() {
 	const [jobs, setJobs] = useState([]);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [sortOption, setSortOption] = useState("postedAt_desc");
-    const [filters, setFilters] = useState({ showLinkedInOnly: true, applied: false });
+	const [filters, setFilters] = useState({ showLinkedInOnly: true, applied: false });
 	const [pagination, setPagination] = useState({ page: 1, limit: 25, total: 0, totalPages: 1 });
-	const { loading, error, get, post } = useApi();
+	const { loading, error, get, post } = useApi(import.meta.env.VITE_API_URL);
 
 	const [selectedJob, setSelectedJob] = useState(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,7 +50,7 @@ function JobListingsPage() {
 				if (String(v).trim() !== '') params.set(k, String(v));
 			});
 
-			let url = `http://localhost:3000/api/jobs?${params.toString()}`;
+			let url = `/jobs?${params.toString()}`;
 			if (sortOption === 'recommended') {
 				url += `&sort=recommended`;
 			}
@@ -67,7 +67,7 @@ function JobListingsPage() {
 	// Fetch user skills
 	const fetchUserSkills = useCallback(async () => {
 		try {
-			const res = await get('http://localhost:3000/api/personal/skills');
+			const res = await get('/personal/skills');
 			if (res && res.success && Array.isArray(res.skills)) {
 				setUserSkills(res.skills);
 			}
@@ -97,9 +97,9 @@ function JobListingsPage() {
 		}
 	};
 
-    const handleAskgllama = () => {
-        setIsModalOpen(true);
-    };
+	const handleAskgllama = () => {
+		setIsModalOpen(true);
+	};
 
 	const handleCloseModal = () => {
 		setIsModalOpen(false);
@@ -109,23 +109,59 @@ function JobListingsPage() {
 		setPagination(prev => ({ ...prev, page: newPage }));
 	};
 
-    const handleLimitChange = (newLimit) => {
-        setPagination(prev => ({ ...prev, limit: newLimit, page: 1 }));
-    };
+	const handleLimitChange = (newLimit) => {
+		setPagination(prev => ({ ...prev, limit: newLimit, page: 1 }));
+	};
 
-    // Mark a job as applied before opening Apply link
-    const handleApplyJob = async (job) => {
-        try {
-            const id = job._id || job.id;
-            if (!id) return;
-            const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
-            await post(`http://localhost:3000/api/jobs/${strId}/apply`, { applied: true });
-            // Refresh list so applied jobs disappear when showing not-applied
-            fetchJobs();
-        } catch (e) {
-            console.warn('Failed to mark job applied', e);
-        }
-    };
+	// Mark a job as applied before opening Apply link
+	const handleApplyJob = async (job) => {
+		try {
+			const id = job._id || job.id;
+			if (!id) return;
+			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
+			await post(`/jobs/${strId}/apply`, { applied: true });
+			// Refresh list so applied jobs disappear when showing not-applied
+			fetchJobs();
+		} catch (e) {
+			console.warn('Failed to mark job applied', e);
+		}
+	};
+
+	const handleUpdateJobStatus = async (job, status) => {
+		try {
+			const id = job._id || job.id;
+			if (!id) return;
+			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
+			const res = await post(`/jobs/${strId}/status`, { status });
+			if (res && res.success) {
+				notification.success(`Job status updated to ${status}`);
+				fetchJobs();
+			} else {
+				notification.error('Failed to update job status');
+			}
+		} catch (e) {
+			console.warn('Failed to update job status', e);
+			notification.error('Failed to update job status');
+		}
+	};
+
+	const handleUnapplyJob = async (job) => {
+		try {
+			const id = job._id || job.id;
+			if (!id) return;
+			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
+			const res = await post(`/jobs/${strId}/unapply`);
+			if (res && res.success) {
+				notification.success('Successfully unapplied from job');
+				fetchJobs();
+			} else {
+				notification.error('Failed to unapply from job');
+			}
+		} catch (e) {
+			console.warn('Failed to unapply from job', e);
+			notification.error('Failed to unapply from job');
+		}
+	};
 
 	// Select all jobs on current page
 	const handleSelectAll = (checked) => {
@@ -147,7 +183,7 @@ function JobListingsPage() {
 		try {
 			// Send ids as strings for backend compatibility
 			const ids = selectedIds.map(id => typeof id === 'object' && id.$oid ? id.$oid : String(id));
-			const res = await post('http://localhost:3000/api/jobs/remove', { ids });
+			const res = await post('/jobs/remove', { ids });
 			if (res && res.success) {
 				notification.success(`Removed ${res.deletedCount || 0} job(s)`);
 				setSelectedIds([]);
@@ -159,23 +195,6 @@ function JobListingsPage() {
 			notification.error('Failed to remove jobs');
 		}
 	};
-
-	const handleApplySelected = () => {
-		// Open tabs for each selected job's applyLink
-		if (!selectedIds.length) return;
-		const jobsToApply = jobs.filter(job => selectedIds.includes(job._id || job.id) && job.applyLink).map(j => j.applyLink);
-		if (!jobsToApply.length) return;
-
-		// Send links to backend relay which will forward them to the extension to open tabs
-		try {
-			post('http://localhost:3000/api/open-tabs', { urls: jobsToApply });
-		} catch (err) {
-			console.error('Failed to request extension to open tabs', err);
-		}
-	}
-	const handleAnalyzeSelected = async () => {
-		console.log('Analyze selected jobs:', selectedIds);
-	}
 
 	return (
 		<Container
@@ -204,8 +223,6 @@ function JobListingsPage() {
 					selectAllChecked={selectedIds.length === jobs.length && jobs.length > 0}
 					onSelectAll={handleSelectAll}
 					onRemoveSelected={handleRemoveSelected}
-					onApplySelected={handleApplySelected}
-					onAnalyzeSelected={handleAnalyzeSelected}
 					disableButtons={!selectedIds.length}
 					showLinkedInOnly={!!filters.showLinkedInOnly}
 					onShowLinkedInOnlyChange={checked => setFilters(f => ({ ...f, showLinkedInOnly: checked }))}
@@ -221,28 +238,30 @@ function JobListingsPage() {
 							return !(job.applyLink && job.applyLink.includes('linkedin.com'));
 						})
 						.map((job, idx) => (
-                        <JobCard
-                            key={job._id || job.id || idx}
-                            job={job}
-                            userSkills={userSkills}
-                            onViewDetails={handleViewDetails}
-                            onAskgllama={handleAskgllama}
-                            onApply={handleApplyJob}
-                            checked={selectedIds.includes(job._id || job.id)}
-                            onCheck={(checked) => handleSelectJob(job._id || job.id, checked)}
-                        />
+							<JobCard
+								key={job._id || job.id || idx}
+								job={job}
+								userSkills={userSkills}
+								onViewDetails={handleViewDetails}
+								onAskgllama={handleAskgllama}
+								onApply={handleApplyJob}
+								onUpdateStatus={handleUpdateJobStatus}
+								onUnapply={handleUnapplyJob}
+								checked={selectedIds.includes(job._id || job.id)}
+								onCheck={(checked) => handleSelectJob(job._id || job.id, checked)}
+							/>
 						))
 				)}
 			</Stack>
 
-            <JobDetailDrawer
-                job={selectedJob}
-                open={!!selectedJob}
-                onClose={handleCloseDrawer}
-                onAskgllama={handleAskgllama}
-                onApply={handleApplyJob}
-                onSkillsChanged={() => setSkillsChanged(true)}
-            />
+			<JobDetailDrawer
+				job={selectedJob}
+				open={!!selectedJob}
+				onClose={handleCloseDrawer}
+				onAskgllama={handleAskgllama}
+				onApply={handleApplyJob}
+				onSkillsChanged={() => setSkillsChanged(true)}
+			/>
 
 			<AskgllamaModal open={isModalOpen} onClose={handleCloseModal} />
 		</Container>

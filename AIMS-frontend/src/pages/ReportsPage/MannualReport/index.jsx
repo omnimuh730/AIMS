@@ -1,7 +1,7 @@
-const MannualReportPage = () => {
+export default function MannualReportPage() {
 	return (
-		<h1>Mannual Report</h1>
+		<div>
+			Mannual Report Page
+		</div>
 	)
 }
-
-export default MannualReportPage;

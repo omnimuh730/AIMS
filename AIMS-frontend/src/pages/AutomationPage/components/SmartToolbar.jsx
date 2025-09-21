@@ -19,7 +19,10 @@ import {
 	FormControlLabel,
 	Button,
 	OutlinedInput,
-	ListItemText
+	ListItemText,
+	Radio,
+	RadioGroup,
+	FormLabel
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -43,6 +46,16 @@ import useDebouncedValue from './../../../utils/useDebouncedValue';
 
 import { JobSource } from '../../../../../configs/pub';
 
+const getJobStatusFilter = (filters) => {
+	if (filters.applied === true) {
+		return filters.status || 'Applied';
+	}
+	if (filters.applied === false) {
+		return 'Posted';
+	}
+	return 'All';
+};
+
 const SmartToolbar = ({
 	searchQuery,
 	onSearchChange,
@@ -57,8 +70,6 @@ const SmartToolbar = ({
 	selectAllChecked = false,
 	onSelectAll,
 	onRemoveSelected,
-	onAnalyzeSelected,
-	onApplySelected,
 	disableButtons = false,
 }) => {
 	const theme = useTheme();
@@ -445,26 +456,34 @@ const SmartToolbar = ({
 								},
 							}}
 						/>
-						{/* LinkedIn jobs filter checkbox with MUI */}
-
-						<FormControlLabel
-							control={
-								<Checkbox
-									checked={!!filters.applied}
-									onChange={e => onFiltersChange && onFiltersChange({ ...filters, applied: e.target.checked })}
-									sx={{ p: 2 }}
-								/>
-							}
-							label={
-								<Typography variant="body2">
-									Show Applied Jobs
-								</Typography>
-							}
-							sx={{
-								alignItems: 'center',
-								minHeight: 56,
-							}}
-						/>
+						<FormControl component="fieldset">
+							<FormLabel component="legend">Job Status</FormLabel>
+							<RadioGroup
+								row
+								value={getJobStatusFilter(filters)}
+								onChange={(e) => {
+									const newStatus = e.target.value;
+									const next = { ...filters };
+									if (newStatus === 'All') {
+										delete next.applied;
+										delete next.status;
+									} else if (newStatus === 'Posted') {
+										next.applied = false;
+										delete next.status;
+									} else {
+										next.applied = true;
+										next.status = newStatus;
+									}
+									onFiltersChange(next);
+								}}
+							>
+								<FormControlLabel value="All" control={<Radio />} label="All" />
+								<FormControlLabel value="Posted" control={<Radio />} label="Posted" />
+								<FormControlLabel value="Applied" control={<Radio />} label="Applied" />
+								<FormControlLabel value="Scheduled" control={<Radio />} label="Scheduled" />
+								<FormControlLabel value="Declined" control={<Radio />} label="Declined" />
+							</RadioGroup>
+						</FormControl>
 					</Stack>
 				</Grid>
 
@@ -532,22 +551,6 @@ const SmartToolbar = ({
 							color='error'
 						>
 							Remove
-						</Button>
-						<Button
-							variant='contained'
-							color='primary'
-							disabled={disableButtons}
-							onClick={onApplySelected}
-						>
-							Apply
-						</Button>
-						<Button
-							variant='contained'
-							color='secondary'
-							disabled={disableButtons}
-							onClick={onAnalyzeSelected}
-						>
-							Analyze
 						</Button>
 					</Stack>
 				</Grid>

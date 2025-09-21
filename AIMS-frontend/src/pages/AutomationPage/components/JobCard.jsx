@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { calculateJobScores } from '../../../../../configs/jobScore';
 
 // MUI Imports
@@ -14,25 +14,30 @@ import {
 	IconButton,
 	Divider,
 	Box,
+	ButtonGroup,
+	Popper,
 	Paper,
-	CircularProgress
+	CircularProgress,
+	ClickAwayListener,
+	MenuList,
+	MenuItem,
+	Grow
 } from "@mui/material";
 
 import {
 	Check,
-	LinkedIn
-} from '@mui/icons-material';
-
-// MUI Icon Imports
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import HomeWorkIcon from "@mui/icons-material/HomeWork";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import LeaderboardIcon from "@mui/icons-material/Leaderboard";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import BlockIcon from "@mui/icons-material/Block";
-import FlashOnIcon from "@mui/icons-material/FlashOn";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+	LinkedIn,
+	ArrowDropDown,
+	LocationOn,
+	AccessTime,
+	HomeWork,
+	Visibility,
+	Leaderboard,
+	CalendarToday,
+	AttachMoney,
+	FlashOn,
+	Cancel
+} from '@mui/icons-material';;
 
 import { styled } from '@mui/material/styles';
 
@@ -117,34 +122,34 @@ const JobCardDetails = ({ details = {} }) => {
 			<Grid container spacing={2}>
 				<Grid size={{ xs: 'auto' }}>
 					<Item>
-						<DetailItem icon={<LocationOnIcon fontSize="small" />} text={location} />
+						<DetailItem icon={<LocationOn fontSize="small" />} text={location} />
 					</Item>
 				</Grid>
 				{isRemote && (
 					<Grid size={{ xs: 'auto' }}>
 						<Item>
-							<DetailItem icon={<HomeWorkIcon fontSize="small" />} text={"Remote"} />
+							<DetailItem icon={<HomeWork fontSize="small" />} text={"Remote"} />
 						</Item>
 					</Grid>
 				)}
 				<Grid size={{ xs: 'auto' }}>
 					<Item>
-						<DetailItem icon={<AccessTimeIcon fontSize="small" />} text={type} />
+						<DetailItem icon={<AccessTime fontSize="small" />} text={type} />
 					</Item>
 				</Grid>
 				<Grid size={{ xs: 'auto' }}>
 					<Item>
-						<DetailItem icon={<LeaderboardIcon fontSize="small" />} text={level} />
+						<DetailItem icon={<Leaderboard fontSize="small" />} text={level} />
 					</Item>
 				</Grid>
 				<Grid size={{ xs: 'auto' }}>
 					<Item>
-						<DetailItem icon={<CalendarTodayIcon fontSize="small" />} text={experience} />
+						<DetailItem icon={<CalendarToday fontSize="small" />} text={experience} />
 					</Item>
 				</Grid>
 				<Grid size={{ xs: 'auto' }}>
 					<Item>
-						<DetailItem icon={<AttachMoneyIcon fontSize="small" />} text={salary} />
+						<DetailItem icon={<AttachMoney fontSize="small" />} text={salary} />
 					</Item>
 				</Grid>
 			</Grid>
@@ -152,7 +157,47 @@ const JobCardDetails = ({ details = {} }) => {
 	);
 };
 
-const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, job }) => {
+const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, onUnapply, applied, job }) => {
+	const options = job.status === undefined ? ['Apply'] : job.status.scheduledDate === undefined && job.status.declinedDate === undefined ? ['Declined', 'Scheduled'] : [];
+	const [open, setOpen] = useState(false);
+	const anchorRef = useRef(null);
+	const [selectedIndex, setSelectedIndex] = React.useState(0);
+	console.log('applied', applied, options[selectedIndex], 'job', job);
+	const handleClick = () => {
+		if (options[selectedIndex] === 'Apply') {
+			ApplyNow();
+		} else if (options[selectedIndex] === 'Declined' || options[selectedIndex] === 'Scheduled') {
+			if (onUpdateStatus) {
+				console.log('entered here');
+				onUpdateStatus(job, options[selectedIndex]);
+			}
+		}
+		console.info(`You clicked ${options[selectedIndex]}`);
+	};
+
+	const handleMenuItemClick = (event, index) => {
+		setSelectedIndex(index);
+		console.log(options[index]);
+		setOpen(false);
+		if (options[index] === 'Declined' || options[index] === 'Scheduled') {
+			console.log('entered here');
+			if (onUpdateStatus) {
+				console.log('entered here');
+				onUpdateStatus(job, options[index]);
+			}
+		}
+	};
+
+	const handleToggle = () => {
+		setOpen((prevOpen) => !prevOpen);
+	};
+
+	const handleClose = (event) => {
+		if (anchorRef.current && anchorRef.current.contains(event.target)) {
+			return;
+		}
+		setOpen(false);
+	};
 	const ApplyNow = async () => {
 		try {
 			if (onApply && job) {
@@ -191,11 +236,11 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 					onClick={onViewDetails}
 					sx={{ border: "1px solid", borderColor: "grey.300" }}
 				>
-					<VisibilityIcon fontSize="small" />
+					<Visibility fontSize="small" />
 				</IconButton>
 				<Button
 					variant="outlined"
-					startIcon={<FlashOnIcon />}
+					startIcon={<FlashOn />}
 					onClick={onAskgllama}
 					sx={{
 						textTransform: "none",
@@ -204,23 +249,81 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 				>
 					Ask gllama
 				</Button>
-				<Button
-					variant="contained"
-					sx={{
-						textTransform: "none",
-						bgcolor: "#00C853",
-						"&:hover": { bgcolor: "#00B843" },
-						borderRadius: "20px",
-						display: "flex",        // 👈 ensures flex layout
-						alignItems: "center",   // 👈 vertical center
-					}}
-					onClick={ApplyNow}
+				{job.status && (job.status.declinedDate || job.status.scheduledDate) ? (
+					<IconButton sx={{ borderRadius: "20px" }} size="small" color='error' variant='contained' onClick={() => onUpdateStatus(job, 'Applied')}>
+						<Cancel />
+					</IconButton>
+				) :
+					<><ButtonGroup
+						variant="contained"
+						ref={anchorRef}
+						aria-label="Button group with a nested menu"
+						sx={{
+							borderRadius: "20px", textTransform: "none"
+						}}
+					>
+						<Button onClick={handleClick}
+							sx={{
+								borderRadius: "20px", textTransform: "none"
+							}}
+						>
+							{applyLink && applyLink.includes("linkedin.com") && (
+								<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
+							)}{options[selectedIndex]}</Button>
+						{job.status !== undefined && (
+							<>
+								<Button
+									size="small"
+									aria-controls={open ? 'split-button-menu' : undefined}
+									aria-expanded={open ? 'true' : undefined}
+									aria-label="select merge strategy"
+									aria-haspopup="menu"
+									onClick={handleToggle}
+								>
+									<ArrowDropDown />
+								</Button>
+								<Button size='small' color='error' sx={{ borderRadius: "20px", textTransform: "none" }} onClick={() => onUnapply(job)}>
+									<Cancel />
+								</Button>
+							</>
+						)}
+					</ButtonGroup>
+					</>
+				}
+				<Popper
+					sx={{ zIndex: 1 }}
+					open={open}
+					anchorEl={anchorRef.current}
+					role={undefined}
+					transition
+					disablePortal
 				>
-					{applyLink && applyLink.includes("linkedin.com") && (
-						<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
+					{({ TransitionProps, placement }) => (
+						<Grow
+							{...TransitionProps}
+							style={{
+								transformOrigin:
+									placement === 'bottom' ? 'center top' : 'center bottom',
+							}}
+						>
+							<Paper>
+								<ClickAwayListener onClickAway={handleClose}>
+									<MenuList id="split-button-menu" autoFocusItem>
+										{options.map((option, index) => (
+											<MenuItem
+												key={option}
+												selected={index === selectedIndex}
+												onClick={(event) => handleMenuItemClick(event, index)}
+											>
+												{option}
+											</MenuItem>
+										))}
+									</MenuList>
+								</ClickAwayListener>
+							</Paper>
+						</Grow>
 					)}
-					Apply Now
-				</Button>
+				</Popper>
 
 			</Stack>
 		</Box>
@@ -293,7 +396,7 @@ const MatchPanel = ({ job, userSkills }) => {
 };
 
 // --- Main Exported Component - MODIFIED FOR LAYOUT ---
-const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, checked, onCheck }) => (
+const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, onUpdateStatus, onUnapply, checked, onCheck }) => (
 	<Box sx={{ display: 'flex', alignItems: 'center' }}>
 		<input
 			type="checkbox"
@@ -320,7 +423,7 @@ const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, checked
 					}}
 					postedAgo={job.postedAgo}
 					postedAt={job.postedAt}
-					applied={!!job.applied}
+					applied={!!job.status}
 					tags={job.tags}
 				/>
 				<Divider sx={{ my: 1 }} />
@@ -331,6 +434,8 @@ const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, checked
 					onViewDetails={() => onViewDetails(job)}
 					onAskgllama={onAskgllama}
 					onApply={onApply}
+					onUpdateStatus={onUpdateStatus}
+					onUnapply={onUnapply}
 					job={job}
 				/>
 			</CardContent>
