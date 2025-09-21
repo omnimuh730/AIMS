@@ -20,9 +20,6 @@ const AIReportPage = () => {
 				AI Report Page
 			</Typography>
 			<Box sx={{ mt: 4 }}>
-				<Typography variant="body1">
-					Daily Applicants
-				</Typography>
 				<DailyApplication />
 			</Box>
 		</Container>

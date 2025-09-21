@@ -1,87 +1,12 @@
 import React, { useEffect, useState, useMemo } from "react";
 import * as d3 from "d3";
-import useApi from "../../../api/useApi";
+import useApi from "../../../api/useApi"; // Assuming this path is correct
 import { Box, CircularProgress, Typography } from "@mui/material";
-
-const ContributionGraph = ({ values }) => {
-	const cellSize = 12; // block size
-	const padding = 20;
-
-	// Compute current year dates
-	const year = new Date().getFullYear();
-	const startDate = new Date(year, 0, 1); // Jan 1st
-	const endDate = new Date(year, 11, 31); // Dec 31st
-
-	// Color scale (dynamic)
-	const color = d3
-		.scaleLinear()
-		.domain([0, d3.max(values, (d) => d.value) || 1])
-		.range(["#e6f4ea", "#216e39"]);
-
-	// Position each day by week + weekday
-	const cells = values.map((d) => {
-		const weekIndex = d3.timeWeek.count(startDate, d.date);
-		const dayIndex = d.date.getDay(); // 0=Sun, … 6=Sat
-		return { ...d, week: weekIndex, day: dayIndex };
-	});
-
-	const totalWeeks = d3.max(cells, (d) => d.week) + 1;
-
-	return (
-		<svg
-			width={totalWeeks * (cellSize + 2) + 50}
-			height={7 * (cellSize + 2) + padding * 2}
-		>
-			{d3.timeMonths(startDate, endDate).map((monthDate, i) => {
-				const weekIndex = d3.timeWeek.count(startDate, monthDate);
-				return (
-					<text
-						key={i}
-						x={weekIndex * (cellSize + 2) + 40}
-						y={10}
-						fontSize="10"
-						fill="#666"
-					>
-						{d3.timeFormat("%b")(monthDate)}
-					</text>
-				);
-			})}
-
-			{["Mon", "Wed", "Fri"].map((d, i) => (
-				<text
-					key={d}
-					x={0}
-					y={(i * 2 + 1) * (cellSize + 2) + 20}
-					fontSize="10"
-					fill="#666"
-				>
-					{d}
-				</text>
-			))}
-
-			{cells.map((d) => (
-				<rect
-					key={d.date}
-					x={d.week * (cellSize + 2) + 40}
-					y={d.day * (cellSize + 2) + 15}
-					width={cellSize}
-					height={cellSize}
-					rx={2}
-					ry={2}
-					fill={color(d.value)}
-				>
-					<title>
-						{d3.timeFormat("%b %d, %Y")(d.date)}: {d.value} applications
-					</title>
-				</rect>
-			))}
-		</svg>
-	);
-};
+import { ResponsiveCalendar } from "@nivo/calendar";
 
 const DailyApplication = () => {
 	const { get } = useApi();
-	const [data, setData] = useState([]);
+	const [rawData, setRawData] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 
@@ -91,11 +16,7 @@ const DailyApplication = () => {
 				setLoading(true);
 				const response = await get("/reports/daily-applications");
 				if (response.success) {
-					const parsedData = response.data.map(d => ({
-						date: d3.timeParse("%Y-%m-%d")(d.date),
-						value: d.value
-					}));
-					setData(parsedData);
+					setRawData(response.data || []); // Ensure rawData is always an array
 				} else {
 					setError(response.error || "Failed to fetch data");
 				}
@@ -108,6 +29,41 @@ const DailyApplication = () => {
 		fetchData();
 	}, [get]);
 
+	const nivoData = useMemo(() => {
+		if (!rawData) return [];
+		return rawData.map(item => ({
+			day: item.date,
+			value: item.value,
+		}));
+	}, [rawData]);
+
+	// This calculation will now only run with meaningful data
+	const { fromDate, toDate } = useMemo(() => {
+		// This check is now mostly for safety, as we won't render the chart if data is empty
+		if (nivoData.length === 0) {
+			const year = new Date().getFullYear();
+			return {
+				fromDate: `${year}-01-01`,
+				toDate: `${year}-12-31`,
+			};
+		}
+
+		// Use reduce to find the earliest date, making it robust against unsorted data
+		const earliestDate = nivoData.reduce((earliest, current) => {
+			const currentDate = new Date(current.day);
+			return currentDate < earliest ? currentDate : earliest;
+		}, new Date(nivoData[0].day));
+
+		const year = earliestDate.getFullYear();
+
+		return {
+			fromDate: `${year}-01-01`,
+			toDate: `${year}-12-31`,
+		};
+	}, [nivoData]);
+
+	// --- The Fix is Here ---
+
 	if (loading) {
 		return <CircularProgress />;
 	}
@@ -116,7 +72,60 @@ const DailyApplication = () => {
 		return <Typography color="error">{error}</Typography>;
 	}
 
-	return <ContributionGraph values={data} />;
+	// This is the crucial new check. We wait until the data is loaded AND present.
+	if (nivoData.length === 0) {
+		return (
+			<Box sx={{ height: '250px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+				<Typography>No application data available for the selected period.</Typography>
+			</Box>
+		);
+	}
+
+	return (
+		<Box sx={{ height: '250px', width: '100%', maxWidth: '900px', margin: 'auto' }}>
+			<Typography variant="h6" gutterBottom>
+				Daily Applications
+			</Typography>
+
+			<ResponsiveCalendar
+				data={nivoData}
+				from={fromDate}
+				to={toDate}
+				emptyColor="#ebedf0"
+				colors={['#9be9a8', '#40c463', '#30a14e', '#216e39']}
+				margin={{ top: 40, right: 40, bottom: 0, left: 40 }}
+				yearSpacing={40}
+				monthBorderColor="#ffffff"
+				dayBorderWidth={2}
+				dayBorderColor="#ffffff"
+				tooltip={({ day, value }) => (
+					<div
+						style={{
+							padding: '8px 12px',
+							background: '#222',
+							color: '#fff',
+							borderRadius: '3px',
+							fontSize: '12px',
+						}}
+					>
+						<strong>{value} applications</strong> on {day}
+					</div>
+				)}
+				legends={[
+					{
+						anchor: 'bottom-right',
+						direction: 'row',
+						translateY: 36,
+						itemCount: 4,
+						itemWidth: 42,
+						itemHeight: 36,
+						itemsSpacing: 14,
+						itemDirection: 'right-to-left',
+					},
+				]}
+			/>
+		</Box>
+	);
 };
 
 export default DailyApplication;
