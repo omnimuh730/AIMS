@@ -13,7 +13,7 @@ const YearlyHeatmap = ({ data }) => {
     const endDate = new Date(year, 11, 31);
 
     const dates = [];
-    for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         dates.push(new Date(d));
     }
 
@@ -28,13 +28,20 @@ const YearlyHeatmap = ({ data }) => {
         return '#9be9a8';
     };
 
+    const toLocalISOString = (date) => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     return (
         <svg width={cellSize * 53} height={cellSize * 7}>
             <g>
                 {dates.map((date, index) => {
                     const week = Math.floor(index / 7);
                     const dayOfWeek = date.getDay();
-                    const dateString = date.toISOString().split('T')[0];
+                    const dateString = toLocalISOString(date);
                     const value = dataMap.get(dateString) || 0;
                     return (
                         <Tooltip title={`${value} applications on ${dateString}`} key={index}>
@@ -90,15 +97,13 @@ const FrequencyHeatmap = ({ data, title, colorScheme }) => {
                         return hours.map(hour => {
                             const value = dataMap.get(`${date}-${hour}`) || 0;
                             return (
-                                <Tooltip title={`${value} events on ${date} at ${hour}:00`} key={`${date}-${hour}`}>
-                                    <rect
-                                        x={dateIndex * cellSize}
-                                        y={hour * cellSize}
-                                        width={cellSize - 1}
-                                        height={cellSize - 1}
-                                        fill={colorScale(value)}
-                                    />
-                                </Tooltip>
+                                <rect
+                                    x={dateIndex * cellSize}
+                                    y={hour * cellSize}
+                                    width={cellSize - 1}
+                                    height={cellSize - 1}
+                                    fill={colorScale(value)}
+                                />
                             );
                         });
                     })}
@@ -124,8 +129,8 @@ const DailyApplication = () => {
                 setLoading(true);
                 const [yearlyRes, postingFreqRes, applicationFreqRes] = await Promise.all([
                     get("/reports/daily-applications"),
-                    get(`/reports/job-posting-frequency?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`),
-                    get(`/reports/job-application-frequency?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`)
+                    get(`/reports/job-posting-frequency?startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`),
+                    get(`/reports/job-application-frequency?startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`)
                 ]);
 
                 if (yearlyRes.success) setYearlyData(yearlyRes.data || []);
@@ -173,10 +178,22 @@ const DailyApplication = () => {
                     </Paper>
                 </Grid>
                 <Grid item xs={12} sx={{ overflowX: 'auto' }}>
-                    <FrequencyHeatmap data={postingFrequencyData} title="Job Posting Frequency" colorScheme="greens" />
+                    {postingFrequencyData.length > 0 ? (
+                        <FrequencyHeatmap data={postingFrequencyData} title="Job Posting Frequency" colorScheme="greens" />
+                    ) : (
+                        <Paper sx={{ p: 2, textAlign: 'center' }}>
+                            <Typography>No job posting data available for the selected period.</Typography>
+                        </Paper>
+                    )}
                 </Grid>
                 <Grid item xs={12} sx={{ overflowX: 'auto' }}>
-                    <FrequencyHeatmap data={applicationFrequencyData} title="Job Application Frequency" colorScheme="blues" />
+                    {applicationFrequencyData.length > 0 ? (
+                        <FrequencyHeatmap data={applicationFrequencyData} title="Job Application Frequency" colorScheme="blues" />
+                    ) : (
+                        <Paper sx={{ p: 2, textAlign: 'center' }}>
+                            <Typography>No job application data available for the selected period.</Typography>
+                        </Paper>
+                    )}
                 </Grid>
             </Grid>
         </Box>
