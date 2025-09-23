@@ -60,8 +60,6 @@ const JobSource = () => {
 			};
 		});
 
-		console.log("Processed chart data:", { labels, series });
-
 		return { labels, series };
 	}, [rawData]);
 

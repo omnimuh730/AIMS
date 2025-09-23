@@ -119,9 +119,9 @@ export async function getJobSourceSummary(req, res) {
 				$group: {
 					_id: "$derivedSource",
 					postings: { $sum: 1 },
-					applied: { $sum: { $cond: [{ $gt: [{ $size: { $ifNull: ["$applied", []] } }, 0] }, 1, 0] } },
-					scheduled: { $sum: { $cond: [{ $gt: [{ $size: { $ifNull: ["$scheduled", []] } }, 0] }, 1, 0] } },
-					declined: { $sum: { $cond: [{ $gt: [{ $size: { $ifNull: ["$declined", []] } }, 0] }, 1, 0] } },
+					applied: { $sum: { $cond: [ { $ifNull: [ "$status.appliedDate", false ] }, 1, 0 ] } },
+					scheduled: { $sum: { $cond: [ { $ifNull: [ "$status.scheduledDate", false ] }, 1, 0 ] } },
+					declined: { $sum: { $cond: [ { $ifNull: [ "$status.declinedDate", false ] }, 1, 0 ] } },
 				}
 			},
 			{
