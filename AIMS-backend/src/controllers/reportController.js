@@ -8,10 +8,14 @@ export async function getDailyApplications(req, res) {
 		}
 
 		const dailyApplications = await jobsCollection.aggregate([
-			{ $unwind: "$applied" },
+			{
+				$match: {
+					"status.appliedDate": { $exists: true }
+				}
+			},
 			{
 				$project: {
-					date: { $dateToString: { format: "%Y-%m-%d", date: { $toDate: "$applied.appliedDate" } } }
+					date: { $dateToString: { format: "%Y-%m-%d", date: { $toDate: "$status.appliedDate" } } }
 				}
 			},
 			{
@@ -139,6 +143,115 @@ export async function getJobSourceSummary(req, res) {
 		res.json({ success: true, data: jobSourceSummary });
 	} catch (err) {
 		console.error('GET /api/reports/job-source-summary error', err);
+		res.status(500).json({ success: false, error: err.message });
+	}
+}
+
+export async function getJobPostingFrequency(req, res) {
+	try {
+		if (!jobsCollection) {
+			return res.status(503).json({ success: false, error: "Database not ready" });
+		}
+
+		const { startDate, endDate } = req.query;
+		const match = {
+			postedAt: {
+				$gte: startDate ? new Date(startDate) : new Date(0),
+				$lte: endDate ? new Date(endDate) : new Date(),
+			}
+		};
+
+		const data = await jobsCollection.aggregate([
+			{ $match: match },
+			{
+				$project: {
+					date: { $dateToString: { format: "%Y-%m-%d", date: { $toDate: "$postedAt" } } },
+					hour: { $hour: { $toDate: "$postedAt" } }
+				}
+			},
+			{
+				$group: {
+					_id: {
+						date: "$date",
+						hour: "$hour"
+					},
+					count: { $sum: 1 }
+				}
+			},
+			{
+				$group: {
+					_id: "$_id.date",
+					hourlyData: {
+						$push: {
+							hour: "$_id.hour",
+							count: "$count"
+						}
+					}
+				}
+			},
+			{
+				$sort: { _id: 1 }
+			}
+		]).toArray();
+
+		res.json({ success: true, data });
+	} catch (err) {
+		console.error('GET /api/reports/job-posting-frequency error', err);
+		res.status(500).json({ success: false, error: err.message });
+	}
+}
+
+export async function getJobApplicationFrequency(req, res) {
+	try {
+		if (!jobsCollection) {
+			return res.status(503).json({ success: false, error: "Database not ready" });
+		}
+
+		const { startDate, endDate } = req.query;
+		const match = {
+			"status.appliedDate": {
+				$exists: true,
+				$gte: startDate ? new Date(startDate) : new Date(0),
+				$lte: endDate ? new Date(endDate) : new Date(),
+			}
+		};
+
+		const data = await jobsCollection.aggregate([
+			{ $match: match },
+			{
+				$project: {
+					date: { $dateToString: { format: "%Y-%m-%d", date: { $toDate: "$status.appliedDate" } } },
+					hour: { $hour: { $toDate: "$status.appliedDate" } }
+				}
+			},
+			{
+				$group: {
+					_id: {
+						date: "$date",
+						hour: "$hour"
+					},
+					count: { $sum: 1 }
+				}
+			},
+			{
+				$group: {
+					_id: "$_id.date",
+					hourlyData: {
+						$push: {
+							hour: "$_id.hour",
+							count: "$count"
+						}
+					}
+				}
+			},
+			{
+				$sort: { _id: 1 }
+			}
+		]).toArray();
+
+		res.json({ success: true, data });
+	} catch (err) {
+		console.error('GET /api/reports/job-application-frequency error', err);
 		res.status(500).json({ success: false, error: err.message });
 	}
 }

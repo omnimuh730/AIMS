@@ -17,7 +17,6 @@ const JobSource = () => {
 				setLoading(true);
 				const response = await get("/reports/job-source-summary");
 				if (response.success) {
-					console.log("Raw data from backend:", response.data);
 					setRawData(response.data || []);
 				} else {
 					setError(response.error || "Failed to fetch data");
