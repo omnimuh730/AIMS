@@ -18,6 +18,7 @@ const JobSourceChart = ({ chartData, seriesConfig }) => {
 				series={series.map(s => ({
 					name: s.name,
 					data: s.scaledData,
+					label: s.name,
 					color: seriesConfig[s.key]?.color,
 					areaOpacity: 0.4,
 					valueFormatter: (value, { dataIndex }) => `${s.originalData[dataIndex]} jobs`,
