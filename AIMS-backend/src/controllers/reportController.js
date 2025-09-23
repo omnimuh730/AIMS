@@ -92,3 +92,53 @@ export async function getJobSources(req, res) {
 		res.status(500).json({ success: false, error: err.message });
 	}
 }
+
+export async function getJobSourceSummary(req, res) {
+	try {
+		if (!jobsCollection) {
+			return res.status(503).json({ success: false, error: "Database not ready" });
+		}
+
+		const sourceBranches = JobSource.map(source => ({
+			case: { $regexMatch: { input: "$applyLink", regex: source, options: "i" } },
+			then: source
+		}));
+
+		const jobSourceSummary = await jobsCollection.aggregate([
+			{
+				$addFields: {
+					derivedSource: {
+						$switch: {
+							branches: sourceBranches,
+							default: "Other"
+						}
+					}
+				}
+			},
+			{
+				$group: {
+					_id: "$derivedSource",
+					postings: { $sum: 1 },
+					applied: { $sum: { $cond: [{ $gt: [{ $size: { $ifNull: ["$applied", []] } }, 0] }, 1, 0] } },
+					scheduled: { $sum: { $cond: [{ $gt: [{ $size: { $ifNull: ["$scheduled", []] } }, 0] }, 1, 0] } },
+					declined: { $sum: { $cond: [{ $gt: [{ $size: { $ifNull: ["$declined", []] } }, 0] }, 1, 0] } },
+				}
+			},
+			{
+				$project: {
+					_id: 0,
+					source: "$_id",
+					postings: 1,
+					applied: 1,
+					scheduled: 1,
+					declined: 1
+				}
+			}
+		]).toArray();
+
+		res.json({ success: true, data: jobSourceSummary });
+	} catch (err) {
+		console.error('GET /api/reports/job-source-summary error', err);
+		res.status(500).json({ success: false, error: err.message });
+	}
+}

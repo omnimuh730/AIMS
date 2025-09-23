@@ -11,7 +11,7 @@ import {
 } from '@mui/icons-material';
 
 import DailyApplication from './DailyApplication';
-import JobSource from './JobSource';
+import JobSource from './JobSource/index';
 
 
 const AIReportPage = () => {
