@@ -94,6 +94,25 @@ export async function getJobs(req, res) {
 		if (q) {
 			query.$and.push({ title: { $regex: q, $options: 'i' } });
 		}
+
+		for (const key in filters) {
+			if (Object.hasOwnProperty.call(filters, key)) {
+				const value = filters[key];
+				if (!value) continue;
+
+				if (key === 'company.tags' && typeof value === 'string') {
+					const tags = value.split(',').map(s => s.trim()).filter(Boolean);
+					if (tags.length) {
+						query.$and.push({ [key]: { $all: tags.map(tag => new RegExp(tag, 'i')) } });
+					}
+				} else if (key === 'details.remote' || key === 'details.time') {
+					query.$and.push({ [key]: value });
+				} else if (typeof value === 'string') {
+					query.$and.push({ [key]: { $regex: value, $options: 'i' } });
+				}
+			}
+		}
+
 		//Check Job source platform
 		// Step 1 -> Fetching domain from url like from https://www.walmart.workday.com/1234... -> www.walmart.workday.com
 		// Step 2 -> check if fetched domain(www.walmart.workday.com) includes any of the jobSources values(like workday) -> if yes, then match
