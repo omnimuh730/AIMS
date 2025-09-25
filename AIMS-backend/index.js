@@ -15,6 +15,7 @@ import jobRoutes from "./src/routes/jobRoutes.js";
 import personalInfoRoutes from "./src/routes/personalInfoRoutes.js";
 import skillCategoryRoutes from "./src/routes/skillCategoryRoutes.js";
 import reportRoutes from "./src/routes/reportRoutes.js";
+import accountInfoRoutes from "./src/routes/accountInfoRoutes.js";
 
 const app = express();
 const port = process.env.PORT;
@@ -44,6 +45,7 @@ app.use('/api', jobRoutes);
 app.use('/api', personalInfoRoutes);
 app.use('/api', skillCategoryRoutes);
 app.use('/api', reportRoutes);
+app.use('/api', accountInfoRoutes);
 
 server.listen(port, process.env.HOST || 'localhost', () => {
 	console.log(`Server running on http://${process.env.HOST || 'localhost'}:${port}`);

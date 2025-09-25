@@ -156,16 +156,14 @@ const SmartToolbar = ({
 		if (localRemote && localRemote !== '') next['details.remote'] = localRemote; else delete next['details.remote'];
 		if (localTime && localTime !== '') next['details.time'] = localTime; else delete next['details.time'];
 		if (Array.isArray(localTags) && localTags.length) next['company.tags'] = localTags; else delete next['company.tags'];
-		// Date range: convert local to ISO UTC before sending to parent
+		// Date range: send as YYYY-MM-DD
 		if (localPostedAtFrom && dayjs(localPostedAtFrom).isValid()) {
-			const utcFrom = dayjs(localPostedAtFrom).utc().toISOString();
-			next.postedAtFrom = utcFrom;
+			next.postedAtFrom = dayjs(localPostedAtFrom).format('YYYY-MM-DD');
 		} else {
 			delete next.postedAtFrom;
 		}
 		if (localPostedAtTo && dayjs(localPostedAtTo).isValid()) {
-			const utcTo = dayjs(localPostedAtTo).utc().toISOString();
-			next.postedAtTo = utcTo;
+			next.postedAtTo = dayjs(localPostedAtTo).format('YYYY-MM-DD');
 		} else {
 			delete next.postedAtTo;
 		}

@@ -166,11 +166,17 @@ export async function getJobs(req, res) {
 		}
 
 		if (postedAtFrom || postedAtTo) {
-			const range = {};
-			if (postedAtFrom) range.$gte = postedAtFrom;
-			if (postedAtTo) range.$lte = postedAtTo;
-			query.$and.push({ postedAt: range });
-		}
+    const postedAtQuery = {};
+    if (postedAtFrom) {
+        postedAtQuery.$gte = postedAtFrom;
+    }
+    if (postedAtTo) {
+        const toDate = new Date(postedAtTo);
+        toDate.setDate(toDate.getDate() + 1);
+        postedAtQuery.$lt = toDate.toISOString().split('T')[0];
+    }
+    query.$and.push({ postedAt: postedAtQuery });
+}
 
 		if (query.$and.length === 1) {
 			Object.assign(query, query.$and[0]);

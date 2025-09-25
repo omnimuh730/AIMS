@@ -8,6 +8,7 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { AppProvider } from "@toolpad/core/AppProvider";
 import { DashboardLayout } from "@toolpad/core/DashboardLayout";
+import NameCombobox from "./components/NameCombobox";
 import { DemoProvider } from "@toolpad/core/internal";
 
 import DashboardPage from "./pages/DashboardPage";
@@ -161,7 +162,7 @@ function App(props) {
 				theme={demoTheme}
 				window={demoWindow}
 			>
-				<DashboardLayout>
+				<DashboardLayout slots={{ toolbarActions: NameCombobox }}>
 					{/* Only the content area is routed */}
 					<AppContent />
 				</DashboardLayout>
