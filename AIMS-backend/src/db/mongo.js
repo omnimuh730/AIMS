@@ -6,6 +6,7 @@ let jobsCollection;
 let companyCategoryCollection;
 let skillsCategoryCollection;
 let personalInfoCollection;
+let accountInfoCollection;
 
 async function initMongo() {
 	const mongoUrl = process.env.MONGO_URL;
@@ -17,6 +18,7 @@ async function initMongo() {
 	companyCategoryCollection = db.collection('company_category');
 	skillsCategoryCollection = db.collection('skills_category');
 	personalInfoCollection = db.collection('personal_info');
+	accountInfoCollection = db.collection('account_info');
 	console.log('Connected to MongoDB', mongoUrl, 'DB:', mongoDbName);
 }
 
@@ -25,5 +27,6 @@ export {
 	jobsCollection,
 	companyCategoryCollection,
 	skillsCategoryCollection,
-	personalInfoCollection
+	personalInfoCollection,
+	accountInfoCollection
 };
