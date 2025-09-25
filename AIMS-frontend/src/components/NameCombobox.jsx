@@ -108,7 +108,8 @@ export default function NameCombobox() {
                 return option;
             }}
             renderOption={(props, option) => {
-                return <li {...props}>{option.title || option}</li>;
+                const { key, ...rest } = props; // Extract key
+                return <li key={key} {...rest}>{option.title || option}</li>; // Use key directly
             }}
             renderInput={(params) => (
                 <TextField
