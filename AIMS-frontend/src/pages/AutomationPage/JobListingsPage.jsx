@@ -23,6 +23,19 @@ function JobListingsPage() {
 	const [selectedIds, setSelectedIds] = useState([]);
 	const notification = useNotification();
 	const [skillsChanged, setSkillsChanged] = useState(false);
+	const [mainUser, setMainUser] = useState(null);
+
+	useEffect(() => {
+		try {
+			const savedUser = localStorage.getItem('mainUser');
+			if (savedUser) {
+				setMainUser(JSON.parse(savedUser));
+			}
+		} catch (error) {
+			console.error("Failed to parse main user from localStorage", error);
+		}
+	}, []);
+
 
 	// Fetch jobs
 	const fetchJobs = useCallback(async () => {
@@ -119,7 +132,7 @@ function JobListingsPage() {
 			const id = job._id || job.id;
 			if (!id) return;
 			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
-			await post(`/jobs/${strId}/apply`, { applied: true });
+			await post(`/jobs/${strId}/apply`, { applied: true, applierName: mainUser.name });
 			// Refresh list so applied jobs disappear when showing not-applied
 			fetchJobs();
 		} catch (e) {
@@ -132,7 +145,7 @@ function JobListingsPage() {
 			const id = job._id || job.id;
 			if (!id) return;
 			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
-			const res = await post(`/jobs/${strId}/status`, { status });
+			const res = await post(`/jobs/${strId}/status`, { status, applierName: mainUser.name });
 			if (res && res.success) {
 				notification.success(`Job status updated to ${status}`);
 				fetchJobs();
@@ -150,7 +163,7 @@ function JobListingsPage() {
 			const id = job._id || job.id;
 			if (!id) return;
 			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
-			const res = await post(`/jobs/${strId}/unapply`);
+			const res = await post(`/jobs/${strId}/unapply`, { applierName: mainUser.name });
 			if (res && res.success) {
 				notification.success('Successfully unapplied from job');
 				fetchJobs();

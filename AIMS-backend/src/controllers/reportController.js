@@ -9,6 +9,9 @@ export async function getDailyApplications(req, res) {
 
 		const dailyApplications = await jobsCollection.aggregate([
 			{
+				$unwind: "$status"
+			},
+			{
 				$match: {
 					"status.appliedDate": { $exists: true }
 				}
@@ -123,9 +126,9 @@ export async function getJobSourceSummary(req, res) {
 				$group: {
 					_id: "$derivedSource",
 					postings: { $sum: 1 },
-					applied: { $sum: { $cond: [ { $ifNull: [ "$status.appliedDate", false ] }, 1, 0 ] } },
-					scheduled: { $sum: { $cond: [ { $ifNull: [ "$status.scheduledDate", false ] }, 1, 0 ] } },
-					declined: { $sum: { $cond: [ { $ifNull: [ "$status.declinedDate", false ] }, 1, 0 ] } },
+					applied: { $sum: { $size: { $ifNull: [ "$status", [] ] } } },
+					scheduled: { $sum: { $size: { $filter: { input: { $ifNull: [ "$status", [] ] }, as: "s", cond: { $ifNull: [ "$s.scheduledDate", false ] } } } } },
+					declined: { $sum: { $size: { $filter: { input: { $ifNull: [ "$status", [] ] }, as: "s", cond: { $ifNull: [ "$s.declinedDate", false ] } } } } }
 				}
 			},
 			{
@@ -217,6 +220,7 @@ export async function getJobApplicationFrequency(req, res) {
 		};
 
 		const data = await jobsCollection.aggregate([
+			{ $unwind: "$status" },
 			{ $match: match },
 			{
 				$project: {
