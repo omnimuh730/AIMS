@@ -7,10 +7,15 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 
 const YearlyHeatmap = ({ data }) => {
-    const cellSize = 15;
+    const cellSize = 14;
+    const margin = { top: 18, left: 18 };
     const year = new Date().getFullYear();
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year, 11, 31);
+
+    // Start from the Sunday of the first week to align columns
+    const startOfWeek = new Date(startDate);
+    startOfWeek.setDate(startDate.getDate() - startDate.getDay());
 
     const dates = [];
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
@@ -19,35 +24,41 @@ const YearlyHeatmap = ({ data }) => {
 
     const dataMap = new Map(data.map(d => [d.date, d.value]));
 
-    const max = Math.max(...data.map(d => d.value), 0);
+    const max = Math.max(0, ...data.map(d => d.value));
     const colorScale = (value) => {
-        if (value === 0) return '#ebedf0';
-        if (value / max > 0.75) return '#216e39';
-        if (value / max > 0.5) return '#30a14e';
-        if (value / max > 0.25) return '#40c463';
+        if (!value) return '#ebedf0';
+        const ratio = max ? value / max : 0;
+        if (ratio > 0.75) return '#216e39';
+        if (ratio > 0.5) return '#30a14e';
+        if (ratio > 0.25) return '#40c463';
         return '#9be9a8';
     };
 
-    const toLocalISOString = (date) => {
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
+    // Use UTC day key to align with backend aggregation (prevents 1-day shifts)
+    const fmt = (date) => date.toISOString().slice(0, 10);
+
+    const weeks = Math.ceil((endDate - startOfWeek) / (7 * 24 * 3600 * 1000));
+    const width = margin.left + cellSize * weeks;
+    const height = margin.top + cellSize * 7;
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     return (
-        <svg width={cellSize * 53} height={cellSize * 7}>
-            <g>
+        <svg width={width} height={height} role="img" aria-label="Yearly applications heatmap">
+            {/* Y axis day labels */}
+            {days.map((d, i) => (
+                <text key={d} x={0} y={margin.top + i * cellSize + cellSize * 0.7} fontSize={10} fill="#888">{d}</text>
+            ))}
+            <g transform={`translate(${margin.left}, ${margin.top})`}>
                 {dates.map((date, index) => {
-                    const week = Math.floor(index / 7);
-                    const dayOfWeek = date.getDay();
-                    const dateString = toLocalISOString(date);
+                    const day = date.getDay();
+                    const weekIndex = Math.floor((date - startOfWeek) / (7 * 24 * 3600 * 1000));
+                    const dateString = fmt(date);
                     const value = dataMap.get(dateString) || 0;
                     return (
                         <Tooltip title={`${value} applications on ${dateString}`} key={index}>
                             <rect
-                                x={week * cellSize}
-                                y={dayOfWeek * cellSize}
+                                x={weekIndex * cellSize}
+                                y={day * cellSize}
                                 width={cellSize - 1}
                                 height={cellSize - 1}
                                 fill={colorScale(value)}
@@ -61,7 +72,8 @@ const YearlyHeatmap = ({ data }) => {
 };
 
 const FrequencyHeatmap = ({ data, title, colorScheme }) => {
-    const cellSize = 15;
+    const cellSize = 16;
+    const margin = { top: 20, left: 36, bottom: 20 };
     const hours = Array.from({ length: 24 }, (_, i) => i);
     const dates = [...new Set(data.map(d => d._id))].sort();
 
@@ -72,43 +84,62 @@ const FrequencyHeatmap = ({ data, title, colorScheme }) => {
         });
     });
 
-    const max = Math.max(...Array.from(dataMap.values()), 0);
+    const max = Math.max(0, ...Array.from(dataMap.values()));
     const colorScale = (value) => {
-        if (value === 0) return '#ebedf0';
+        if (!value) return '#ebedf0';
+        const r = max ? value / max : 0;
         if (colorScheme === 'greens') {
-            if (value / max > 0.75) return '#216e39';
-            if (value / max > 0.5) return '#30a14e';
-            if (value / max > 0.25) return '#40c463';
+            if (r > 0.75) return '#216e39';
+            if (r > 0.5) return '#30a14e';
+            if (r > 0.25) return '#40c463';
             return '#9be9a8';
         } else {
-            if (value / max > 0.75) return '#0d47a1';
-            if (value / max > 0.5) return '#1976d2';
-            if (value / max > 0.25) return '#42a5f5';
+            if (r > 0.75) return '#0d47a1';
+            if (r > 0.5) return '#1976d2';
+            if (r > 0.25) return '#42a5f5';
             return '#90caf9';
         }
     };
 
+    const width = margin.left + dates.length * cellSize + 80; // extra for right padding
+    const height = margin.top + hours.length * cellSize + margin.bottom;
+
     return (
         <Paper sx={{ p: 2, height: '100%' }}>
             <Typography variant="h6" gutterBottom>{title}</Typography>
-            <svg width="100%" height={cellSize * 24}>
-                <g>
-                    {dates.map((date, dateIndex) => {
-                        return hours.map(hour => {
-                            const value = dataMap.get(`${date}-${hour}`) || 0;
-                            return (
-                                <rect
-                                    x={dateIndex * cellSize}
-                                    y={hour * cellSize}
-                                    width={cellSize - 1}
-                                    height={cellSize - 1}
-                                    fill={colorScale(value)}
-                                />
-                            );
-                        });
-                    })}
-                </g>
-            </svg>
+            <Box sx={{ overflowX: 'auto' }}>
+                <svg width={width} height={height} role="img" aria-label={`${title} heatmap`}>
+                    {/* Y axis hours labels */}
+                    {hours.map((h) => (
+                        (h % 2 === 0) && (
+                            <text key={`h-${h}`} x={0} y={margin.top + h * cellSize + cellSize * 0.7} fontSize={10} fill="#888">{String(h).padStart(2, '0')}</text>
+                        )
+                    ))}
+                    {/* X axis date labels */}
+                    {dates.map((d, i) => (
+                        <text key={`d-${d}`} x={margin.left + i * cellSize + 2} y={12} fontSize={10} fill="#888" transform={`rotate( -45 ${margin.left + i * cellSize + 2} 12)`}>{d.slice(5)}</text>
+                    ))}
+                    <g transform={`translate(${margin.left}, ${margin.top})`}>
+                        {dates.map((date, dateIndex) => (
+                            hours.map((hour) => {
+                                const value = dataMap.get(`${date}-${hour}`) || 0;
+                                const key = `${date}-${hour}`;
+                                return (
+                                    <Tooltip title={`${value} at ${date} ${String(hour).padStart(2, '0')}:00`} key={key}>
+                                        <rect
+                                            x={dateIndex * cellSize}
+                                            y={hour * cellSize}
+                                            width={cellSize - 1}
+                                            height={cellSize - 1}
+                                            fill={colorScale(value)}
+                                        />
+                                    </Tooltip>
+                                );
+                            })
+                        ))}
+                    </g>
+                </svg>
+            </Box>
         </Paper>
     );
 };

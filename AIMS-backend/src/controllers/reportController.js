@@ -123,22 +123,57 @@ export async function getJobSourceSummary(req, res) {
 				}
 			},
 			{
-				$group: {
-					_id: "$derivedSource",
-					postings: { $sum: 1 },
-					applied: { $sum: { $size: { $ifNull: [ "$status", [] ] } } },
-					scheduled: { $sum: { $size: { $filter: { input: { $ifNull: [ "$status", [] ] }, as: "s", cond: { $ifNull: [ "$s.scheduledDate", false ] } } } } },
-					declined: { $sum: { $size: { $filter: { input: { $ifNull: [ "$status", [] ] }, as: "s", cond: { $ifNull: [ "$s.declinedDate", false ] } } } } }
+				$facet: {
+					postings: [
+						{ $group: { _id: "$derivedSource", count: { $sum: 1 } } }
+					],
+					applied: [
+						{ $unwind: { path: "$status", preserveNullAndEmptyArrays: false } },
+						{ $match: { $and: [
+							{ "status.appliedDate": { $exists: true } },
+							{ $or: [ { "status.scheduledDate": { $exists: false } }, { "status.scheduledDate": null } ] },
+							{ $or: [ { "status.declinedDate": { $exists: false } }, { "status.declinedDate": null } ] }
+						] } },
+						{ $group: { _id: "$derivedSource", count: { $sum: 1 } } }
+					],
+					scheduled: [
+						{ $unwind: { path: "$status", preserveNullAndEmptyArrays: false } },
+						{ $match: { "status.scheduledDate": { $exists: true } } },
+						{ $group: { _id: "$derivedSource", count: { $sum: 1 } } }
+					],
+					declined: [
+						{ $unwind: { path: "$status", preserveNullAndEmptyArrays: false } },
+						{ $match: { "status.declinedDate": { $exists: true } } },
+						{ $group: { _id: "$derivedSource", count: { $sum: 1 } } }
+					]
 				}
 			},
+			// Combine facet outputs into a single array of documents per source
 			{
 				$project: {
-					_id: 0,
-					source: "$_id",
+					allSources: {
+						$setUnion: [
+							{ $map: { input: "$postings", as: "p", in: "$$p._id" } },
+							{ $map: { input: "$applied", as: "a", in: "$$a._id" } },
+							{ $map: { input: "$scheduled", as: "s", in: "$$s._id" } },
+							{ $map: { input: "$declined", as: "d", in: "$$d._id" } }
+						]
+					},
 					postings: 1,
 					applied: 1,
 					scheduled: 1,
 					declined: 1
+				}
+			},
+			{ $unwind: "$allSources" },
+			{
+				$project: {
+					_id: 0,
+					source: "$allSources",
+					postings: { $ifNull: [ { $first: { $filter: { input: "$postings", as: "p", cond: { $eq: ["$$p._id", "$allSources"] } } } }.count, 0 ] },
+					applied: { $ifNull: [ { $first: { $filter: { input: "$applied", as: "a", cond: { $eq: ["$$a._id", "$allSources"] } } } }.count, 0 ] },
+					scheduled: { $ifNull: [ { $first: { $filter: { input: "$scheduled", as: "s", cond: { $eq: ["$$s._id", "$allSources"] } } } }.count, 0 ] },
+					declined: { $ifNull: [ { $first: { $filter: { input: "$declined", as: "d", cond: { $eq: ["$$d._id", "$allSources"] } } } }.count, 0 ] }
 				}
 			}
 		]).toArray();
@@ -157,15 +192,20 @@ export async function getJobPostingFrequency(req, res) {
 		}
 
 		const { startDate, endDate } = req.query;
-		const match = {
-			postedAt: {
-				$gte: startDate ? new Date(startDate) : new Date(0),
-				$lte: endDate ? new Date(endDate) : new Date(),
-			}
-		};
+		const start = startDate ? new Date(startDate) : new Date(0);
+		const end = endDate ? new Date(endDate) : new Date();
 
 		const data = await jobsCollection.aggregate([
-			{ $match: match },
+			{
+				$match: {
+					$expr: {
+						$and: [
+							{ $gte: [ { $toDate: "$postedAt" }, start ] },
+							{ $lte: [ { $toDate: "$postedAt" }, end ] }
+						]
+					}
+				}
+			},
 			{
 				$project: {
 					date: { $dateToString: { format: "%Y-%m-%d", date: { $toDate: "$postedAt" } } },
@@ -211,17 +251,20 @@ export async function getJobApplicationFrequency(req, res) {
 		}
 
 		const { startDate, endDate } = req.query;
-		const match = {
-			"status.appliedDate": {
-				$exists: true,
-				$gte: startDate ? new Date(startDate) : new Date(0),
-				$lte: endDate ? new Date(endDate) : new Date(),
-			}
-		};
+		const start = startDate ? new Date(startDate) : new Date(0);
+		const end = endDate ? new Date(endDate) : new Date();
 
 		const data = await jobsCollection.aggregate([
 			{ $unwind: "$status" },
-			{ $match: match },
+			{
+				$match: {
+					$and: [
+						{ "status.appliedDate": { $exists: true } },
+						{ $expr: { $gte: [ { $toDate: "$status.appliedDate" }, start ] } },
+						{ $expr: { $lte: [ { $toDate: "$status.appliedDate" }, end ] } }
+					]
+				}
+			},
 			{
 				$project: {
 					date: { $dateToString: { format: "%Y-%m-%d", date: { $toDate: "$status.appliedDate" } } },
