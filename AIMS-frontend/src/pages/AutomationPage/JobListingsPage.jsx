@@ -40,34 +40,15 @@ function JobListingsPage() {
 	// Fetch jobs
 	const fetchJobs = useCallback(async () => {
 		try {
-			const params = new URLSearchParams();
-			if (searchQuery) params.set('q', searchQuery);
-			if (sortOption && sortOption !== 'recommended') params.set('sort', sortOption);
-			params.set('page', pagination.page);
-			params.set('limit', pagination.limit);
+			const body = {
+				q: searchQuery,
+				sort: sortOption,
+				page: pagination.page,
+				limit: pagination.limit,
+				...filters
+			};
 
-			// Add filters (flattened) only when they have values
-			Object.entries(filters).forEach(([k, v]) => {
-				if (v === undefined || v === null) return;
-				// If tags array, serialize to comma-separated
-				if (Array.isArray(v)) {
-					const arr = v.map(s => String(s).trim()).filter(Boolean);
-					if (arr.length) params.set(k, arr.join(','));
-					return;
-				}
-				// For postedAtFrom/postedAtTo, send as UTC ISO string
-				if ((k === 'postedAtFrom' || k === 'postedAtTo') && v) {
-					params.set(k, v);
-					return;
-				}
-				if (String(v).trim() !== '') params.set(k, String(v));
-			});
-
-			let url = `/jobs?${params.toString()}`;
-			if (sortOption === 'recommended') {
-				url += `&sort=recommended`;
-			}
-			const res = await get(url);
+			const res = await post('/jobs/list', body);
 			if (res && res.success) {
 				setJobs(res.data);
 				setPagination(res.pagination);
@@ -75,7 +56,7 @@ function JobListingsPage() {
 		} catch (err) {
 			console.warn('Failed to fetch jobs from backend', err);
 		}
-	}, [searchQuery, sortOption, pagination.page, pagination.limit, get, filters, userSkills]);
+	}, [searchQuery, sortOption, pagination.page, pagination.limit, post, filters]);
 
 	// Fetch user skills
 	const fetchUserSkills = useCallback(async () => {
@@ -204,7 +185,7 @@ function JobListingsPage() {
 			} else {
 				notification.error('Failed to remove jobs');
 			}
-		} catch (err) {
+		} catch {
 			notification.error('Failed to remove jobs');
 		}
 	};

@@ -4,6 +4,7 @@ import useApi from '../api/useApi'; // Import useApi
 
 export default function NameCombobox() {
 	const [names, setNames] = React.useState([]);
+	const [namesItem, setNamesItem] = React.useState([]);
 	const [selectedValue, setSelectedValue] = React.useState(null);
 
 	const { get, post } = useApi(); // Initialize useApi without arguments
@@ -18,11 +19,21 @@ export default function NameCombobox() {
 		const fetchNames = async () => {
 			try {
 				const data = await get('account_info'); // Use get from useApi
-				console.log(data);
 				if (data && data.length > 0) {
-					setMainUser(data[0]);
+					if (localStorage.getItem('mainUser') === null)
+						setMainUser(data[0]);
+					else {
+						const mainUser = JSON.parse(localStorage.getItem('mainUser'));
+						const foundUser = data.find(user => user._id === mainUser._id);
+						if (foundUser) {
+							setMainUser(foundUser);
+						} else {
+							setMainUser(data[0]);
+						}
+					}
 				}
 				setNames(data.map(item => item.name));
+				setNamesItem(data);
 			} catch (err) {
 				console.error('Error fetching account info:', err);
 			}
@@ -70,10 +81,10 @@ export default function NameCombobox() {
 					if (!names.includes(newValue)) {
 						const added = await handleAddName(newValue);
 						if (added !== -1) {
-							setSelectedValue({ id: added, name: newValue });
+							setMainUser({ _id: added, name: newValue });
 						}
 					} else {
-						setSelectedValue({ id: (names.find(name => name === newValue))._id, name: newValue });
+						setMainUser({ _id: namesItem.find(item => item.name === newValue)._id, name: newValue });
 						//						setSelectedValue(newValue);
 					}
 				} else if (newValue && newValue.inputValue) {
@@ -81,10 +92,10 @@ export default function NameCombobox() {
 					const newName = newValue.inputValue;
 					const added = await handleAddName(newName);
 					if (added !== -1) {
-						setSelectedValue({ id: added, name: newValue });
+						setMainUser({ _id: added, name: newValue });
 					}
 				} else {
-					setSelectedValue({ id: (names.find(name => name === newValue))._id, name: newValue });
+					setMainUser({ _id: (names.find(name => name === newValue))._id, name: newValue });
 				}
 			}}
 			filterOptions={(options, params) => {

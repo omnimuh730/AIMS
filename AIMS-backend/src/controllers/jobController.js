@@ -77,11 +77,12 @@ export async function createJob(req, res) {
 
 export async function getJobs(req, res) {
 	try {
+		console.log(req);
 		if (!jobsCollection) {
 			return res.status(503).json({ success: false, error: 'Database not ready' });
 		}
 
-		const { q, sort, page = 1, limit = 10, showLinkedInOnly = 'true', postedAtFrom, jobSources, postedAtTo, applied, status, ...filters } = req.query;
+		const { q, sort, page = 1, limit = 10, showLinkedInOnly = 'true', postedAtFrom, jobSources, postedAtTo, applied, status, ...filters } = req.body;
 		let userSkills = [];
 		if (sort === 'recommended') {
 			if (personalInfoCollection) {
@@ -167,17 +168,17 @@ export async function getJobs(req, res) {
 		}
 
 		if (postedAtFrom || postedAtTo) {
-    const postedAtQuery = {};
-    if (postedAtFrom) {
-        postedAtQuery.$gte = postedAtFrom;
-    }
-    if (postedAtTo) {
-        const toDate = new Date(postedAtTo);
-        toDate.setDate(toDate.getDate() + 1);
-        postedAtQuery.$lt = toDate.toISOString().split('T')[0];
-    }
-    query.$and.push({ postedAt: postedAtQuery });
-}
+			const postedAtQuery = {};
+			if (postedAtFrom) {
+				postedAtQuery.$gte = postedAtFrom;
+			}
+			if (postedAtTo) {
+				const toDate = new Date(postedAtTo);
+				toDate.setDate(toDate.getDate() + 1);
+				postedAtQuery.$lt = toDate.toISOString().split('T')[0];
+			}
+			query.$and.push({ postedAt: postedAtQuery });
+		}
 
 		if (query.$and.length === 1) {
 			Object.assign(query, query.$and[0]);
@@ -239,7 +240,7 @@ export async function applyToJob(req, res) {
 	try {
 		if (!jobsCollection) return res.status(503).json({ success: false, error: 'Database not ready' });
 		const { id } = req.params;
-        const { applierName = 'Jeffrey Yuan' } = req.body;
+		const { applierName = 'Jeffrey Yuan' } = req.body;
 
 		let objectId;
 		try {
@@ -248,10 +249,10 @@ export async function applyToJob(req, res) {
 			return res.status(400).json({ success: false, error: 'Invalid id' });
 		}
 
-        const applier = await accountInfoCollection.findOne({ name: applierName });
-        if (!applier) {
-            return res.status(404).json({ success: false, error: `User ${applierName} not found` });
-        }
+		const applier = await accountInfoCollection.findOne({ name: applierName });
+		if (!applier) {
+			return res.status(404).json({ success: false, error: `User ${applierName} not found` });
+		}
 
 		const existingApplication = await jobsCollection.findOne({ _id: objectId, "status.applier": applier._id });
 
@@ -261,11 +262,11 @@ export async function applyToJob(req, res) {
 
 		const now = new Date().toISOString();
 		const newApplication = {
-            applier: applier._id,
-            appliedDate: now
-        };
+			applier: applier._id,
+			appliedDate: now
+		};
 
-        const update = {
+		const update = {
 			$push: {
 				status: newApplication
 			}
@@ -294,10 +295,10 @@ export async function updateJobStatus(req, res) {
 			return res.status(400).json({ success: false, error: 'Invalid id' });
 		}
 
-        const applier = await accountInfoCollection.findOne({ name: applierName });
-        if (!applier) {
-            return res.status(404).json({ success: false, error: `User ${applierName} not found` });
-        }
+		const applier = await accountInfoCollection.findOne({ name: applierName });
+		if (!applier) {
+			return res.status(404).json({ success: false, error: `User ${applierName} not found` });
+		}
 
 		const now = new Date().toISOString();
 		let update;
@@ -314,18 +315,18 @@ export async function updateJobStatus(req, res) {
 			};
 		} else if (status === 'Applied') { // This is our "Cancel" action
 			update = {
-                $unset: {
-                    'status.$[elem].declinedDate': "",
-                    'status.$[elem].scheduledDate': ""
-                }
+				$unset: {
+					'status.$[elem].declinedDate': "",
+					'status.$[elem].scheduledDate': ""
+				}
 			};
 		} else {
 			return res.status(400).json({ success: false, error: 'Invalid status' });
 		}
 
-        const options = {
-            arrayFilters: [{ "elem.applier": applier._id }]
-        };
+		const options = {
+			arrayFilters: [{ "elem.applier": applier._id }]
+		};
 
 		await jobsCollection.updateOne({ _id: objectId }, update, options);
 		const updatedJob = await jobsCollection.findOne({ _id: objectId });
@@ -363,7 +364,7 @@ export async function unapplyFromJob(req, res) {
 	try {
 		if (!jobsCollection) return res.status(503).json({ success: false, error: 'Database not ready' });
 		const { id } = req.params;
-        const { applierName = 'Jeffrey Yuan' } = req.body;
+		const { applierName = 'Jeffrey Yuan' } = req.body;
 
 		let objectId;
 		try {
@@ -372,10 +373,10 @@ export async function unapplyFromJob(req, res) {
 			return res.status(400).json({ success: false, error: 'Invalid id' });
 		}
 
-        const applier = await accountInfoCollection.findOne({ name: applierName });
-        if (!applier) {
-            return res.status(404).json({ success: false, error: `User ${applierName} not found` });
-        }
+		const applier = await accountInfoCollection.findOne({ name: applierName });
+		if (!applier) {
+			return res.status(404).json({ success: false, error: `User ${applierName} not found` });
+		}
 
 		const update = {
 			$pull: { status: { applier: applier._id } }

@@ -11,7 +11,7 @@ import {
 const router = express.Router();
 
 router.post('/jobs', createJob);
-router.get('/jobs', getJobs);
+router.post('/jobs/list', getJobs);
 router.post('/jobs/remove', removeJobs);
 router.post('/jobs/:id/apply', applyToJob);
 router.post('/jobs/:id/status', updateJobStatus);
