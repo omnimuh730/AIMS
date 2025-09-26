@@ -148,22 +148,33 @@ export async function getJobs(req, res) {
 			query.$and.push({ applyLink: { $regex: jobSourceQuery, $options: 'i' } });
 		}
 
-		if (applied === 'false') {
+		// Normalize boolean-like flags that may arrive as booleans or strings
+		const appliedBool = applied === true || applied === 'true'
+			? true
+			: applied === false || applied === 'false'
+				? false
+				: undefined;
+
+		if (appliedBool === false) {
 			// "Posted"
 			query.$and.push({ status: { $exists: false } });
-		} else if (applied === 'true') {
+		} else if (appliedBool === true) {
 			// This covers "Applied", "Scheduled", "Declined"
 			query.$and.push({ status: { $exists: true } });
 			if (status === 'Applied') {
 				query.$and.push({
-					'status.appliedDate': { $exists: true },
-					'status.scheduledDate': { $exists: false },
-					'status.declinedDate': { $exists: false },
+					status: {
+						$elemMatch: {
+							appliedDate: { $exists: true },
+							scheduledDate: { $exists: false },
+							declinedDate: { $exists: false },
+						}
+					}
 				});
 			} else if (status === 'Scheduled') {
-				query.$and.push({ 'status.scheduledDate': { $exists: true } });
+				query.$and.push({ status: { $elemMatch: { scheduledDate: { $exists: true } } } });
 			} else if (status === 'Declined') {
-				query.$and.push({ 'status.declinedDate': { $exists: true } });
+				query.$and.push({ status: { $elemMatch: { declinedDate: { $exists: true } } } });
 			}
 		}
 
