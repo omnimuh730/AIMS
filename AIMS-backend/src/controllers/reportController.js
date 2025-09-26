@@ -170,10 +170,30 @@ export async function getJobSourceSummary(req, res) {
 				$project: {
 					_id: 0,
 					source: "$allSources",
-					postings: { $ifNull: [ { $first: { $filter: { input: "$postings", as: "p", cond: { $eq: ["$$p._id", "$allSources"] } } } }.count, 0 ] },
-					applied: { $ifNull: [ { $first: { $filter: { input: "$applied", as: "a", cond: { $eq: ["$$a._id", "$allSources"] } } } }.count, 0 ] },
-					scheduled: { $ifNull: [ { $first: { $filter: { input: "$scheduled", as: "s", cond: { $eq: ["$$s._id", "$allSources"] } } } }.count, 0 ] },
-					declined: { $ifNull: [ { $first: { $filter: { input: "$declined", as: "d", cond: { $eq: ["$$d._id", "$allSources"] } } } }.count, 0 ] }
+					postings: {
+						$let: {
+							vars: { match: { $first: { $filter: { input: "$postings", as: "p", cond: { $eq: ["$$p._id", "$allSources"] } } } } },
+							in: { $ifNull: [ "$$match.count", 0 ] }
+						}
+					},
+					applied: {
+						$let: {
+							vars: { match: { $first: { $filter: { input: "$applied", as: "a", cond: { $eq: ["$$a._id", "$allSources"] } } } } },
+							in: { $ifNull: [ "$$match.count", 0 ] }
+						}
+					},
+					scheduled: {
+						$let: {
+							vars: { match: { $first: { $filter: { input: "$scheduled", as: "s", cond: { $eq: ["$$s._id", "$allSources"] } } } } },
+							in: { $ifNull: [ "$$match.count", 0 ] }
+						}
+					},
+					declined: {
+						$let: {
+							vars: { match: { $first: { $filter: { input: "$declined", as: "d", cond: { $eq: ["$$d._id", "$allSources"] } } } } },
+							in: { $ifNull: [ "$$match.count", 0 ] }
+						}
+					}
 				}
 			}
 		]).toArray();
