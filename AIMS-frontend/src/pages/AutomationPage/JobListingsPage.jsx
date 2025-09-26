@@ -119,7 +119,7 @@ function JobListingsPage() {
 			const id = job._id || job.id;
 			if (!id) return;
 			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
-			const res = await post(`/jobs/${strId}/status`, { status, applierName: mainUser.name });
+			const res = await post(`/jobs/${strId}/status`, { status, applierName: applier?.name });
 			if (res && res.success) {
 				notification.success(`Job status updated to ${status}`);
 				fetchJobs();
