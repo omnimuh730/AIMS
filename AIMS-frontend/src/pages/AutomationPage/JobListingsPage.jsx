@@ -8,6 +8,7 @@ import JobCard from "./components/JobCard";
 import JobDetailDrawer from "./components/JobDetailDrawer";
 import AskgllamaModal from "./components/AskgllamaModal";
 import SmartToolbar from "./components/SmartToolbar";
+import { useApplier } from "../../context/ApplierContext.jsx";
 
 function JobListingsPage() {
 	const [jobs, setJobs] = useState([]);
@@ -23,18 +24,9 @@ function JobListingsPage() {
 	const [selectedIds, setSelectedIds] = useState([]);
 	const notification = useNotification();
 	const [skillsChanged, setSkillsChanged] = useState(false);
-	const [mainUser, setMainUser] = useState(null);
+	const { applier } = useApplier();
 
-	useEffect(() => {
-		try {
-			const savedUser = localStorage.getItem('mainUser');
-			if (savedUser) {
-				setMainUser(JSON.parse(savedUser));
-			}
-		} catch (error) {
-			console.error("Failed to parse main user from localStorage", error);
-		}
-	}, []);
+// Applier comes from Context; no local initialization needed
 
 
 	// Fetch jobs
@@ -45,6 +37,7 @@ function JobListingsPage() {
 				sort: sortOption,
 				page: pagination.page,
 				limit: pagination.limit,
+				applierName: applier?.name,
 				...filters
 			};
 
@@ -56,7 +49,7 @@ function JobListingsPage() {
 		} catch (err) {
 			console.warn('Failed to fetch jobs from backend', err);
 		}
-	}, [searchQuery, sortOption, pagination.page, pagination.limit, post, filters]);
+	}, [searchQuery, sortOption, pagination.page, pagination.limit, post, filters, applier]);
 
 	// Fetch user skills
 	const fetchUserSkills = useCallback(async () => {
@@ -113,7 +106,7 @@ function JobListingsPage() {
 			const id = job._id || job.id;
 			if (!id) return;
 			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
-			await post(`/jobs/${strId}/apply`, { applied: true, applierName: mainUser.name });
+			await post(`/jobs/${strId}/apply`, { applied: true, applierName: applier?.name });
 			// Refresh list so applied jobs disappear when showing not-applied
 			fetchJobs();
 		} catch (e) {
@@ -144,7 +137,7 @@ function JobListingsPage() {
 			const id = job._id || job.id;
 			if (!id) return;
 			const strId = typeof id === 'object' && id.$oid ? id.$oid : String(id);
-			const res = await post(`/jobs/${strId}/unapply`, { applierName: mainUser.name });
+			const res = await post(`/jobs/${strId}/unapply`, { applierName: applier?.name });
 			if (res && res.success) {
 				notification.success('Successfully unapplied from job');
 				fetchJobs();

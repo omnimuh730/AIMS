@@ -5,6 +5,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
+import { useApplier } from '../../../context/ApplierContext.jsx';
 
 const YearlyHeatmap = ({ data }) => {
     const cellSize = 14;
@@ -146,6 +147,7 @@ const FrequencyHeatmap = ({ data, title, colorScheme }) => {
 
 const DailyApplication = () => {
     const { get } = useApi();
+    const { applier } = useApplier();
     const [yearlyData, setYearlyData] = useState([]);
     const [postingFrequencyData, setPostingFrequencyData] = useState([]);
     const [applicationFrequencyData, setApplicationFrequencyData] = useState([]);
@@ -158,10 +160,12 @@ const DailyApplication = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
+                const applierParam = applier?.name ? `&applierName=${encodeURIComponent(applier.name)}` : '';
+                const applierParamFirst = applier?.name ? `?applierName=${encodeURIComponent(applier.name)}` : '';
                 const [yearlyRes, postingFreqRes, applicationFreqRes] = await Promise.all([
-                    get("/reports/daily-applications"),
+                    get(`/reports/daily-applications${applierParamFirst}`),
                     get(`/reports/job-posting-frequency?startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`),
-                    get(`/reports/job-application-frequency?startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`)
+                    get(`/reports/job-application-frequency?startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}${applierParam}`)
                 ]);
 
                 if (yearlyRes.success) setYearlyData(yearlyRes.data || []);
@@ -180,7 +184,7 @@ const DailyApplication = () => {
             }
         };
         fetchData();
-    }, [get, startDate, endDate]);
+    }, [get, startDate, endDate, applier]);
 
     if (loading) return <CircularProgress />;
     if (error) return <Typography color="error">{error}</Typography>;

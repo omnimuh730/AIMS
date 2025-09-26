@@ -1,4 +1,4 @@
-import { jobsCollection } from "../db/mongo.js";
+import { jobsCollection, accountInfoCollection } from "../db/mongo.js";
 import { JobSource } from '../../../configs/pub.js'; // <-- Import JobSource list
 
 export async function getDailyApplications(req, res) {
@@ -7,14 +7,22 @@ export async function getDailyApplications(req, res) {
 			return res.status(503).json({ success: false, error: "Database not ready" });
 		}
 
+		// Optional applier filter
+		let applierId = null;
+		if (req.query?.applierName && accountInfoCollection) {
+			const applier = await accountInfoCollection.findOne({ name: req.query.applierName });
+			applierId = applier?._id || null;
+		}
+
 		const dailyApplications = await jobsCollection.aggregate([
 			{
 				$unwind: "$status"
 			},
 			{
-				$match: {
-					"status.appliedDate": { $exists: true }
-				}
+				$match: Object.assign(
+					{ "status.appliedDate": { $exists: true } },
+					applierId ? { "status.applier": applierId } : {}
+				)
 			},
 			{
 				$project: {
@@ -106,6 +114,12 @@ export async function getJobSourceSummary(req, res) {
 			return res.status(503).json({ success: false, error: "Database not ready" });
 		}
 
+		// Optional applier filter
+		let applierId = null;
+		if (req.query?.applierName && accountInfoCollection) {
+			const applier = await accountInfoCollection.findOne({ name: req.query.applierName });
+			applierId = applier?._id || null;
+		}
 		const sourceBranches = JobSource.map(source => ({
 			case: { $regexMatch: { input: "$applyLink", regex: source, options: "i" } },
 			then: source
@@ -132,18 +146,19 @@ export async function getJobSourceSummary(req, res) {
 						{ $match: { $and: [
 							{ "status.appliedDate": { $exists: true } },
 							{ $or: [ { "status.scheduledDate": { $exists: false } }, { "status.scheduledDate": null } ] },
-							{ $or: [ { "status.declinedDate": { $exists: false } }, { "status.declinedDate": null } ] }
+							{ $or: [ { "status.declinedDate": { $exists: false } }, { "status.declinedDate": null } ] },
+							...(applierId ? [ { "status.applier": applierId } ] : [])
 						] } },
 						{ $group: { _id: "$derivedSource", count: { $sum: 1 } } }
 					],
 					scheduled: [
 						{ $unwind: { path: "$status", preserveNullAndEmptyArrays: false } },
-						{ $match: { "status.scheduledDate": { $exists: true } } },
+						{ $match: Object.assign({ "status.scheduledDate": { $exists: true } }, applierId ? { "status.applier": applierId } : {}) },
 						{ $group: { _id: "$derivedSource", count: { $sum: 1 } } }
 					],
 					declined: [
 						{ $unwind: { path: "$status", preserveNullAndEmptyArrays: false } },
-						{ $match: { "status.declinedDate": { $exists: true } } },
+						{ $match: Object.assign({ "status.declinedDate": { $exists: true } }, applierId ? { "status.applier": applierId } : {}) },
 						{ $group: { _id: "$derivedSource", count: { $sum: 1 } } }
 					]
 				}
@@ -271,19 +286,25 @@ export async function getJobApplicationFrequency(req, res) {
 		}
 
 		const { startDate, endDate } = req.query;
+		let applierId = null;
+		if (req.query?.applierName && accountInfoCollection) {
+			const applier = await accountInfoCollection.findOne({ name: req.query.applierName });
+			applierId = applier?._id || null;
+		}
 		const start = startDate ? new Date(startDate) : new Date(0);
 		const end = endDate ? new Date(endDate) : new Date();
 
 		const data = await jobsCollection.aggregate([
 			{ $unwind: "$status" },
 			{
-				$match: {
-					$and: [
+				$match: Object.assign(
+					{ $and: [
 						{ "status.appliedDate": { $exists: true } },
 						{ $expr: { $gte: [ { $toDate: "$status.appliedDate" }, start ] } },
 						{ $expr: { $lte: [ { $toDate: "$status.appliedDate" }, end ] } }
-					]
-				}
+					] },
+					applierId ? { "status.applier": applierId } : {}
+				)
 			},
 			{
 				$project: {

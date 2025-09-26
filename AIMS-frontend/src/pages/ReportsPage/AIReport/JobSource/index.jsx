@@ -1,26 +1,29 @@
 import React, { useEffect, useState, useMemo } from "react";
 import useApi from "../../../../api/useApi";
+import { useApplier } from "../../../../context/ApplierContext.jsx";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { JobSource as JobSourceList } from '../../../../../../configs/pub';
 import JobSourceChart from "./JobSourceChart";
 import { SCALING_POWER, SERIES_CONFIG } from "./constants";
 
 const JobSource = () => {
-	const { get } = useApi();
-	const [rawData, setRawData] = useState([]);
+    const { get } = useApi();
+    const [rawData, setRawData] = useState([]);
+    const { applier } = useApplier();
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 
 	useEffect(() => {
-		const fetchData = async () => {
-			try {
-				setLoading(true);
-				const response = await get("/reports/job-source-summary");
-				if (response.success) {
-					setRawData(response.data || []);
-				} else {
-					setError(response.error || "Failed to fetch data");
-				}
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const q = applier?.name ? `?applierName=${encodeURIComponent(applier.name)}` : '';
+                const response = await get(`/reports/job-source-summary${q}`);
+                if (response.success) {
+                    setRawData(response.data || []);
+                } else {
+                    setError(response.error || "Failed to fetch data");
+                }
 
 			} catch (err) {
 				setError(err.message || "An error occurred");
@@ -28,8 +31,8 @@ const JobSource = () => {
 				setLoading(false);
 			}
 		};
-		fetchData();
-	}, [get]);
+        fetchData();
+    }, [get, applier]);
 
 	const chartData = useMemo(() => {
 		if (!rawData) return { labels: [], series: [] };

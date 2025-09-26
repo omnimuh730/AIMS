@@ -1,17 +1,19 @@
 import * as React from 'react';
 import { Autocomplete, TextField } from '@mui/material';
 import useApi from '../api/useApi'; // Import useApi
+import { useApplier } from '../context/ApplierContext.jsx';
 
 export default function NameCombobox() {
 	const [names, setNames] = React.useState([]);
 	const [namesItem, setNamesItem] = React.useState([]);
-	const [selectedValue, setSelectedValue] = React.useState(null);
+	const { applier, setApplier } = useApplier();
 
 	const { get, post } = useApi(); // Initialize useApi without arguments
 
 	const setMainUser = (mainUserObject) => {
-		localStorage.setItem('mainUser', JSON.stringify(mainUserObject));
-		setSelectedValue(mainUserObject);
+		// Persist for reloads but drive UI via Context
+		try { localStorage.setItem('mainUser', JSON.stringify(mainUserObject)); } catch {}
+		setApplier(mainUserObject);
 	}
 
 	// Fetch initial names from backend
@@ -20,16 +22,18 @@ export default function NameCombobox() {
 			try {
 				const data = await get('account_info'); // Use get from useApi
 				if (data && data.length > 0) {
-					if (localStorage.getItem('mainUser') === null)
-						setMainUser(data[0]);
-					else {
-						const mainUser = JSON.parse(localStorage.getItem('mainUser'));
-						const foundUser = data.find(user => user._id === mainUser._id);
-						if (foundUser) {
-							setMainUser(foundUser);
-						} else {
-							setMainUser(data[0]);
-						}
+					if (!applier) {
+						// Initialize from localStorage if present, else first entry
+						try {
+							const saved = localStorage.getItem('mainUser');
+							if (saved) {
+								const parsed = JSON.parse(saved);
+								const foundUser = data.find(user => user._id === parsed._id);
+								setMainUser(foundUser || data[0]);
+							} else {
+								setMainUser(data[0]);
+							}
+						} catch { setMainUser(data[0]); }
 					}
 				}
 				setNames(data.map(item => item.name));
@@ -74,7 +78,7 @@ export default function NameCombobox() {
 	return (
 		<Autocomplete
 			freeSolo
-			value={selectedValue ? selectedValue.name : ''}
+			value={applier ? applier.name : ''}
 			onChange={async (event, newValue) => {
 				if (typeof newValue === 'string') {
 					// User typed a new value and pressed Enter
@@ -95,7 +99,8 @@ export default function NameCombobox() {
 						setMainUser({ _id: added, name: newValue });
 					}
 				} else {
-					setMainUser({ _id: (names.find(name => name === newValue))._id, name: newValue });
+					const found = namesItem.find(item => item.name === newValue);
+					if (found) setMainUser({ _id: found._id, name: found.name });
 				}
 			}}
 			filterOptions={(options, params) => {

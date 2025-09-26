@@ -82,7 +82,14 @@ export async function getJobs(req, res) {
 			return res.status(503).json({ success: false, error: 'Database not ready' });
 		}
 
-		const { q, sort, page = 1, limit = 10, showLinkedInOnly = 'true', postedAtFrom, jobSources, postedAtTo, applied, status, ...filters } = req.body;
+		const { q, sort, page = 1, limit = 10, showLinkedInOnly = 'true', postedAtFrom, jobSources, postedAtTo, applied, status, applierName, ...filters } = req.body;
+
+		// Resolve applier (optional)
+		let applierId = null;
+		if (applierName && accountInfoCollection) {
+			const applierDoc = await accountInfoCollection.findOne({ name: applierName });
+			applierId = applierDoc?._id || null;
+		}
 		let userSkills = [];
 		if (sort === 'recommended') {
 			if (personalInfoCollection) {
@@ -156,25 +163,35 @@ export async function getJobs(req, res) {
 				: undefined;
 
 		if (appliedBool === false) {
-			// "Posted"
-			query.$and.push({ status: { $exists: false } });
+			// Posted: no status entry for this applier
+			if (applierId) {
+				query.$and.push({ $or: [ { status: { $exists: false } }, { status: { $not: { $elemMatch: { applier: applierId } } } } ] });
+			} else {
+				// Without applier, fallback to no status at all
+				query.$and.push({ status: { $exists: false } });
+			}
 		} else if (appliedBool === true) {
-			// This covers "Applied", "Scheduled", "Declined"
-			query.$and.push({ status: { $exists: true } });
-			if (status === 'Applied') {
-				query.$and.push({
-					status: {
-						$elemMatch: {
-							appliedDate: { $exists: true },
-							scheduledDate: { $exists: false },
-							declinedDate: { $exists: false },
-						}
-					}
-				});
-			} else if (status === 'Scheduled') {
-				query.$and.push({ status: { $elemMatch: { scheduledDate: { $exists: true } } } });
-			} else if (status === 'Declined') {
-				query.$and.push({ status: { $elemMatch: { declinedDate: { $exists: true } } } });
+			// Applied filters for this applier
+			if (applierId) {
+				if (status === 'Applied') {
+					query.$and.push({ status: { $elemMatch: { applier: applierId, appliedDate: { $exists: true }, scheduledDate: { $exists: false }, declinedDate: { $exists: false } } } });
+				} else if (status === 'Scheduled') {
+					query.$and.push({ status: { $elemMatch: { applier: applierId, scheduledDate: { $exists: true } } } });
+				} else if (status === 'Declined') {
+					query.$and.push({ status: { $elemMatch: { applier: applierId, declinedDate: { $exists: true } } } });
+				} else {
+					query.$and.push({ status: { $elemMatch: { applier: applierId } } });
+				}
+			} else {
+				// No applier specified: keep previous behavior
+				query.$and.push({ status: { $exists: true } });
+				if (status === 'Applied') {
+					query.$and.push({ status: { $elemMatch: { appliedDate: { $exists: true }, scheduledDate: { $exists: false }, declinedDate: { $exists: false } } } });
+				} else if (status === 'Scheduled') {
+					query.$and.push({ status: { $elemMatch: { scheduledDate: { $exists: true } } } });
+				} else if (status === 'Declined') {
+					query.$and.push({ status: { $elemMatch: { declinedDate: { $exists: true } } } });
+				}
 			}
 		}
 
