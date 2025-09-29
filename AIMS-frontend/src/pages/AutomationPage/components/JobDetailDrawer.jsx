@@ -70,6 +70,11 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama, onSkillsChanged, onA
 				{Array.isArray(job.skills) && job.skills.length > 0 && (
 					<SkillChips skills={job.skills} onSkillsChanged={() => setSkillsChanged(true)} />
 				)}
+				<Divider sx={{ my: 2 }} />
+				<Typography variant="h6" gutterBottom>
+					<a href={job.applyLink}>Job Link</a>
+				</Typography>
+				<Divider sx={{ my: 2 }} />
 
 				<Box sx={{ overflowY: "auto", height: "calc(100% - 150px)" }}>
 					{typeof job.description === 'string' && /<\w+.*?>/.test(job.description) ? (
@@ -123,7 +128,7 @@ const JobDetailDrawer = ({ job, open, onClose, onAskgllama, onSkillsChanged, onA
 							onClick={async () => {
 								try {
 									if (onApply && job) await onApply(job);
-								} catch (e) { }
+								} catch (e) { console.error('Error in onApply:', e); }
 								if (job && job.applyLink) {
 									window.open(job.applyLink, "_blank", "noopener,noreferrer");
 								}
@@ -160,6 +165,7 @@ const SkillChips = ({ skills = [], onSkillsChanged }) => {
 				}
 			} catch (err) {
 				notification.error('Failed to fetch user skills');
+				console.error('Error fetching user skills:', err);
 			}
 		};
 		fetchUserSkills();
@@ -180,7 +186,7 @@ const SkillChips = ({ skills = [], onSkillsChanged }) => {
 			}
 			// Update backend (send full array)
 			const res = await post('/personal/skills/update', { skills: nextSkills });
-				if (res && res.success && Array.isArray(res.skills)) {
+			if (res && res.success && Array.isArray(res.skills)) {
 				setSelected(new Set(res.skills));
 				if (onSkillsChanged) onSkillsChanged();
 				notification.success('Skills updated');
@@ -189,6 +195,7 @@ const SkillChips = ({ skills = [], onSkillsChanged }) => {
 			}
 		} catch (err) {
 			notification.error('Failed to update skills');
+			console.error('Error updating skills:', err);
 		} finally {
 			setUpdating(false);
 		}

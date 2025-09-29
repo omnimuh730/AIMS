@@ -22,12 +22,26 @@ import {
 	FlashOn,
 	Cancel
 } from '@mui/icons-material';
+import { useApplier } from '../../../../context/ApplierContext.jsx';
 
 const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, onUnapply, applied, job }) => {
-	const options = job.status === undefined ? ['Apply'] : job.status.scheduledDate === undefined && job.status.declinedDate === undefined ? ['Declined', 'Scheduled'] : [];
+	console.log(job);
+	const { applier } = useApplier();
+	const hasNonAbcApplier = Array.isArray(job.status)
+		&& job.status.some(s => s.applier !== applier?._id);
+
+	const options = !job.status || hasNonAbcApplier
+		? ['Apply']
+		: job.status.some(s => !s.scheduledDate && !s.declinedDate)
+			? ['Declined', 'Scheduled']
+			: [];
+
 	const [open, setOpen] = useState(false);
 	const anchorRef = useRef(null);
 	const [selectedIndex, setSelectedIndex] = React.useState(0);
+
+	console.log(applier);
+
 	const handleClick = () => {
 		if (options[selectedIndex] === 'Apply') {
 			ApplyNow();
@@ -108,7 +122,7 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 				>
 					Ask gllama
 				</Button>
-				{job.status && (job.status.declinedDate || job.status.scheduledDate) ? (
+				{job.status && (job.status.declinedDate || job.status.scheduledDate) && job.status.applier === applier?._id ? (
 					<IconButton sx={{ borderRadius: "20px" }} size="small" color='error' variant='contained' onClick={() => onUpdateStatus(job, 'Applied')}>
 						<Cancel />
 					</IconButton>
@@ -129,23 +143,24 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 							{applyLink && applyLink.includes("linkedin.com") && (
 								<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
 							)}{options[selectedIndex]}</Button>
-						{job.status !== undefined && (
-							<>
-								<Button
-									size="small"
-									aria-controls={open ? 'split-button-menu' : undefined}
-									aria-expanded={open ? 'true' : undefined}
-									aria-label="select merge strategy"
-									aria-haspopup="menu"
-									onClick={handleToggle}
-								>
-									<ArrowDropDown />
-								</Button>
-								<Button size='small' color='error' sx={{ borderRadius: "20px", textTransform: "none" }} onClick={() => onUnapply(job)}>
-									<Cancel />
-								</Button>
-							</>
-						)}
+						{
+							!job.status || !hasNonAbcApplier && (
+								<>
+									<Button
+										size="small"
+										aria-controls={open ? 'split-button-menu' : undefined}
+										aria-expanded={open ? 'true' : undefined}
+										aria-label="select merge strategy"
+										aria-haspopup="menu"
+										onClick={handleToggle}
+									>
+										<ArrowDropDown />
+									</Button>
+									<Button size='small' color='error' sx={{ borderRadius: "20px", textTransform: "none" }} onClick={() => onUnapply(job)}>
+										<Cancel />
+									</Button>
+								</>
+							)}
 					</ButtonGroup>
 					</>
 				}
