@@ -3,16 +3,6 @@ import React from 'react';
 import { Box, Avatar, Stack, Chip, Typography } from "@mui/material";
 import { Check } from '@mui/icons-material';
 
-const formatPostedAt = (postedAt) => {
-	if (!postedAt) return null;
-	try {
-		const date = new Date(postedAt);
-		return date.toLocaleString();
-	} catch {
-		return postedAt;
-	}
-};
-
 const JobCardHeader = ({ company, postedAgo, postedAt, tags, applied }) => (
 	<Box sx={{ display: "flex", alignItems: "start", mb: 1.5 }}>
 		<Avatar

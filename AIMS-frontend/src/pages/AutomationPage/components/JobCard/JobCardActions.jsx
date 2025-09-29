@@ -22,26 +22,28 @@ import {
 	FlashOn,
 	Cancel
 } from '@mui/icons-material';
-import { useApplier } from '../../../../context/ApplierContext.jsx';
 
-const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, onUnapply, applied, job }) => {
-	console.log(job);
-	const { applier } = useApplier();
-	const hasNonAbcApplier = Array.isArray(job.status)
-		&& job.status.some(s => s.applier !== applier?._id);
+import { useApplier } from '../../../../context/ApplierContext';
 
-	const options = !job.status || hasNonAbcApplier
-		? ['Apply']
-		: job.status.some(s => !s.scheduledDate && !s.declinedDate)
-			? ['Declined', 'Scheduled']
-			: [];
+function findStatusByApplier(job, applierId) {
+	if (!job || !Array.isArray(job.status)) {
+		return undefined;
+	}
 
+	return job.status.find(item => item.applier === applierId) || undefined;
+}
+
+const JobCardActions = ({ applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, onUnapply, job }) => {
+
+	const mainUser = useApplier().applier._id;
+	//	console.log(mainUser);
+	const jobAppliedStatus = findStatusByApplier(job, mainUser);
+	//	console.log("Applied Status", jobAppliedStatus);
+
+	const options = jobAppliedStatus === undefined ? ['Apply'] : ['Declined', 'Scheduled'];
 	const [open, setOpen] = useState(false);
 	const anchorRef = useRef(null);
 	const [selectedIndex, setSelectedIndex] = React.useState(0);
-
-	console.log(applier);
-
 	const handleClick = () => {
 		if (options[selectedIndex] === 'Apply') {
 			ApplyNow();
@@ -79,6 +81,7 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 				await onApply(job);
 			}
 		} catch (e) {
+			console.error('Error in onApply:', e);
 			// ignore error and still open the tab
 		} finally {
 			if (applyLink) {
@@ -122,7 +125,7 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 				>
 					Ask gllama
 				</Button>
-				{job.status && (job.status.declinedDate || job.status.scheduledDate) && job.status.applier === applier?._id ? (
+				{jobAppliedStatus && (jobAppliedStatus.declinedDate || jobAppliedStatus.scheduledDate) ? (
 					<IconButton sx={{ borderRadius: "20px" }} size="small" color='error' variant='contained' onClick={() => onUpdateStatus(job, 'Applied')}>
 						<Cancel />
 					</IconButton>
@@ -143,24 +146,23 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 							{applyLink && applyLink.includes("linkedin.com") && (
 								<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
 							)}{options[selectedIndex]}</Button>
-						{
-							!job.status || !hasNonAbcApplier && (
-								<>
-									<Button
-										size="small"
-										aria-controls={open ? 'split-button-menu' : undefined}
-										aria-expanded={open ? 'true' : undefined}
-										aria-label="select merge strategy"
-										aria-haspopup="menu"
-										onClick={handleToggle}
-									>
-										<ArrowDropDown />
-									</Button>
-									<Button size='small' color='error' sx={{ borderRadius: "20px", textTransform: "none" }} onClick={() => onUnapply(job)}>
-										<Cancel />
-									</Button>
-								</>
-							)}
+						{jobAppliedStatus !== undefined && (
+							<>
+								<Button
+									size="small"
+									aria-controls={open ? 'split-button-menu' : undefined}
+									aria-expanded={open ? 'true' : undefined}
+									aria-label="select merge strategy"
+									aria-haspopup="menu"
+									onClick={handleToggle}
+								>
+									<ArrowDropDown />
+								</Button>
+								<Button size='small' color='error' sx={{ borderRadius: "20px", textTransform: "none" }} onClick={() => onUnapply(job)}>
+									<Cancel />
+								</Button>
+							</>
+						)}
 					</ButtonGroup>
 					</>
 				}

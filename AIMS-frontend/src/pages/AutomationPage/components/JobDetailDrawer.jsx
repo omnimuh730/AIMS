@@ -169,7 +169,8 @@ const SkillChips = ({ skills = [], onSkillsChanged }) => {
 			}
 		};
 		fetchUserSkills();
-	}, [get, notification]);
+		// Only run once on mount; 'get' is stable from useApi
+	}, [get]);
 
 	// Toggle skill
 	const toggle = async (skill) => {

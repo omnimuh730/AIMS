@@ -33,7 +33,6 @@ const JobCard = ({ job, userSkills, onViewDetails, onAskgllama, onApply, onUpdat
 					<JobCardDetails details={job.details} />
 					<Box sx={{ mt: "auto" }}>
 						<JobCardActions
-							applicants={job.applicants}
 							applyLink={job.applyLink}
 							onViewDetails={() => onViewDetails(job)}
 							onAskgllama={onAskgllama}
