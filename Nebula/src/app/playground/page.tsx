@@ -7,7 +7,6 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { ModelSelectionDialog } from "./components/ModelSelectionDialog";
 import { SystemInstructionsDialog } from "./components/SystemInstructionsDialog";
 import { StructuredOutputDialog } from "./components/StructuredOutputDialog";
-// import { SuggestionCard } from "./components/SuggestionCard"; // Remove or uncomment if needed
 
 export default function PlaygroundPage() {
 	// State for the main prompt input
@@ -42,7 +41,7 @@ export default function PlaygroundPage() {
 	};
 
 	return (
-		<Box sx={{ display: "flex", height: "100vh", backgroundColor: "#fff" }}>
+		<Box sx={{ display: "flex", height: "100vh" }}>
 			<Grid container sx={{ flexGrow: 1 }}>
 				<MainContent
 					prompt={prompt}

@@ -37,7 +37,6 @@ export function SettingsPanel({
 		<Grid
 			sx={{
 				width: { xs: "100%", md: "33.33%", lg: "25%" },
-				bgcolor: "#f7f9fc",
 				borderLeft: "1px solid #e0e0e0",
 				p: 2.5,
 				display: "flex",
@@ -80,7 +79,10 @@ export function SettingsPanel({
 				System instructions
 			</Button>
 
-			<TemperatureSlider value={temperature} onChange={onTemperatureChange} />
+			<TemperatureSlider
+				value={temperature}
+				onChange={onTemperatureChange}
+			/>
 
 			<Divider sx={{ my: 1 }} />
 
