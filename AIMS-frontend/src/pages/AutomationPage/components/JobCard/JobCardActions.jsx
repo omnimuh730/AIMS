@@ -24,13 +24,12 @@ import {
 } from '@mui/icons-material';
 import { useApplier } from '../../../../context/ApplierContext.jsx';
 
-const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, onUnapply, applied, job }) => {
-	console.log(job);
+const JobCardActions = ({ applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, onUnapply, job }) => {
 	const { applier } = useApplier();
 	const hasNonAbcApplier = Array.isArray(job.status)
-		&& job.status.some(s => s.applier !== applier?._id);
+		&& job.status.some(s => s.applier === applier?._id);
 
-	const options = !job.status || hasNonAbcApplier
+	const options = !job.status || !hasNonAbcApplier
 		? ['Apply']
 		: job.status.some(s => !s.scheduledDate && !s.declinedDate)
 			? ['Declined', 'Scheduled']
@@ -39,8 +38,7 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 	const [open, setOpen] = useState(false);
 	const anchorRef = useRef(null);
 	const [selectedIndex, setSelectedIndex] = React.useState(0);
-
-	console.log(applier);
+	console.log(job.status);
 
 	const handleClick = () => {
 		if (options[selectedIndex] === 'Apply') {
@@ -80,6 +78,8 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 			}
 		} catch (e) {
 			// ignore error and still open the tab
+			console.error(e);
+
 		} finally {
 			if (applyLink) {
 				if (applyLink.includes("linkedin.com")) {
@@ -122,46 +122,46 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 				>
 					Ask gllama
 				</Button>
-				{job.status && (job.status.declinedDate || job.status.scheduledDate) && job.status.applier === applier?._id ? (
+				{Array.isArray(job.status) && job.status.some(
+					s => (s.declinedDate || s.scheduledDate) && s.applier === applier?._id
+				) ? (
 					<IconButton sx={{ borderRadius: "20px" }} size="small" color='error' variant='contained' onClick={() => onUpdateStatus(job, 'Applied')}>
 						<Cancel />
 					</IconButton>
 				) :
-					<><ButtonGroup
-						variant="contained"
-						ref={anchorRef}
-						aria-label="Button group with a nested menu"
-						sx={{
-							borderRadius: "20px", textTransform: "none"
-						}}
-					>
-						<Button onClick={handleClick}
+					<>
+						<ButtonGroup
+							variant="contained"
+							ref={anchorRef}
+							aria-label="Button group with a nested menu"
 							sx={{
 								borderRadius: "20px", textTransform: "none"
 							}}
 						>
-							{applyLink && applyLink.includes("linkedin.com") && (
-								<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
-							)}{options[selectedIndex]}</Button>
-						{
-							!job.status || !hasNonAbcApplier && (
-								<>
-									<Button
-										size="small"
-										aria-controls={open ? 'split-button-menu' : undefined}
-										aria-expanded={open ? 'true' : undefined}
-										aria-label="select merge strategy"
-										aria-haspopup="menu"
-										onClick={handleToggle}
-									>
-										<ArrowDropDown />
-									</Button>
-									<Button size='small' color='error' sx={{ borderRadius: "20px", textTransform: "none" }} onClick={() => onUnapply(job)}>
-										<Cancel />
-									</Button>
-								</>
-							)}
-					</ButtonGroup>
+							<Button onClick={handleClick}
+								sx={{
+									borderRadius: "20px", textTransform: "none"
+								}}
+							>
+								{applyLink && applyLink.includes("linkedin.com") && (
+									<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
+								)}{options[selectedIndex]}</Button>
+							<>
+								<Button
+									size="small"
+									aria-controls={open ? 'split-button-menu' : undefined}
+									aria-expanded={open ? 'true' : undefined}
+									aria-label="select merge strategy"
+									aria-haspopup="menu"
+									onClick={handleToggle}
+								>
+									<ArrowDropDown />
+								</Button>
+								<Button size='small' color='error' sx={{ borderRadius: "20px", textTransform: "none" }} onClick={() => onUnapply(job)}>
+									<Cancel />
+								</Button>
+							</>
+						</ButtonGroup>
 					</>
 				}
 				<Popper
