@@ -17,6 +17,8 @@
 		"@mui/material": "^7.3.4",
 		"@mui/material-nextjs": "^7.3.3",
 		"@toolpad/core": "^0.16.0",
+		"graphql": "^16.11.0",
+		"graphql-request": "^7.2.0",
 		"next": "15.5.4",
 		"react": "19.1.0",
 		"react-dom": "19.1.0",

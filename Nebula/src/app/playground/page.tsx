@@ -7,6 +7,7 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { ModelSelectionDialog } from "./components/ModelSelectionDialog";
 import { SystemInstructionsDialog } from "./components/SystemInstructionsDialog";
 import { StructuredOutputDialog } from "./components/StructuredOutputDialog";
+import { generateContent } from "@/api/graphql";
 
 export default function PlaygroundPage() {
 	// State for the main prompt input
@@ -35,9 +36,21 @@ export default function PlaygroundPage() {
 	});
 	const [systemInstructions, setSystemInstructions] = React.useState("");
 
-	const handleRun = () => {
-		console.log("Running with prompt:", prompt);
-		// Add logic to handle the run action
+	const [response, setResponse] = React.useState("");
+	const [isLoading, setIsLoading] = React.useState(false);
+
+	const handleRun = async () => {
+		setIsLoading(true);
+		setResponse("");
+		try {
+			const result = await generateContent(prompt);
+			setResponse(result);
+		} catch (error) {
+			console.error("Error generating content:", error);
+			setResponse("Error generating content. Please check the server logs.");
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	return (
@@ -47,6 +60,8 @@ export default function PlaygroundPage() {
 					prompt={prompt}
 					onPromptChange={setPrompt}
 					onRun={handleRun}
+					response={response}
+					isLoading={isLoading}
 				/>
 				<SettingsPanel
 					selectedModel={selectedModel}

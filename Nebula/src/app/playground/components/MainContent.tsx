@@ -1,17 +1,21 @@
 import * as React from "react";
-import { Box, Typography, Grid } from "@mui/material";
+import { Box, Typography, Grid, CircularProgress } from "@mui/material";
 import { PromptInput } from "./PromptInput";
 
 interface MainContentProps {
 	prompt: string;
 	onPromptChange: (value: string) => void;
 	onRun: () => void;
+	response: string;
+	isLoading: boolean;
 }
 
 export function MainContent({
 	prompt,
 	onPromptChange,
 	onRun,
+	response,
+	isLoading,
 }: MainContentProps) {
 	return (
 		<Grid
@@ -31,17 +35,23 @@ export function MainContent({
 					alignItems: "center",
 				}}
 			>
-				<Typography
-					variant="h2"
-					component="h1"
-					sx={{
-						fontWeight: "400",
-						mb: 1,
-						color: "text.primary",
-					}}
-				>
-					AI Studio
-				</Typography>
+				{isLoading ? (
+					<CircularProgress />
+				) : response ? (
+					<Typography variant="body1">{response}</Typography>
+				) : (
+					<Typography
+						variant="h2"
+						component="h1"
+						sx={{
+							fontWeight: "400",
+							mb: 1,
+							color: "text.primary",
+						}}
+					>
+						AI Studio
+					</Typography>
+				)}
 			</Box>
 			<PromptInput
 				prompt={prompt}
