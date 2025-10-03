@@ -128,13 +128,11 @@ export default function GoogleAIStudioPage() {
 				{/* Main Content Area */}
 				<Grid
 					sx={{
-						xs: 12,
-						md: 8,
-						lg: 9,
 						display: "flex",
 						flexDirection: "column",
 						p: { xs: 2, md: 3 },
 					}}
+					size={{ md: 12, lg: 9 }}
 				>
 					{/* Centered content with suggestions */}
 					<Box
@@ -155,40 +153,8 @@ export default function GoogleAIStudioPage() {
 								color: "text.primary",
 							}}
 						>
-							Google AI Studio
+							AI Studio
 						</Typography>
-						<Typography
-							variant="body1"
-							sx={{ mb: 4, color: "text.secondary" }}
-						>
-							What's new
-						</Typography>
-						<Grid
-							container
-							spacing={2}
-							sx={{ maxWidth: "800px", width: "100%" }}
-						>
-							<SuggestionCard
-								icon={<SparkleIcon />}
-								title="Try Nano Banana"
-								text="Gemini 2.5 Flash image, state-of-the-art image generation and editing"
-							/>
-							<SuggestionCard
-								icon={<PublicIcon />}
-								title="Fetch information with URL context"
-								text="Fetch real-time information from web links"
-							/>
-							<SuggestionCard
-								icon={<RecordVoiceOverIcon />}
-								title="Generate native speech with Gemini"
-								text="Generate high quality text to speech with Gemini"
-							/>
-							<SuggestionCard
-								icon={<CodeIcon />}
-								title="Talk to Gemini live"
-								text="Try Gemini's natural, real-time dialogue experience, with audio and video inputs"
-							/>
-						</Grid>
 					</Box>
 
 					{/* PROBLEM 4 SOLVED: User Input field at the bottom */}
@@ -200,10 +166,7 @@ export default function GoogleAIStudioPage() {
 							py: 2,
 						}}
 					>
-						<Paper
-							elevation={2}
-							sx={{ borderRadius: "28px", p: "4px" }}
-						>
+						<Paper elevation={2} sx={{ borderRadius: "28px" }}>
 							<TextField
 								fullWidth
 								multiline
@@ -253,6 +216,7 @@ export default function GoogleAIStudioPage() {
 						gap: 2,
 						overflowY: "auto",
 					}}
+					size={{ md: 12, lg: 3 }}
 				>
 					<Box
 						sx={{
