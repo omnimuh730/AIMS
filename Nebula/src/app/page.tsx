@@ -1,103 +1,171 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import * as React from "react";
+import PropTypes from "prop-types";
+import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import Typography from "@mui/material/Typography";
+import { createTheme } from "@mui/material/styles";
+import PersonIcon from "@mui/icons-material/Person";
+import CallIcon from "@mui/icons-material/Call";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import CallMadeIcon from "@mui/icons-material/CallMade";
+import CallReceivedIcon from "@mui/icons-material/CallReceived";
+import { AppProvider } from "@toolpad/core/AppProvider";
+import { DashboardLayout } from "@toolpad/core/DashboardLayout";
+import { DemoProvider, useDemoRouter } from "@toolpad/core/internal";
+
+const demoTheme = createTheme({
+	cssVariables: {
+		colorSchemeSelector: "data-toolpad-color-scheme",
+	},
+	colorSchemes: { light: true, dark: true },
+	breakpoints: {
+		values: {
+			xs: 0,
+			sm: 600,
+			md: 600,
+			lg: 1200,
+			xl: 1536,
+		},
+	},
+});
+
+function DemoPageContent({ pathname }: { pathname: string }) {
 	return (
-		<div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-			<main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-				<Image
-					className="dark:invert"
-					src="/next.svg"
-					alt="Next.js logo"
-					width={180}
-					height={38}
-					priority
-				/>
-				<ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-					<li className="mb-2 tracking-[-.01em]">
-						Get started by editing{" "}
-						<code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-							src/app/page.tsx
-						</code>
-						.
-					</li>
-					<li className="tracking-[-.01em]">
-						Save and see your changes instantly.
-					</li>
-				</ol>
-
-				<div className="flex gap-4 items-center flex-col sm:flex-row">
-					<a
-						className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-						href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Image
-							className="dark:invert"
-							src="/vercel.svg"
-							alt="Vercel logomark"
-							width={20}
-							height={20}
-						/>
-						Deploy now
-					</a>
-					<a
-						className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-						href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Read our docs
-					</a>
-				</div>
-			</main>
-			<footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image
-						aria-hidden
-						src="/file.svg"
-						alt="File icon"
-						width={16}
-						height={16}
-					/>
-					Learn
-				</a>
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image
-						aria-hidden
-						src="/window.svg"
-						alt="Window icon"
-						width={16}
-						height={16}
-					/>
-					Examples
-				</a>
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image
-						aria-hidden
-						src="/globe.svg"
-						alt="Globe icon"
-						width={16}
-						height={16}
-					/>
-					Go to nextjs.org →
-				</a>
-			</footer>
-		</div>
+		<Box
+			sx={{
+				py: 4,
+				display: "flex",
+				flexDirection: "column",
+				alignItems: "center",
+				textAlign: "center",
+			}}
+		>
+			<Typography>Dashboard content for {pathname}</Typography>
+		</Box>
 	);
 }
+
+DemoPageContent.propTypes = {
+	pathname: PropTypes.string.isRequired,
+};
+
+const CALLS_NAVIGATION = [
+	{
+		segment: "made",
+		title: "Made",
+		icon: <CallMadeIcon />,
+		action: <Chip label={12} color="success" size="small" />,
+	},
+	{
+		segment: "received",
+		title: "Received",
+		icon: <CallReceivedIcon />,
+		action: <Chip label={4} color="error" size="small" />,
+	},
+];
+
+interface DashboardLayoutNavigationActionsProps {
+	window?: () => Window;
+}
+
+function DashboardLayoutNavigationActions({
+	window,
+}: DashboardLayoutNavigationActionsProps) {
+	const router = useDemoRouter("/contacts");
+
+	const [popoverAnchorEl, setPopoverAnchorEl] =
+		React.useState<HTMLButtonElement | null>(null);
+
+	const isPopoverOpen = Boolean(popoverAnchorEl);
+	const popoverId = isPopoverOpen ? "simple-popover" : undefined;
+
+	const handlePopoverButtonClick = (
+		event: React.MouseEvent<HTMLButtonElement>,
+	) => {
+		event.stopPropagation();
+		setPopoverAnchorEl(event.currentTarget);
+	};
+
+	const handlePopoverClose = (event: React.MouseEvent) => {
+		event.stopPropagation();
+		setPopoverAnchorEl(null);
+	};
+
+	// Remove this const when copying and pasting into your project.
+	const demoWindow = window !== undefined ? window() : undefined;
+
+	const popoverMenuAction = (
+		<React.Fragment>
+			<IconButton
+				aria-describedby={popoverId}
+				onClick={handlePopoverButtonClick}
+			>
+				<MoreHorizIcon />
+			</IconButton>
+			<Menu
+				id={popoverId}
+				open={isPopoverOpen}
+				anchorEl={popoverAnchorEl}
+				onClose={handlePopoverClose}
+				anchorOrigin={{
+					vertical: "bottom",
+					horizontal: "right",
+				}}
+				disableAutoFocus
+				disableAutoFocusItem
+			>
+				<MenuItem onClick={handlePopoverClose}>New call</MenuItem>
+				<MenuItem onClick={handlePopoverClose}>
+					Mark all as read
+				</MenuItem>
+			</Menu>
+		</React.Fragment>
+	);
+
+	return (
+		// Remove this provider when copying and pasting into your project.
+		<DemoProvider window={demoWindow}>
+			{/* preview-start */}
+			<AppProvider
+				navigation={[
+					{
+						segment: "contacts",
+						title: "Contacts",
+						icon: <PersonIcon />,
+						action: <Chip label={7} color="primary" size="small" />,
+					},
+					{
+						segment: "calls",
+						title: "Calls",
+						icon: <CallIcon />,
+						action: popoverMenuAction,
+						children: CALLS_NAVIGATION,
+					},
+				]}
+				router={router}
+				theme={demoTheme}
+				window={demoWindow}
+			>
+				<DashboardLayout>
+					<DemoPageContent pathname={router.pathname} />
+				</DashboardLayout>
+			</AppProvider>
+			{/* preview-end */}
+		</DemoProvider>
+	);
+}
+
+DashboardLayoutNavigationActions.propTypes = {
+	/**
+	 * Injected by the documentation to work in an iframe.
+	 * Remove this when copying and pasting into your project.
+	 */
+	window: PropTypes.func,
+};
+
+export default DashboardLayoutNavigationActions;
