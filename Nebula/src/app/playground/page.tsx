@@ -43,7 +43,7 @@ export default function PlaygroundPage() {
 
 	return (
 		<Box sx={{ display: "flex", height: "100vh", backgroundColor: "#fff" }}>
-			<Grid container size={{ xs: 12, sm: 6 }} sx={{ flexGrow: 1 }}>
+			<Grid container sx={{ flexGrow: 1 }}>
 				<MainContent
 					prompt={prompt}
 					onPromptChange={setPrompt}
