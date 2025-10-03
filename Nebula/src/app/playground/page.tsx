@@ -7,6 +7,7 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { ModelSelectionDialog } from "./components/ModelSelectionDialog";
 import { SystemInstructionsDialog } from "./components/SystemInstructionsDialog";
 import { StructuredOutputDialog } from "./components/StructuredOutputDialog";
+// import { SuggestionCard } from "./components/SuggestionCard"; // Remove or uncomment if needed
 
 export default function PlaygroundPage() {
 	// State for the main prompt input
@@ -42,7 +43,7 @@ export default function PlaygroundPage() {
 
 	return (
 		<Box sx={{ display: "flex", height: "100vh", backgroundColor: "#fff" }}>
-			<Grid container sx={{ flexGrow: 1 }}>
+			<Grid container size={{ xs: 12, sm: 6 }} sx={{ flexGrow: 1 }}>
 				<MainContent
 					prompt={prompt}
 					onPromptChange={setPrompt}
@@ -51,7 +52,9 @@ export default function PlaygroundPage() {
 				<SettingsPanel
 					selectedModel={selectedModel}
 					onModelSelectClick={() => setModelSelectionOpen(true)}
-					onSystemInstructionsClick={() => setSystemInstructionsOpen(true)}
+					onSystemInstructionsClick={() =>
+						setSystemInstructionsOpen(true)
+					}
 					temperature={temperature}
 					onTemperatureChange={setTemperature}
 					structuredOutputEnabled={structuredOutputEnabled}
@@ -68,9 +71,9 @@ export default function PlaygroundPage() {
 				open={modelSelectionOpen}
 				onClose={() => setModelSelectionOpen(false)}
 				onSelectModel={(model) => {
-                    const {desc, ...rest} = model;
-                    setSelectedModel(rest)
-                }}
+					const { desc, ...rest } = model;
+					setSelectedModel(rest);
+				}}
 			/>
 
 			<SystemInstructionsDialog
