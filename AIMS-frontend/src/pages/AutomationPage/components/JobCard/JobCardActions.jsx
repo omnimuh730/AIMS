@@ -24,13 +24,15 @@ import {
 } from '@mui/icons-material';
 import { useApplier } from '../../../../context/ApplierContext.jsx';
 
-const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, onUnapply, applied, job }) => {
+const JobCardActions = ({ applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, onUnapply, job }) => {
 	console.log(job);
 	const { applier } = useApplier();
 	const hasNonAbcApplier = Array.isArray(job.status)
-		&& job.status.some(s => s.applier !== applier?._id);
+		&& job.status.some(s => s.applier === applier?._id);
 
-	const options = !job.status || hasNonAbcApplier
+	console.log('hasNonApplier', hasNonAbcApplier);
+
+	const options = !job.status || !hasNonAbcApplier
 		? ['Apply']
 		: job.status.some(s => !s.scheduledDate && !s.declinedDate)
 			? ['Declined', 'Scheduled']
@@ -80,6 +82,8 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 			}
 		} catch (e) {
 			// ignore error and still open the tab
+			console.error(e);
+
 		} finally {
 			if (applyLink) {
 				if (applyLink.includes("linkedin.com")) {
@@ -122,7 +126,9 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 				>
 					Ask gllama
 				</Button>
-				{job.status && (job.status.declinedDate || job.status.scheduledDate) && job.status.applier === applier?._id ? (
+				{Array.isArray(job.status) && job.status.some(
+					s => (s.declinedDate || s.scheduledDate) && s.applier === applier?._id
+				) ? (
 					<IconButton sx={{ borderRadius: "20px" }} size="small" color='error' variant='contained' onClick={() => onUpdateStatus(job, 'Applied')}>
 						<Cancel />
 					</IconButton>
@@ -144,7 +150,7 @@ const JobCardActions = ({ applicants, applyLink, onViewDetails, onAskgllama, onA
 								<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
 							)}{options[selectedIndex]}</Button>
 						{
-							!job.status || !hasNonAbcApplier && (
+							(job.status || !hasNonAbcApplier) && (
 								<>
 									<Button
 										size="small"
