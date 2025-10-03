@@ -147,6 +147,16 @@ function DashboardLayoutNavigationActions({
 						children: CALLS_NAVIGATION,
 					},
 				]}
+				branding={{
+					title: "Nebula",
+					logo: (
+						<img
+							src="https://www.svgheart.com/wp-content/uploads/2021/11/butterfly-silhouette-decorative-free-svg-file-SvgHeart.Com.png"
+							alt="Nebula Logo"
+							style={{ width: 36 }}
+						/>
+					),
+				}}
 				router={router}
 				theme={demoTheme}
 				window={demoWindow}
