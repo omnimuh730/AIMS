@@ -1,39 +1,40 @@
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
+import Image from 'next/image';
 
-import { Geist, Geist_Mono } from "next/font/google";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import { NextAppProvider } from "@toolpad/core/nextjs";
-import { DashboardLayout } from "@toolpad/core/DashboardLayout";
-import { createTheme } from "@mui/material/styles";
-import Chip from "@mui/material/Chip";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import PersonIcon from "@mui/icons-material/Person";
-import CallIcon from "@mui/icons-material/Call";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import CallMadeIcon from "@mui/icons-material/CallMade";
-import CallReceivedIcon from "@mui/icons-material/CallReceived";
-import ScienceIcon from "@mui/icons-material/Science";
-import LinearProgress from "@mui/material/LinearProgress";
+import { Geist, Geist_Mono } from 'next/font/google';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { NextAppProvider } from '@toolpad/core/nextjs';
+import { DashboardLayout } from '@toolpad/core/DashboardLayout';
+import { createTheme } from '@mui/material/styles';
+import Chip from '@mui/material/Chip';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import PersonIcon from '@mui/icons-material/Person';
+import CallIcon from '@mui/icons-material/Call';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import CallMadeIcon from '@mui/icons-material/CallMade';
+import CallReceivedIcon from '@mui/icons-material/CallReceived';
+import ScienceIcon from '@mui/icons-material/Science';
+import LinearProgress from '@mui/material/LinearProgress';
 
-import "@/app/globals.css";
+import '@/app/globals.css';
 
 const geistSans = Geist({
-	variable: "--font-geist-sans",
-	subsets: ["latin"],
+	variable: '--font-geist-sans',
+	subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-	variable: "--font-geist-mono",
-	subsets: ["latin"],
+	variable: '--font-geist-mono',
+	subsets: ['latin'],
 });
 
 const demoTheme = createTheme({
 	cssVariables: {
-		colorSchemeSelector: "data-toolpad-color-scheme",
+		colorSchemeSelector: 'data-toolpad-color-scheme',
 	},
 	colorSchemes: { light: true, dark: true },
 	breakpoints: {
@@ -49,14 +50,14 @@ const demoTheme = createTheme({
 
 const CALLS_NAVIGATION = [
 	{
-		segment: "made",
-		title: "Made",
+		segment: 'made',
+		title: 'Made',
 		icon: <CallMadeIcon />,
 		action: <Chip label={12} color="success" size="small" />,
 	},
 	{
-		segment: "received",
-		title: "Received",
+		segment: 'received',
+		title: 'Received',
 		icon: <CallReceivedIcon />,
 		action: <Chip label={4} color="error" size="small" />,
 	},
@@ -67,7 +68,7 @@ function AppRouter({ children }: { children: React.ReactNode }) {
 		React.useState<HTMLButtonElement | null>(null);
 
 	const isPopoverOpen = Boolean(popoverAnchorEl);
-	const popoverId = isPopoverOpen ? "simple-popover" : undefined;
+	const popoverId = isPopoverOpen ? 'simple-popover' : undefined;
 
 	const handlePopoverButtonClick = (
 		event: React.MouseEvent<HTMLButtonElement>,
@@ -95,8 +96,8 @@ function AppRouter({ children }: { children: React.ReactNode }) {
 				anchorEl={popoverAnchorEl}
 				onClose={handlePopoverClose}
 				anchorOrigin={{
-					vertical: "bottom",
-					horizontal: "right",
+					vertical: 'bottom',
+					horizontal: 'right',
 				}}
 				disableAutoFocus
 				disableAutoFocusItem
@@ -111,21 +112,21 @@ function AppRouter({ children }: { children: React.ReactNode }) {
 
 	const navigation = [
 		{
-			segment: "/",
-			title: "Contacts",
+			segment: '/',
+			title: 'Contacts',
 			icon: <PersonIcon />,
 			action: <Chip label={7} color="primary" size="small" />,
 		},
 		{
-			segment: "calls",
-			title: "Calls",
+			segment: 'calls',
+			title: 'Calls',
 			icon: <CallIcon />,
 			action: popoverMenuAction,
 			children: CALLS_NAVIGATION,
 		},
 		{
-			segment: "playground",
-			title: "Playground",
+			segment: 'playground',
+			title: 'Playground',
 			icon: <ScienceIcon />,
 		},
 	];
@@ -135,12 +136,13 @@ function AppRouter({ children }: { children: React.ReactNode }) {
 			<NextAppProvider
 				navigation={navigation}
 				branding={{
-					title: "Nebula",
+					title: 'Nebula',
 					logo: (
-						<img
+						<Image
 							src="https://www.svgheart.com/wp-content/uploads/2021/11/butterfly-silhouette-decorative-free-svg-file-SvgHeart.Com.png"
 							alt="Nebula Logo"
-							style={{ width: 36 }}
+							width={36}
+							height={36}
 						/>
 					),
 				}}

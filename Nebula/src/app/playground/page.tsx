@@ -71,6 +71,7 @@ export default function PlaygroundPage() {
 				open={modelSelectionOpen}
 				onClose={() => setModelSelectionOpen(false)}
 				onSelectModel={(model) => {
+					// eslint-disable-next-line @typescript-eslint/no-unused-vars
 					const { desc, ...rest } = model;
 					setSelectedModel(rest);
 				}}
