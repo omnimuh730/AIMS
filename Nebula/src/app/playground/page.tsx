@@ -9,18 +9,17 @@ import {
 	Grid,
 	Paper,
 	Slider,
-	Select,
-	MenuItem,
-	FormControl,
-	InputLabel,
 	Switch,
 	IconButton,
 	InputAdornment,
-	Accordion,
-	AccordionSummary,
-	AccordionDetails,
 	Divider,
-	SelectChangeEvent,
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogActions,
+	ToggleButtonGroup,
+	ToggleButton,
+	Link,
 } from "@mui/material";
 import {
 	Add as AddIcon,
@@ -30,13 +29,14 @@ import {
 	Public as PublicIcon,
 	RecordVoiceOver as RecordVoiceOverIcon,
 	Code as CodeIcon,
-	Settings as SettingsIcon,
 	ExpandMore as ExpandMoreIcon,
 	PlayArrow as PlayArrowIcon,
-	Edit as EditIcon,
+	Close as CloseIcon,
+	StarBorder as StarIcon,
+	DeleteOutline as DeleteIcon,
 } from "@mui/icons-material";
 
-// Helper component for the suggestion cards in the center
+// Helper component for suggestion cards
 const SuggestionCard = ({
 	icon,
 	title,
@@ -73,7 +73,7 @@ const SuggestionCard = ({
 	</Grid>
 );
 
-// Helper component for settings items in the right panel for consistency
+// Helper component for settings items in the right panel
 const SettingsItem = ({
 	label,
 	children,
@@ -95,33 +95,37 @@ const SettingsItem = ({
 );
 
 export default function GoogleAIStudioPage() {
-	// State for various controls in the settings panel
-	const [temperature, setTemperature] = React.useState<number>(1);
-	const [mediaResolution, setMediaResolution] = React.useState("default");
-	const [thinkingMode, setThinkingMode] = React.useState(false);
-	const [groundingWithSearch, setGroundingWithSearch] = React.useState(true);
-	const [urlContext, setUrlContext] = React.useState(true);
-
 	// State for the main prompt input
 	const [prompt, setPrompt] = React.useState(
 		"Explain the probability of rolling two dice and getting 7",
 	);
 
-	const handleTemperatureChange = (
-		event: Event,
-		newValue: number | number[],
-	) => {
-		setTemperature(newValue as number);
-	};
+	// State for settings controls
+	const [temperature, setTemperature] = React.useState<number>(1);
+	const [thinkingMode, setThinkingMode] = React.useState(false);
+	const [groundingWithSearch, setGroundingWithSearch] = React.useState(true);
+	const [urlContext, setUrlContext] = React.useState(true);
+	const [structuredOutputEnabled, setStructuredOutputEnabled] =
+		React.useState(false);
 
-	const handleMediaResolutionChange = (event: SelectChangeEvent) => {
-		setMediaResolution(event.target.value as string);
-	};
+	// State to control the open/closed status of dialogs
+	const [modelSelectionOpen, setModelSelectionOpen] = React.useState(false);
+	const [systemInstructionsOpen, setSystemInstructionsOpen] =
+		React.useState(false);
+	const [structuredOutputOpen, setStructuredOutputOpen] =
+		React.useState(false);
+
+	// State for the data inside the dialogs
+	const [selectedModel, setSelectedModel] = React.useState({
+		name: "Gemini 2.5 Pro",
+		id: "gemini-2.5-pro",
+	});
+	const [systemInstructions, setSystemInstructions] = React.useState("");
 
 	return (
 		<Box sx={{ display: "flex", height: "100vh", backgroundColor: "#fff" }}>
 			<Grid container sx={{ flexGrow: 1 }}>
-				{/* Main Content Area (Left/Center) */}
+				{/* Main Content Area */}
 				<Grid
 					sx={{
 						xs: 12,
@@ -187,7 +191,7 @@ export default function GoogleAIStudioPage() {
 						</Grid>
 					</Box>
 
-					{/* Prompt Input at the bottom */}
+					{/* PROBLEM 4 SOLVED: User Input field at the bottom */}
 					<Box
 						sx={{
 							width: "100%",
@@ -205,19 +209,14 @@ export default function GoogleAIStudioPage() {
 								multiline
 								minRows={1}
 								variant="outlined"
-								placeholder="Explain the probability of rolling two dice and getting 7"
 								value={prompt}
 								onChange={(e) => setPrompt(e.target.value)}
+								placeholder="Enter a prompt here"
 								sx={{
 									"& .MuiOutlinedInput-root": {
 										paddingRight: "4px",
 										borderRadius: "24px",
-										"& fieldset": {
-											border: "none",
-										},
-									},
-									"& .MuiOutlinedInput-input": {
-										padding: "16.5px 14px",
+										"& fieldset": { border: "none" },
 									},
 								}}
 								InputProps={{
@@ -245,14 +244,14 @@ export default function GoogleAIStudioPage() {
 				{/* Right Settings Panel */}
 				<Grid
 					sx={{
-						width: { xs: "100%", md: "33.33%", lg: "25%" }, // Responsive width
+						width: { xs: "100%", md: "33.33%", lg: "25%" },
 						bgcolor: "#f7f9fc",
 						borderLeft: "1px solid #e0e0e0",
 						p: 2.5,
 						display: "flex",
 						flexDirection: "column",
 						gap: 2,
-						overflowY: "auto", // Allow scrolling if content overflows
+						overflowY: "auto",
 					}}
 				>
 					<Box
@@ -265,29 +264,11 @@ export default function GoogleAIStudioPage() {
 						<Typography variant="subtitle1" fontWeight="medium">
 							Run settings
 						</Typography>
-						<Box>
-							<IconButton size="small">
-								<AddIcon />
-							</IconButton>
-							<IconButton size="small">
-								<MoreVertIcon />
-							</IconButton>
-							<Button
-								variant="outlined"
-								size="small"
-								startIcon={<CodeIcon />}
-								sx={{
-									ml: 1,
-									textTransform: "none",
-									borderRadius: "16px",
-								}}
-							>
-								Get code
-							</Button>
-						</Box>
 					</Box>
 
+					{/* PROBLEM 1 SOLVED: This button now opens the Model Selection Dialog */}
 					<Button
+						onClick={() => setModelSelectionOpen(true)}
 						fullWidth
 						variant="outlined"
 						sx={{
@@ -302,19 +283,21 @@ export default function GoogleAIStudioPage() {
 					>
 						<Box sx={{ flexGrow: 1 }}>
 							<Typography variant="subtitle2">
-								Gemini 2.5 Pro
+								{selectedModel.name}
 							</Typography>
 							<Typography
 								variant="caption"
 								color="text.secondary"
 							>
-								Our most powerful reasoning model...
+								{selectedModel.id}
 							</Typography>
 						</Box>
 						<ChevronRightIcon />
 					</Button>
 
+					{/* PROBLEM 2 SOLVED: This button now opens the System Instructions Dialog */}
 					<Button
+						onClick={() => setSystemInstructionsOpen(true)}
 						fullWidth
 						variant="outlined"
 						sx={{
@@ -337,80 +320,49 @@ export default function GoogleAIStudioPage() {
 						</SettingsItem>
 						<Slider
 							value={temperature}
-							onChange={handleTemperatureChange}
+							onChange={(e, v) => setTemperature(v as number)}
 							aria-labelledby="temperature-slider"
-							valueLabelDisplay="auto"
 							step={0.1}
 							min={0}
 							max={2}
 						/>
 					</Box>
 
-					<FormControl fullWidth variant="outlined" size="small">
-						<InputLabel>Media resolution</InputLabel>
-						<Select
-							label="Media resolution"
-							value={mediaResolution}
-							onChange={handleMediaResolutionChange}
-						>
-							<MenuItem value="default">Default</MenuItem>
-							<MenuItem value="high">High</MenuItem>
-							<MenuItem value="low">Low</MenuItem>
-						</Select>
-					</FormControl>
-
-					<Divider sx={{ my: 1 }} />
-
-					<Typography variant="overline" color="text.secondary">
-						Thinking
-					</Typography>
-					<SettingsItem label="Thinking mode">
-						<Switch
-							checked={thinkingMode}
-							onChange={(e) => setThinkingMode(e.target.checked)}
-						/>
-					</SettingsItem>
-					<SettingsItem label="Set thinking budget">
-						<IconButton size="small">
-							<SettingsIcon />
-						</IconButton>
-					</SettingsItem>
-
 					<Divider sx={{ my: 1 }} />
 
 					<Typography variant="overline" color="text.secondary">
 						Tools
 					</Typography>
+
+					{/* PROBLEM 3 SOLVED: Switch controls the Edit button, which opens the Structured Output Dialog */}
 					<SettingsItem label="Structured output">
-						<Button
-							size="small"
-							variant="text"
-							endIcon={<EditIcon />}
-							sx={{ textTransform: "none" }}
+						<Box
+							sx={{
+								display: "flex",
+								alignItems: "center",
+								gap: 1,
+							}}
 						>
-							Edit
-						</Button>
+							{structuredOutputEnabled && (
+								<Button
+									size="small"
+									onClick={() =>
+										setStructuredOutputOpen(true)
+									}
+									sx={{ textTransform: "none" }}
+								>
+									Edit
+								</Button>
+							)}
+							<Switch
+								checked={structuredOutputEnabled}
+								onChange={(e) =>
+									setStructuredOutputEnabled(e.target.checked)
+								}
+							/>
+						</Box>
 					</SettingsItem>
-					<SettingsItem label="Code execution">
-						<Button
-							size="small"
-							variant="text"
-							endIcon={<EditIcon />}
-							sx={{ textTransform: "none" }}
-						>
-							Edit
-						</Button>
-					</SettingsItem>
-					<SettingsItem label="Function calling">
-						<Button
-							size="small"
-							variant="text"
-							endIcon={<EditIcon />}
-							sx={{ textTransform: "none" }}
-						>
-							Edit
-						</Button>
-					</SettingsItem>
+
 					<SettingsItem label="Grounding with Google Search">
 						<Switch
 							checked={groundingWithSearch}
@@ -425,36 +377,202 @@ export default function GoogleAIStudioPage() {
 							onChange={(e) => setUrlContext(e.target.checked)}
 						/>
 					</SettingsItem>
-
-					<Accordion
-						disableGutters
-						elevation={0}
-						sx={{
-							bgcolor: "transparent",
-							"&:before": { display: "none" },
-						}}
-					>
-						<AccordionSummary
-							expandIcon={<ExpandMoreIcon />}
-							sx={{
-								p: 0,
-								minHeight: "auto",
-								"& .MuiAccordionSummary-content": { m: 0 },
-							}}
-						>
-							<Typography variant="body2">
-								Advanced settings
-							</Typography>
-						</AccordionSummary>
-						<AccordionDetails sx={{ p: 0, pt: 1 }}>
-							<Typography variant="body2" color="text.secondary">
-								Advanced options like safety settings can be
-								configured here.
-							</Typography>
-						</AccordionDetails>
-					</Accordion>
 				</Grid>
 			</Grid>
+
+			{/* Dialog for Model Selection */}
+			<Dialog
+				open={modelSelectionOpen}
+				onClose={() => setModelSelectionOpen(false)}
+				fullWidth
+				maxWidth="sm"
+			>
+				<DialogTitle>
+					Model selection{" "}
+					<IconButton
+						onClick={() => setModelSelectionOpen(false)}
+						sx={{ position: "absolute", right: 8, top: 8 }}
+					>
+						<CloseIcon />
+					</IconButton>
+				</DialogTitle>
+				<DialogContent>
+					<Typography
+						variant="body2"
+						color="text.secondary"
+						gutterBottom
+					>
+						Select a model to use for your prompt.
+					</Typography>
+					{/* Dummy Model Data */}
+					{[
+						{
+							name: "Gemini 2.5 Pro",
+							id: "gemini-2.5-pro",
+							desc: "Our most powerful reasoning model...",
+						},
+						{
+							name: "Nano Banana",
+							id: "gemini-2.5-flash-image",
+							desc: "State-of-the-art image generation...",
+						},
+						{
+							name: "Gemini Flash Latest",
+							id: "gemini-flash-latest",
+							desc: "Our hybrid reasoning model...",
+						},
+					].map((model) => (
+						<Paper
+							key={model.id}
+							variant="outlined"
+							sx={{
+								p: 2,
+								mb: 1,
+								cursor: "pointer",
+								"&:hover": { borderColor: "primary.main" },
+							}}
+							onClick={() => {
+								setSelectedModel(model);
+								setModelSelectionOpen(false);
+							}}
+						>
+							<Typography variant="subtitle1">
+								{model.name}
+							</Typography>
+							<Typography variant="body2" color="text.secondary">
+								{model.desc}
+							</Typography>
+						</Paper>
+					))}
+				</DialogContent>
+			</Dialog>
+
+			{/* Dialog for System Instructions */}
+			<Dialog
+				open={systemInstructionsOpen}
+				onClose={() => setSystemInstructionsOpen(false)}
+				fullWidth
+				maxWidth="sm"
+			>
+				<DialogTitle>
+					System instructions{" "}
+					<IconButton
+						onClick={() => setSystemInstructionsOpen(false)}
+						sx={{ position: "absolute", right: 8, top: 8 }}
+					>
+						<CloseIcon />
+					</IconButton>
+				</DialogTitle>
+				<DialogContent>
+					<TextField
+						autoFocus
+						margin="dense"
+						id="system-instructions"
+						label="Optional tone and style instructions for the model"
+						type="text"
+						fullWidth
+						multiline
+						rows={8}
+						variant="outlined"
+						value={systemInstructions}
+						onChange={(e) => setSystemInstructions(e.target.value)}
+					/>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setSystemInstructionsOpen(false)}>
+						Cancel
+					</Button>
+					<Button
+						onClick={() => setSystemInstructionsOpen(false)}
+						variant="contained"
+					>
+						Save
+					</Button>
+				</DialogActions>
+			</Dialog>
+
+			{/* Dialog for Structured Output */}
+			<Dialog
+				open={structuredOutputOpen}
+				onClose={() => setStructuredOutputOpen(false)}
+				fullWidth
+				maxWidth="md"
+			>
+				<DialogTitle>
+					Structured output{" "}
+					<IconButton
+						onClick={() => setStructuredOutputOpen(false)}
+						sx={{ position: "absolute", right: 8, top: 8 }}
+					>
+						<CloseIcon />
+					</IconButton>
+				</DialogTitle>
+				<DialogContent>
+					<Typography variant="body2" sx={{ mb: 2 }}>
+						Enter an{" "}
+						<Link href="#" underline="hover">
+							OpenAPI schema object
+						</Link>{" "}
+						to constrain the model output. See the{" "}
+						<Link href="#" underline="hover">
+							API documentation
+						</Link>{" "}
+						for examples.
+					</Typography>
+					<ToggleButtonGroup
+						value={"visual"}
+						exclusive
+						size="small"
+						sx={{ mb: 2 }}
+					>
+						<ToggleButton value="code">Code Editor</ToggleButton>
+						<ToggleButton value="visual">
+							Visual Editor
+						</ToggleButton>
+					</ToggleButtonGroup>
+					<Paper variant="outlined" sx={{ p: 2 }}>
+						<Typography variant="overline" color="text.secondary">
+							Property
+						</Typography>
+						<Box
+							sx={{
+								display: "flex",
+								alignItems: "center",
+								gap: 1,
+							}}
+						>
+							<TextField
+								defaultValue="interaction_item"
+								size="small"
+								sx={{ flexGrow: 1 }}
+							/>
+							<TextField defaultValue="object" size="small" />
+							<IconButton>
+								<StarIcon />
+							</IconButton>
+							<IconButton>
+								<DeleteIcon />
+							</IconButton>
+						</Box>
+						<Button size="small" sx={{ mt: 1 }}>
+							Add nested property
+						</Button>
+						<br />
+						<Button size="small">Add property</Button>
+					</Paper>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setStructuredOutputOpen(false)}>
+						Reset
+					</Button>
+					<Button
+						onClick={() => setStructuredOutputOpen(false)}
+						variant="contained"
+					>
+						Save
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</Box>
 	);
 }
