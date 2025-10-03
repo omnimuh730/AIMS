@@ -25,12 +25,9 @@ import {
 import { useApplier } from '../../../../context/ApplierContext.jsx';
 
 const JobCardActions = ({ applyLink, onViewDetails, onAskgllama, onApply, onUpdateStatus, onUnapply, job }) => {
-	console.log(job);
 	const { applier } = useApplier();
 	const hasNonAbcApplier = Array.isArray(job.status)
 		&& job.status.some(s => s.applier === applier?._id);
-
-	console.log('hasNonApplier', hasNonAbcApplier);
 
 	const options = !job.status || !hasNonAbcApplier
 		? ['Apply']
@@ -41,8 +38,7 @@ const JobCardActions = ({ applyLink, onViewDetails, onAskgllama, onApply, onUpda
 	const [open, setOpen] = useState(false);
 	const anchorRef = useRef(null);
 	const [selectedIndex, setSelectedIndex] = React.useState(0);
-
-	console.log(applier);
+	console.log(job.status);
 
 	const handleClick = () => {
 		if (options[selectedIndex] === 'Apply') {
@@ -133,41 +129,39 @@ const JobCardActions = ({ applyLink, onViewDetails, onAskgllama, onApply, onUpda
 						<Cancel />
 					</IconButton>
 				) :
-					<><ButtonGroup
-						variant="contained"
-						ref={anchorRef}
-						aria-label="Button group with a nested menu"
-						sx={{
-							borderRadius: "20px", textTransform: "none"
-						}}
-					>
-						<Button onClick={handleClick}
+					<>
+						<ButtonGroup
+							variant="contained"
+							ref={anchorRef}
+							aria-label="Button group with a nested menu"
 							sx={{
 								borderRadius: "20px", textTransform: "none"
 							}}
 						>
-							{applyLink && applyLink.includes("linkedin.com") && (
-								<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
-							)}{options[selectedIndex]}</Button>
-						{
-							(job.status || !hasNonAbcApplier) && (
-								<>
-									<Button
-										size="small"
-										aria-controls={open ? 'split-button-menu' : undefined}
-										aria-expanded={open ? 'true' : undefined}
-										aria-label="select merge strategy"
-										aria-haspopup="menu"
-										onClick={handleToggle}
-									>
-										<ArrowDropDown />
-									</Button>
-									<Button size='small' color='error' sx={{ borderRadius: "20px", textTransform: "none" }} onClick={() => onUnapply(job)}>
-										<Cancel />
-									</Button>
-								</>
-							)}
-					</ButtonGroup>
+							<Button onClick={handleClick}
+								sx={{
+									borderRadius: "20px", textTransform: "none"
+								}}
+							>
+								{applyLink && applyLink.includes("linkedin.com") && (
+									<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
+								)}{options[selectedIndex]}</Button>
+							<>
+								<Button
+									size="small"
+									aria-controls={open ? 'split-button-menu' : undefined}
+									aria-expanded={open ? 'true' : undefined}
+									aria-label="select merge strategy"
+									aria-haspopup="menu"
+									onClick={handleToggle}
+								>
+									<ArrowDropDown />
+								</Button>
+								<Button size='small' color='error' sx={{ borderRadius: "20px", textTransform: "none" }} onClick={() => onUnapply(job)}>
+									<Cancel />
+								</Button>
+							</>
+						</ButtonGroup>
 					</>
 				}
 				<Popper
