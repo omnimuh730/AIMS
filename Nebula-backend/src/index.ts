@@ -2,7 +2,7 @@ import express from "express";
 import { createHandler } from "graphql-http/lib/use/express";
 import { buildSchema } from "graphql";
 import cors from "cors";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, GenerationConfig } from "@google/generative-ai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -17,26 +17,74 @@ const genAI = new GoogleGenerativeAI(apiKey);
 
 // Construct a schema, using GraphQL schema language
 const schema = buildSchema(`
-	type Query {
-		generateContent(prompt: String!): String
-	}
+  type Query {
+    generateContent(
+      prompt: String!,
+      systemInstruction: String,
+      temperature: Float,
+      jsonOutput: Boolean,
+      useGoogleSearch: Boolean,
+      urlContext: Boolean
+    ): String
+  }
 `);
 
 interface GenerateContentArgs {
 	prompt: string;
+	systemInstruction?: string;
+	temperature?: number;
+	jsonOutput?: boolean;
+	useGoogleSearch?: boolean;
+	urlContext?: boolean;
 }
 
 // The root provides a resolver function for each API endpoint
 const root = {
-	generateContent: async ({ prompt }: GenerateContentArgs) => {
+	generateContent: async ({
+		prompt,
+		systemInstruction,
+		temperature,
+		jsonOutput,
+		useGoogleSearch,
+		urlContext,
+	}: GenerateContentArgs) => {
 		try {
-			// For text-only input, use the gemini-pro model
+			console.log(
+				"Received prompt:",
+				prompt,
+				systemInstruction,
+				temperature,
+				jsonOutput,
+				useGoogleSearch,
+				urlContext
+			);
+			const generationConfig: GenerationConfig = {
+				temperature: temperature ?? 0.9, // Default temperature
+				responseMimeType: jsonOutput
+					? "application/json"
+					: "text/plain",
+			};
+
+			const tools: any[] = [];
+			if (useGoogleSearch) {
+				tools.push({ googleSearch: {} });
+			}
+			if (urlContext) {
+				tools.push({ urlContext: {} });
+			}
+
 			const model = genAI.getGenerativeModel({
 				model: "gemini-2.5-flash",
+				systemInstruction: systemInstruction,
+				generationConfig,
+				tools,
 			});
+
 			const result = await model.generateContent(prompt);
 			const response = await result.response;
 			const text = response.text();
+
+			console.log("Generated content:", text);
 			return text;
 		} catch (error) {
 			console.error("Error generating content:", error);

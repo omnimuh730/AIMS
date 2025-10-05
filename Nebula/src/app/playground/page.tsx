@@ -43,7 +43,14 @@ export default function PlaygroundPage() {
 		setIsLoading(true);
 		setResponse("");
 		try {
-			const result = await generateContent(prompt);
+			const result = await generateContent({
+				prompt,
+				systemInstruction: systemInstructions,
+				temperature,
+				jsonOutput: structuredOutputEnabled,
+				useGoogleSearch: groundingWithSearch,
+				urlContext: urlContext,
+			});
 			setResponse(result);
 		} catch (error) {
 			console.error("Error generating content:", error);
