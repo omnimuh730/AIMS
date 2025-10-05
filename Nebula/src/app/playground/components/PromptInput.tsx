@@ -8,7 +8,7 @@ interface PromptInputProps {
 	prompt: string;
 	onPromptChange: (value: string) => void;
 	onRun: () => void;
-	response: any;
+	response: string;
 }
 
 export function PromptInput({
@@ -21,14 +21,18 @@ export function PromptInput({
 	const handleEmitSend = () => {
 		if (!response) return;
 
-		const json_response =
-			typeof response === "string" ? JSON.parse(response) : null;
-		console.log("Emit signal", json_response);
+		try {
+			const json_response =
+				typeof response === "string" ? JSON.parse(response) : null;
+			console.log("Emit signal", json_response);
 
-		if (socket && json_response) {
-			socket.emit(SOCKET_PROTOCOL.TYPE.CONNECTION, {
-				payload: json_response,
-			});
+			if (socket && json_response) {
+				socket.emit(SOCKET_PROTOCOL.TYPE.CONNECTION, {
+					payload: json_response,
+				});
+			}
+		} catch (error) {
+			console.error("Failed to parse response as JSON:", error);
 		}
 	};
 
