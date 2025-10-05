@@ -146,21 +146,26 @@ const JobCardActions = ({ applyLink, onViewDetails, onAskgllama, onApply, onUpda
 								{applyLink && applyLink.includes("linkedin.com") && (
 									<LinkedIn style={{ marginRight: 6 }} /> // 👈 space between
 								)}{options[selectedIndex]}</Button>
-							<>
-								<Button
-									size="small"
-									aria-controls={open ? 'split-button-menu' : undefined}
-									aria-expanded={open ? 'true' : undefined}
-									aria-label="select merge strategy"
-									aria-haspopup="menu"
-									onClick={handleToggle}
-								>
-									<ArrowDropDown />
-								</Button>
-								<Button size='small' color='error' sx={{ borderRadius: "20px", textTransform: "none" }} onClick={() => onUnapply(job)}>
-									<Cancel />
-								</Button>
-							</>
+							{
+								Array.isArray(job.status) && job.status.some(
+									s => !(s.declinedDate || s.scheduledDate) && s.applier !== applier?._id
+								) &&
+								<>
+									<Button
+										size="small"
+										aria-controls={open ? 'split-button-menu' : undefined}
+										aria-expanded={open ? 'true' : undefined}
+										aria-label="select merge strategy"
+										aria-haspopup="menu"
+										onClick={handleToggle}
+									>
+										<ArrowDropDown />
+									</Button>
+									<Button size='small' color='error' sx={{ borderRadius: "20px", textTransform: "none" }} onClick={() => onUnapply(job)}>
+										<Cancel />
+									</Button>
+								</>
+							}
 						</ButtonGroup>
 					</>
 				}
