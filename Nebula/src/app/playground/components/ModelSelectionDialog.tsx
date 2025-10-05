@@ -28,13 +28,23 @@ const models: Model[] = [
 		desc: "Our most powerful reasoning model...",
 	},
 	{
-		name: "Nano Banana",
-		id: "gemini-2.5-flash-image",
+		name: "Gemini 2.5 Flash",
+		id: "gemini-2.5-flash",
 		desc: "State-of-the-art image generation...",
 	},
 	{
-		name: "Gemini Flash Latest",
-		id: "gemini-flash-latest",
+		name: "Gemini 2.5 Flash Preview",
+		id: "gemini-2.5-flash-preview-09-2025",
+		desc: "State-of-the-art image generation...",
+	},
+	{
+		name: "Gemini Flash Lite",
+		id: "gemini-2.5-flash-lite",
+		desc: "Our hybrid reasoning model...",
+	},
+	{
+		name: "Gemini Flash Lite Preview",
+		id: "gemini-2.5-flash-lite-preview-09-2025",
 		desc: "Our hybrid reasoning model...",
 	},
 ];
@@ -74,7 +84,9 @@ export function ModelSelectionDialog({
 							onClose();
 						}}
 					>
-						<Typography variant="subtitle1">{model.name}</Typography>
+						<Typography variant="subtitle1">
+							{model.name}
+						</Typography>
 						<Typography variant="body2" color="text.secondary">
 							{model.desc}
 						</Typography>

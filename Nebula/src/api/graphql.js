@@ -9,6 +9,7 @@ export const generateContent = async ({
 	systemInstruction,
 	temperature,
 	jsonOutput,
+	modelName,
 }) => {
 	const query = gql`
     query GenerateContent(
@@ -16,12 +17,14 @@ export const generateContent = async ({
       $systemInstruction: String,
       $temperature: Float,
       $jsonOutput: Boolean,
+	  $modelName: String,
     ) {
       generateContent(
         prompt: $prompt,
         systemInstruction: $systemInstruction,
         temperature: $temperature,
         jsonOutput: $jsonOutput,
+		modelName: $modelName,
       )
     }
   `;
@@ -31,6 +34,7 @@ export const generateContent = async ({
 		systemInstruction,
 		temperature,
 		jsonOutput,
+		modelName,
 	};
 	const data = await client.request(query, variables);
 	return data.generateContent;

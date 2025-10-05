@@ -22,9 +22,8 @@ const schema = buildSchema(`
       prompt: String!,
       systemInstruction: String,
       temperature: Float,
-      jsonOutput: Boolean,
-      useGoogleSearch: Boolean,
-      urlContext: Boolean
+      jsonOutput: Boolean
+	  modelName: String
     ): String
   }
 `);
@@ -34,6 +33,7 @@ interface GenerateContentArgs {
 	systemInstruction?: string;
 	temperature?: number;
 	jsonOutput?: boolean;
+	modelName?: string;
 }
 
 // The root provides a resolver function for each API endpoint
@@ -43,6 +43,7 @@ const root = {
 		systemInstruction,
 		temperature,
 		jsonOutput,
+		modelName,
 	}: GenerateContentArgs) => {
 		try {
 			console.log("Start thinking...");
@@ -54,7 +55,7 @@ const root = {
 			};
 
 			const model = genAI.getGenerativeModel({
-				model: "gemini-2.5-pro",
+				model: modelName ?? "gemini-pro",
 				systemInstruction: systemInstruction,
 				generationConfig,
 			});
