@@ -25,6 +25,7 @@ import {
 	ListItemText,
 } from "@mui/material";
 import { PromptInput } from "./PromptInput";
+import { JsonTreeView } from "./JsonTreeView";
 
 // --- Markdown Rendering Imports (only needed for styling components) ---
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -149,6 +150,15 @@ const mdxComponents = {
 	},
 };
 
+const isJsonString = (str: string) => {
+	try {
+		JSON.parse(str);
+	} catch (e) {
+		return false;
+	}
+	return true;
+};
+
 export function MainContent({
 	prompt,
 	onPromptChange,
@@ -156,6 +166,53 @@ export function MainContent({
 	response,
 	isLoading,
 }: MainContentProps) {
+	const renderResponse = () => {
+		if (isLoading) {
+			return (
+				<Box
+					sx={{
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
+						height: "100%",
+					}}
+				>
+					<CircularProgress />
+				</Box>
+			);
+		}
+
+		if (!response) {
+			return (
+				<Typography
+					variant="h2"
+					component="h1"
+					sx={{
+						fontWeight: "400",
+						mb: 1,
+						color: "text.primary",
+					}}
+				>
+					AI Studio
+				</Typography>
+			);
+		}
+
+		if (isJsonString(response)) {
+			const jsonData = JSON.parse(response);
+			return <JsonTreeView data={jsonData} />;
+		}
+
+		return (
+			<ReactMarkdown
+				components={mdxComponents}
+				remarkPlugins={[remarkGfm]}
+			>
+				{response}
+			</ReactMarkdown>
+		);
+	};
+
 	return (
 		<Grid
 			container
@@ -166,38 +223,7 @@ export function MainContent({
 			}}
 		>
 			<Grid size={{ md: 12 }}>
-				{isLoading ? (
-					<Box
-						sx={{
-							display: "flex",
-							justifyContent: "center",
-							alignItems: "center",
-							height: "100%",
-						}}
-					>
-						<CircularProgress />
-					</Box>
-				) : response ? (
-					// --- THIS IS THE KEY CHANGE ---
-					<ReactMarkdown
-						components={mdxComponents}
-						remarkPlugins={[remarkGfm]} // Adds support for tables, etc.
-					>
-						{response}
-					</ReactMarkdown>
-				) : (
-					<Typography
-						variant="h2"
-						component="h1"
-						sx={{
-							fontWeight: "400",
-							mb: 1,
-							color: "text.primary",
-						}}
-					>
-						AI Studio
-					</Typography>
-				)}
+				{renderResponse()}
 			</Grid>
 
 			<Grid size={{ md: 12 }}>

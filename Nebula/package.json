@@ -18,6 +18,8 @@
 		"@mui/icons-material": "^7.3.4",
 		"@mui/material": "^7.3.4",
 		"@mui/material-nextjs": "^7.3.3",
+		"@mui/x-tree-view": "^8.13.1",
+		"@react-spring/web": "^10.0.3",
 		"@toolpad/core": "^0.16.0",
 		"@types/react-syntax-highlighter": "^15.5.13",
 		"graphql": "^16.11.0",

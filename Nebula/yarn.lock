@@ -57,7 +57,7 @@
   dependencies:
     "@babel/types" "^7.28.4"
 
-"@babel/runtime@^7.12.5", "@babel/runtime@^7.18.3", "@babel/runtime@^7.27.6", "@babel/runtime@^7.28.2", "@babel/runtime@^7.28.4", "@babel/runtime@^7.3.1", "@babel/runtime@^7.5.5", "@babel/runtime@^7.8.7":
+"@babel/runtime@^7.12.5", "@babel/runtime@^7.18.3", "@babel/runtime@^7.27.6", "@babel/runtime@^7.28.2", "@babel/runtime@^7.28.3", "@babel/runtime@^7.28.4", "@babel/runtime@^7.3.1", "@babel/runtime@^7.5.5", "@babel/runtime@^7.8.7":
   version "7.28.4"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.28.4.tgz#a70226016fabe25c5783b2f22d3e1c9bc5ca3326"
   integrity sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==
@@ -91,6 +91,16 @@
   dependencies:
     "@babel/helper-string-parser" "^7.27.1"
     "@babel/helper-validator-identifier" "^7.27.1"
+
+"@base-ui-components/utils@0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@base-ui-components/utils/-/utils-0.1.1.tgz#129e862ead0c271bce7efb5cfbe9809be727998e"
+  integrity sha512-HWXZA8upEKgrdL1rQqxWu1H+2tB2cXzY2jCxvgnpUv3eoWN2jldhXxMZnXIjZF7jahGxSWXfSIM/qskiTWFFxA==
+  dependencies:
+    "@babel/runtime" "^7.28.3"
+    "@floating-ui/utils" "^0.2.10"
+    reselect "^5.1.1"
+    use-sync-external-store "^1.5.0"
 
 "@emnapi/core@^1.4.3", "@emnapi/core@^1.5.0":
   version "1.5.0"
@@ -296,6 +306,11 @@
   dependencies:
     "@eslint/core" "^0.15.2"
     levn "^0.4.1"
+
+"@floating-ui/utils@^0.2.10":
+  version "0.2.10"
+  resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.10.tgz#a2a1e3812d14525f725d011a73eceb41fef5bc1c"
+  integrity sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==
 
 "@graphql-typed-document-node/core@^3.2.0":
   version "3.2.0"
@@ -676,6 +691,20 @@
     reselect "^5.1.1"
     use-sync-external-store "^1.5.0"
 
+"@mui/x-tree-view@^8.13.1":
+  version "8.13.1"
+  resolved "https://registry.yarnpkg.com/@mui/x-tree-view/-/x-tree-view-8.13.1.tgz#e293ee1eb55d3cef2c7294a83ef090c027f2208a"
+  integrity sha512-i5GrIMbNZRGEIYpJDC+d8TStANmvQpwIGYbsGTczrM+6x3KCkASahURgSraZVBfAAxJ2sm55rbrG+6jtkbq5HQ==
+  dependencies:
+    "@babel/runtime" "^7.28.4"
+    "@base-ui-components/utils" "0.1.1"
+    "@mui/utils" "^7.3.2"
+    "@mui/x-internals" "8.13.1"
+    "@types/react-transition-group" "^4.4.12"
+    clsx "^2.1.1"
+    prop-types "^15.8.1"
+    react-transition-group "^4.4.5"
+
 "@mui/x-virtualizer@0.2.2":
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/@mui/x-virtualizer/-/x-virtualizer-0.2.2.tgz#0d1c0ee0072c5436e7c2571b5e158b91915620d3"
@@ -785,6 +814,51 @@
   version "2.11.8"
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.11.8.tgz#6b79032e760a0899cd4204710beede972a3a185f"
   integrity sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==
+
+"@react-spring/animated@~10.0.3":
+  version "10.0.3"
+  resolved "https://registry.yarnpkg.com/@react-spring/animated/-/animated-10.0.3.tgz#b42f7041a51d38f395e9ba5fb53ca68c34cd324f"
+  integrity sha512-7MrxADV3vaUADn2V9iYhaIL6iOWRx9nCJjYrsk2AHD2kwPr6fg7Pt0v+deX5RnCDmCKNnD6W5fasiyM8D+wzJQ==
+  dependencies:
+    "@react-spring/shared" "~10.0.3"
+    "@react-spring/types" "~10.0.3"
+
+"@react-spring/core@~10.0.3":
+  version "10.0.3"
+  resolved "https://registry.yarnpkg.com/@react-spring/core/-/core-10.0.3.tgz#3b4f3991f5902ce46770c2c1ef05c8e53c3a0f73"
+  integrity sha512-D4DwNO68oohDf/0HG2G0Uragzb9IA1oXblxrd6MZAcBcUQG2EHUWXewjdECMPLNmQvlYVyyBRH6gPxXM5DX7DQ==
+  dependencies:
+    "@react-spring/animated" "~10.0.3"
+    "@react-spring/shared" "~10.0.3"
+    "@react-spring/types" "~10.0.3"
+
+"@react-spring/rafz@~10.0.3":
+  version "10.0.3"
+  resolved "https://registry.yarnpkg.com/@react-spring/rafz/-/rafz-10.0.3.tgz#9b328c3992b23d6317452998670636d6b783f2c4"
+  integrity sha512-Ri2/xqt8OnQ2iFKkxKMSF4Nqv0LSWnxXT4jXFzBDsHgeeH/cHxTLupAWUwmV9hAGgmEhBmh5aONtj3J6R/18wg==
+
+"@react-spring/shared@~10.0.3":
+  version "10.0.3"
+  resolved "https://registry.yarnpkg.com/@react-spring/shared/-/shared-10.0.3.tgz#654d03c74d3277bae1a565aff981979536be6002"
+  integrity sha512-geCal66nrkaQzUVhPkGomylo+Jpd5VPK8tPMEDevQEfNSWAQP15swHm+MCRG4wVQrQlTi9lOzKzpRoTL3CA84Q==
+  dependencies:
+    "@react-spring/rafz" "~10.0.3"
+    "@react-spring/types" "~10.0.3"
+
+"@react-spring/types@~10.0.3":
+  version "10.0.3"
+  resolved "https://registry.yarnpkg.com/@react-spring/types/-/types-10.0.3.tgz#0c2d7a7e783a6f652bcd24cac80ed569bc2ad8d9"
+  integrity sha512-H5Ixkd2OuSIgHtxuHLTt7aJYfhMXKXT/rK32HPD/kSrOB6q6ooeiWAXkBy7L8F3ZxdkBb9ini9zP9UwnEFzWgQ==
+
+"@react-spring/web@^10.0.3":
+  version "10.0.3"
+  resolved "https://registry.yarnpkg.com/@react-spring/web/-/web-10.0.3.tgz#ae3a9ea2362b1d70d2ec36a1e2747c6cee2540a9"
+  integrity sha512-ndU+kWY81rHsT7gTFtCJ6mrVhaJ6grFmgTnENipzmKqot4HGf5smPNK+cZZJqoGeDsj9ZsiWPW4geT/NyD484A==
+  dependencies:
+    "@react-spring/animated" "~10.0.3"
+    "@react-spring/core" "~10.0.3"
+    "@react-spring/shared" "~10.0.3"
+    "@react-spring/types" "~10.0.3"
 
 "@rtsao/scc@^1.1.0":
   version "1.1.0"
