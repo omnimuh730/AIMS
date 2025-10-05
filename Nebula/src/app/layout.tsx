@@ -21,6 +21,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import LinearProgress from '@mui/material/LinearProgress';
 
 import '@/app/globals.css';
+import { SocketProvider } from '@/api/socket';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -165,7 +166,9 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
 				<AppRouterCacheProvider>
-					<AppRouter>{children}</AppRouter>
+					<SocketProvider url="http://192.168.9.110:7979">
+						<AppRouter>{children}</AppRouter>
+					</SocketProvider>
 				</AppRouterCacheProvider>
 			</body>
 		</html>

@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Box, TextField, Button, InputAdornment, Paper } from "@mui/material";
 import { Assistant, Podcasts } from "@mui/icons-material";
+import useSocket from "@/api/useSocket";
+import { SOCKET_PROTOCOL } from "../../../../../configs/socket_protocol.js";
 
 interface PromptInputProps {
 	prompt: string;
@@ -15,12 +17,19 @@ export function PromptInput({
 	onRun,
 	response,
 }: PromptInputProps) {
+	const socket = useSocket();
 	const handleEmitSend = () => {
 		if (!response) return;
 
 		const json_response =
 			typeof response === "string" ? JSON.parse(response) : null;
 		console.log("Emit signal", json_response);
+
+		if (socket && json_response) {
+			socket.emit(SOCKET_PROTOCOL.TYPE.CONNECTION, {
+				payload: json_response,
+			});
+		}
 	};
 
 	return (
