@@ -147,48 +147,33 @@ export function MainContent({
 				p: { xs: 2, md: 3 },
 			}}
 		>
-			<Grid
-				sx={{
-					flexGrow: 1,
-					overflowY: "auto",
-					mb: 2,
-					display: "flex",
-					flexDirection: "column",
-					justifyContent: !response ? "center" : "flex-start",
-					alignItems: !response ? "center" : "stretch",
-				}}
-			>
-				{isLoading ? (
-					<Box
-						sx={{
-							display: "flex",
-							justifyContent: "center",
-							alignItems: "center",
-							height: "100%",
-						}}
-					>
-						<CircularProgress />
-					</Box>
-				) : response ? (
-					// --- THIS IS THE KEY CHANGE ---
-					<MdxRuntime
-						mdxSource={response}
-						components={mdxComponents}
-					/>
-				) : (
-					<Typography
-						variant="h2"
-						component="h1"
-						sx={{
-							fontWeight: "400",
-							mb: 1,
-							color: "text.primary",
-						}}
-					>
-						AI Studio
-					</Typography>
-				)}
-			</Grid>
+			{isLoading ? (
+				<Box
+					sx={{
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
+						height: "100%",
+					}}
+				>
+					<CircularProgress />
+				</Box>
+			) : response ? (
+				// --- THIS IS THE KEY CHANGE ---
+				<MdxRuntime mdxSource={response} components={mdxComponents} />
+			) : (
+				<Typography
+					variant="h2"
+					component="h1"
+					sx={{
+						fontWeight: "400",
+						mb: 1,
+						color: "text.primary",
+					}}
+				>
+					AI Studio
+				</Typography>
+			)}
 
 			<Grid>
 				<PromptInput
