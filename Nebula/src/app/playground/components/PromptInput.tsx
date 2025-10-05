@@ -2,13 +2,13 @@ import * as React from "react";
 import { Box, TextField, Button, InputAdornment, Paper } from "@mui/material";
 import { Assistant, Podcasts } from "@mui/icons-material";
 import useSocket from "@/api/useSocket";
-import { SOCKET_PROTOCOL } from "../../../../../configs/socket_protocol.js";
+import { SOCKET_PROTOCOL } from "../../../api/socket_protocol";
 
 interface PromptInputProps {
 	prompt: string;
 	onPromptChange: (value: string) => void;
 	onRun: () => void;
-	response: string;
+	response: any;
 }
 
 export function PromptInput({
@@ -18,21 +18,32 @@ export function PromptInput({
 	response,
 }: PromptInputProps) {
 	const socket = useSocket();
+
+	React.useEffect(() => {
+		const handleConnection = (data: any) => {
+			if (data.from === "extension" && data.status === "received") {
+				console.log("Received reply from extension:", data);
+			}
+		};
+
+		socket.on(SOCKET_PROTOCOL.TYPE.CONNECTION, handleConnection);
+
+		return () => {
+			socket.off(SOCKET_PROTOCOL.TYPE.CONNECTION, handleConnection);
+		};
+	}, [socket]);
+
 	const handleEmitSend = () => {
 		if (!response) return;
 
-		try {
-			const json_response =
-				typeof response === "string" ? JSON.parse(response) : null;
-			console.log("Emit signal", json_response);
+		const json_response =
+			typeof response === "string" ? JSON.parse(response) : null;
+		console.log("Emit signal", json_response);
 
-			if (socket && json_response) {
-				socket.emit(SOCKET_PROTOCOL.TYPE.CONNECTION, {
-					payload: json_response,
-				});
-			}
-		} catch (error) {
-			console.error("Failed to parse response as JSON:", error);
+		if (socket && json_response) {
+			socket.emit(SOCKET_PROTOCOL.TYPE.CONNECTION, {
+				payload: json_response,
+			});
 		}
 	};
 
