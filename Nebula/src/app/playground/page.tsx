@@ -17,8 +17,6 @@ export default function PlaygroundPage() {
 
 	// State for settings controls
 	const [temperature, setTemperature] = React.useState<number>(1);
-	const [groundingWithSearch, setGroundingWithSearch] = React.useState(true);
-	const [urlContext, setUrlContext] = React.useState(true);
 	const [structuredOutputEnabled, setStructuredOutputEnabled] =
 		React.useState(false);
 
@@ -48,8 +46,6 @@ export default function PlaygroundPage() {
 				systemInstruction: systemInstructions,
 				temperature,
 				jsonOutput: structuredOutputEnabled,
-				useGoogleSearch: groundingWithSearch,
-				urlContext: urlContext,
 			});
 			setResponse(result);
 		} catch (error) {
@@ -88,10 +84,6 @@ export default function PlaygroundPage() {
 						onEditStructuredOutput={() =>
 							setStructuredOutputOpen(true)
 						}
-						groundingWithSearch={groundingWithSearch}
-						onGroundingWithSearchChange={setGroundingWithSearch}
-						urlContext={urlContext}
-						onUrlContextChange={setUrlContext}
 					/>
 				</Grid>
 			</Grid>

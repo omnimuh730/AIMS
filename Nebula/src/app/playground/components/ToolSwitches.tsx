@@ -6,20 +6,12 @@ interface ToolSwitchesProps {
 	structuredOutputEnabled: boolean;
 	onStructuredOutputChange: (enabled: boolean) => void;
 	onEditStructuredOutput: () => void;
-	groundingWithSearch: boolean;
-	onGroundingWithSearchChange: (enabled: boolean) => void;
-	urlContext: boolean;
-	onUrlContextChange: (enabled: boolean) => void;
 }
 
 export function ToolSwitches({
 	structuredOutputEnabled,
 	onStructuredOutputChange,
 	onEditStructuredOutput,
-	groundingWithSearch,
-	onGroundingWithSearchChange,
-	urlContext,
-	onUrlContextChange,
 }: ToolSwitchesProps) {
 	return (
 		<>
@@ -42,21 +34,11 @@ export function ToolSwitches({
 					)}
 					<Switch
 						checked={structuredOutputEnabled}
-						onChange={(e) => onStructuredOutputChange(e.target.checked)}
+						onChange={(e) =>
+							onStructuredOutputChange(e.target.checked)
+						}
 					/>
 				</Box>
-			</SettingsItem>
-			<SettingsItem label="Grounding with Google Search">
-				<Switch
-					checked={groundingWithSearch}
-					onChange={(e) => onGroundingWithSearchChange(e.target.checked)}
-				/>
-			</SettingsItem>
-			<SettingsItem label="URL context">
-				<Switch
-					checked={urlContext}
-					onChange={(e) => onUrlContextChange(e.target.checked)}
-				/>
 			</SettingsItem>
 		</>
 	);

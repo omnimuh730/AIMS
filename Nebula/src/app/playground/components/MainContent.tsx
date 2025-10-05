@@ -1,5 +1,11 @@
 // The file path may be different based on your project structure
-import { MdxRuntime } from "./MdxRuntime";
+// --- REMOVED MdxRuntime ---
+// import { MdxRuntime } from "./MdxRuntime";
+
+// +++ ADDED react-markdown IMPORTS +++
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
 import * as React from "react";
 import {
 	Box,
@@ -32,7 +38,7 @@ interface MainContentProps {
 	isLoading: boolean;
 }
 
-// --- THIS COMPONENT MAP WORKS FOR MDXProvider TOO! ---
+// --- THIS COMPONENT MAP WORKS GREAT FOR react-markdown TOO! ---
 const mdxComponents = {
 	h1: ({ ...props }) => (
 		<Typography variant="h3" component="h1" gutterBottom {...props} />
@@ -91,44 +97,56 @@ const mdxComponents = {
 	tr: ({ ...props }) => <TableRow {...props} />,
 	th: ({ ...props }) => <TableCell sx={{ fontWeight: "bold" }} {...props} />,
 	td: ({ ...props }) => <TableCell {...props} />,
-	// MDX uses `pre` and `code` tags. The `pre` gets the className.
-	pre: ({ className, ...props }: any) => {
+
+	// --- ADJUSTED FOR react-markdown ---
+	// `pre` is the container for a code block. We'll use it for styling.
+	pre: ({ children }: any) => (
+		<Paper
+			elevation={0}
+			sx={{
+				my: 2,
+				backgroundColor: "#f5f5f5",
+				overflow: "auto",
+				borderRadius: 1,
+			}}
+		>
+			<pre style={{ margin: 0, padding: "16px" }}>{children}</pre>
+		</Paper>
+	),
+	// `code` is the actual code content. react-markdown gives us props to
+	// differentiate between inline code and code blocks.
+	code: ({ node, inline, className, children, ...props }: any) => {
 		const match = /language-(\w+)/.exec(className || "");
-		return (
-			<Paper
-				elevation={0}
-				sx={{
-					my: 2,
-					backgroundColor: "#f5f5f5",
-					overflow: "auto",
-					borderRadius: 1,
-				}}
-			>
+		if (!inline && match) {
+			return (
 				<SyntaxHighlighter
 					style={oneLight}
-					language={match ? match[1] : undefined}
+					language={match[1]}
 					PreTag="div"
+					{...props}
 				>
-					{props.children.props.children}
+					{String(children).replace(/\n$/, "")}
 				</SyntaxHighlighter>
-			</Paper>
+			);
+		}
+		// This is for INLINE code
+		return (
+			<Box
+				component="code"
+				sx={{
+					bgcolor: "action.hover",
+					px: 0.75,
+					py: 0.25,
+					borderRadius: 1,
+					fontFamily: "monospace",
+					fontSize: "0.875rem",
+				}}
+				{...props}
+			>
+				{children}
+			</Box>
 		);
 	},
-	code: ({ ...props }) => (
-		// This is for INLINE code
-		<Box
-			component="code"
-			sx={{
-				bgcolor: "action.hover",
-				px: 0.75,
-				py: 0.25,
-				borderRadius: 1,
-				fontFamily: "monospace",
-				fontSize: "0.875rem",
-			}}
-			{...props}
-		/>
-	),
 };
 
 export function MainContent({
@@ -147,35 +165,42 @@ export function MainContent({
 				p: { xs: 2, md: 3 },
 			}}
 		>
-			{isLoading ? (
-				<Box
-					sx={{
-						display: "flex",
-						justifyContent: "center",
-						alignItems: "center",
-						height: "100%",
-					}}
-				>
-					<CircularProgress />
-				</Box>
-			) : response ? (
-				// --- THIS IS THE KEY CHANGE ---
-				<MdxRuntime mdxSource={response} components={mdxComponents} />
-			) : (
-				<Typography
-					variant="h2"
-					component="h1"
-					sx={{
-						fontWeight: "400",
-						mb: 1,
-						color: "text.primary",
-					}}
-				>
-					AI Studio
-				</Typography>
-			)}
+			<Grid size={{ md: 12 }}>
+				{isLoading ? (
+					<Box
+						sx={{
+							display: "flex",
+							justifyContent: "center",
+							alignItems: "center",
+							height: "100%",
+						}}
+					>
+						<CircularProgress />
+					</Box>
+				) : response ? (
+					// --- THIS IS THE KEY CHANGE ---
+					<ReactMarkdown
+						components={mdxComponents}
+						remarkPlugins={[remarkGfm]} // Adds support for tables, etc.
+					>
+						{response}
+					</ReactMarkdown>
+				) : (
+					<Typography
+						variant="h2"
+						component="h1"
+						sx={{
+							fontWeight: "400",
+							mb: 1,
+							color: "text.primary",
+						}}
+					>
+						AI Studio
+					</Typography>
+				)}
+			</Grid>
 
-			<Grid>
+			<Grid size={{ md: 12 }}>
 				<PromptInput
 					prompt={prompt}
 					onPromptChange={onPromptChange}

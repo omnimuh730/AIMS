@@ -34,8 +34,6 @@ interface GenerateContentArgs {
 	systemInstruction?: string;
 	temperature?: number;
 	jsonOutput?: boolean;
-	useGoogleSearch?: boolean;
-	urlContext?: boolean;
 }
 
 // The root provides a resolver function for each API endpoint
@@ -45,46 +43,30 @@ const root = {
 		systemInstruction,
 		temperature,
 		jsonOutput,
-		useGoogleSearch,
-		urlContext,
 	}: GenerateContentArgs) => {
 		try {
-			console.log(
-				"Received prompt:",
-				prompt,
-				systemInstruction,
-				temperature,
-				jsonOutput,
-				useGoogleSearch,
-				urlContext
-			);
+			console.log("Start thinking...");
 			const generationConfig: GenerationConfig = {
-				temperature: temperature ?? 0.9, // Default temperature
+				temperature: temperature ?? 1, // Default temperature
 				responseMimeType: jsonOutput
 					? "application/json"
 					: "text/plain",
 			};
 
-			const tools: any[] = [];
-			if (useGoogleSearch) {
-				tools.push({ googleSearch: {} });
-			}
-			if (urlContext) {
-				tools.push({ urlContext: {} });
-			}
-
 			const model = genAI.getGenerativeModel({
-				model: "gemini-2.5-flash",
+				model: "gemini-2.5-pro",
 				systemInstruction: systemInstruction,
 				generationConfig,
-				tools,
 			});
+
+			console.log(model);
 
 			const result = await model.generateContent(prompt);
 			const response = await result.response;
 			const text = response.text();
 
-			console.log("Generated content:", text);
+			console.log("Finished thinking.");
+
 			return text;
 		} catch (error) {
 			console.error("Error generating content:", error);

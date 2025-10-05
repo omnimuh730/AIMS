@@ -13,10 +13,6 @@ interface SettingsPanelProps {
 	structuredOutputEnabled: boolean;
 	onStructuredOutputChange: (enabled: boolean) => void;
 	onEditStructuredOutput: () => void;
-	groundingWithSearch: boolean;
-	onGroundingWithSearchChange: (enabled: boolean) => void;
-	urlContext: boolean;
-	onUrlContextChange: (enabled: boolean) => void;
 }
 
 export function SettingsPanel({
@@ -28,10 +24,6 @@ export function SettingsPanel({
 	structuredOutputEnabled,
 	onStructuredOutputChange,
 	onEditStructuredOutput,
-	groundingWithSearch,
-	onGroundingWithSearchChange,
-	urlContext,
-	onUrlContextChange,
 }: SettingsPanelProps) {
 	return (
 		<Grid
@@ -93,10 +85,6 @@ export function SettingsPanel({
 				structuredOutputEnabled={structuredOutputEnabled}
 				onStructuredOutputChange={onStructuredOutputChange}
 				onEditStructuredOutput={onEditStructuredOutput}
-				groundingWithSearch={groundingWithSearch}
-				onGroundingWithSearchChange={onGroundingWithSearchChange}
-				urlContext={urlContext}
-				onUrlContextChange={onUrlContextChange}
 			/>
 		</Grid>
 	);
