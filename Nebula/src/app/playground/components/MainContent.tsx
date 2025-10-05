@@ -100,7 +100,7 @@ const mdxComponents = {
 				sx={{
 					my: 2,
 					backgroundColor: "#f5f5f5",
-					overflow: "hidden",
+					overflow: "auto",
 					borderRadius: 1,
 				}}
 			>
@@ -147,7 +147,7 @@ export function MainContent({
 				p: { xs: 2, md: 3 },
 			}}
 		>
-			<Box
+			<Grid
 				sx={{
 					flexGrow: 1,
 					overflowY: "auto",
@@ -188,13 +188,15 @@ export function MainContent({
 						AI Studio
 					</Typography>
 				)}
-			</Box>
+			</Grid>
 
-			<PromptInput
-				prompt={prompt}
-				onPromptChange={onPromptChange}
-				onRun={onRun}
-			/>
+			<Grid>
+				<PromptInput
+					prompt={prompt}
+					onPromptChange={onPromptChange}
+					onRun={onRun}
+				/>
+			</Grid>
 		</Grid>
 	);
 }

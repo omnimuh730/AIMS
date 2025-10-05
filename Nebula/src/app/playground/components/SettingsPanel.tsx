@@ -36,7 +36,7 @@ export function SettingsPanel({
 	return (
 		<Grid
 			sx={{
-				width: { xs: "100%", md: "33.33%", lg: "25%" },
+				width: "100%",
 				borderLeft: "1px solid #e0e0e0",
 				p: 2.5,
 				display: "flex",
@@ -44,7 +44,6 @@ export function SettingsPanel({
 				gap: 2,
 				overflowY: "auto",
 			}}
-			size={{ md: 12, lg: 3 }}
 		>
 			<Box
 				sx={{

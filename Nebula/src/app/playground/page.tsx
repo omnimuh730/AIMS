@@ -47,7 +47,9 @@ export default function PlaygroundPage() {
 			setResponse(result);
 		} catch (error) {
 			console.error("Error generating content:", error);
-			setResponse("Error generating content. Please check the server logs.");
+			setResponse(
+				"Error generating content. Please check the server logs.",
+			);
 		} finally {
 			setIsLoading(false);
 		}
@@ -56,29 +58,35 @@ export default function PlaygroundPage() {
 	return (
 		<Box sx={{ display: "flex", height: "100vh" }}>
 			<Grid container sx={{ flexGrow: 1 }}>
-				<MainContent
-					prompt={prompt}
-					onPromptChange={setPrompt}
-					onRun={handleRun}
-					response={response}
-					isLoading={isLoading}
-				/>
-				<SettingsPanel
-					selectedModel={selectedModel}
-					onModelSelectClick={() => setModelSelectionOpen(true)}
-					onSystemInstructionsClick={() =>
-						setSystemInstructionsOpen(true)
-					}
-					temperature={temperature}
-					onTemperatureChange={setTemperature}
-					structuredOutputEnabled={structuredOutputEnabled}
-					onStructuredOutputChange={setStructuredOutputEnabled}
-					onEditStructuredOutput={() => setStructuredOutputOpen(true)}
-					groundingWithSearch={groundingWithSearch}
-					onGroundingWithSearchChange={setGroundingWithSearch}
-					urlContext={urlContext}
-					onUrlContextChange={setUrlContext}
-				/>
+				<Grid size={{ lg: 9, md: 12 }}>
+					<MainContent
+						prompt={prompt}
+						onPromptChange={setPrompt}
+						onRun={handleRun}
+						response={response}
+						isLoading={isLoading}
+					/>
+				</Grid>
+				<Grid size={{ lg: 3, md: 12 }}>
+					<SettingsPanel
+						selectedModel={selectedModel}
+						onModelSelectClick={() => setModelSelectionOpen(true)}
+						onSystemInstructionsClick={() =>
+							setSystemInstructionsOpen(true)
+						}
+						temperature={temperature}
+						onTemperatureChange={setTemperature}
+						structuredOutputEnabled={structuredOutputEnabled}
+						onStructuredOutputChange={setStructuredOutputEnabled}
+						onEditStructuredOutput={() =>
+							setStructuredOutputOpen(true)
+						}
+						groundingWithSearch={groundingWithSearch}
+						onGroundingWithSearchChange={setGroundingWithSearch}
+						urlContext={urlContext}
+						onUrlContextChange={setUrlContext}
+					/>
+				</Grid>
 			</Grid>
 
 			<ModelSelectionDialog
