@@ -19,7 +19,7 @@ import {
 	updatePropertyInTree,
 	deletePropertyFromTree,
 } from "./state";
-import { generateRootSchema } from "./schema";
+import { generateRootSchema, schemaToProperties } from "./schema";
 import { VisualEditor } from "./VisualEditor";
 import { CodeEditor } from "./CodeEditor";
 
@@ -36,6 +36,13 @@ export function StructuredOutputDialog({
 	const [viewMode, setViewMode] = React.useState<"visual" | "code">("visual");
 	const [properties, setProperties] =
 		React.useState<Property[]>(initialProperties);
+	const [jsonSchemaString, setJsonSchemaString] = React.useState(() =>
+		JSON.stringify(generateRootSchema(properties), null, 2),
+	);
+
+	React.useEffect(() => {
+		setJsonSchemaString(JSON.stringify(generateRootSchema(properties), null, 2));
+	}, [properties]);
 
 	const handleAddProperty = (parentId: string | null = null) =>
 		setProperties((current) => addPropertyToTree(current, parentId));
@@ -48,10 +55,37 @@ export function StructuredOutputDialog({
 	const handleReset = () =>
 		setProperties(JSON.parse(JSON.stringify(initialProperties)));
 
-	const jsonSchema = React.useMemo(
-		() => JSON.stringify(generateRootSchema(properties), null, 2),
-		[properties],
-	);
+	const handleSchemaChange = (newSchema: string) => {
+		setJsonSchemaString(newSchema);
+		try {
+			const schema = JSON.parse(newSchema);
+			const newProperties = schemaToProperties(schema);
+			setProperties(newProperties);
+		} catch (error) {
+			// In a real app, you'd want to show a validation error to the user
+			console.error("Invalid JSON:", error);
+		}
+	};
+
+	const handleViewModeChange = (
+		event: React.MouseEvent<HTMLElement>,
+		newMode: "visual" | "code" | null,
+	) => {
+		if (newMode) {
+			if (viewMode === "code" && newMode === "visual") {
+				try {
+					const schema = JSON.parse(jsonSchemaString);
+					const newProperties = schemaToProperties(schema);
+					setProperties(newProperties);
+				} catch (error) {
+					console.error("Invalid JSON, cannot switch to visual mode:", error);
+					// Optionally, prevent switching or show an error to the user
+					return;
+				}
+			}
+			setViewMode(newMode);
+		}
+	};
 
 	return (
 		<Dialog
@@ -91,7 +125,7 @@ export function StructuredOutputDialog({
 					value={viewMode}
 					exclusive
 					size="small"
-					onChange={(e, newMode) => newMode && setViewMode(newMode)}
+					onChange={handleViewModeChange}
 					sx={{ mb: 2 }}
 				>
 					<ToggleButton
@@ -116,7 +150,10 @@ export function StructuredOutputDialog({
 						onDelete={handleDeleteProperty}
 					/>
 				) : (
-					<CodeEditor jsonSchema={jsonSchema} />
+					<CodeEditor
+						jsonSchema={jsonSchemaString}
+						onJsonSchemaChange={handleSchemaChange}
+					/>
 				)}
 			</DialogContent>
 			<DialogActions sx={{ p: "16px 24px" }}>

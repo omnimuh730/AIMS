@@ -1,4 +1,5 @@
 import { Property } from "./types";
+import { v4 as uuidv4 } from "uuid";
 
 // This represents a subset of the JSON Schema specification.
 // It's a recursive type.
@@ -70,4 +71,79 @@ export const generateRootSchema = (
 		delete rootSchema.required;
 	}
 	return rootSchema;
+};
+
+const jsonTypeToPropertyType = (
+	type: string | undefined,
+	property: JsonSchemaObject,
+): "string" | "number" | "integer" | "boolean" | "object" | "enum" => {
+	if (property.enum) {
+		return "enum";
+	}
+	switch (type) {
+		case "string":
+		case "number":
+		case "integer":
+		case "boolean":
+		case "object":
+			return type;
+		default:
+			return "string"; // Default to string
+	}
+};
+
+const processSchemaProperties = (
+	properties: { [key: string]: JsonSchemaObject },
+	required: string[],
+): Property[] => {
+	return Object.entries(properties).map(([name, schema]) => {
+		return schemaToProperty(name, schema, required.includes(name));
+	});
+};
+
+const schemaToProperty = (
+	name: string,
+	schema: JsonSchemaObject,
+	isRequired: boolean,
+): Property => {
+	let children: Property[] = [];
+	let type = schema.type;
+	let isArray = false;
+	let itemsSchema = schema;
+
+	if (type === "array") {
+		isArray = true;
+		itemsSchema = schema.items || {};
+		type = itemsSchema.type;
+	}
+
+	if (itemsSchema.type === "object" && itemsSchema.properties) {
+		children = processSchemaProperties(
+			itemsSchema.properties,
+			itemsSchema.required || [],
+		);
+	}
+
+	return {
+		id: uuidv4(),
+		name: name,
+		type: jsonTypeToPropertyType(type, itemsSchema),
+		isRequired: isRequired,
+		isArray: isArray,
+		children: children,
+	};
+};
+
+export const schemaToProperties = (
+	schema: JsonSchemaObject,
+): Property[] => {
+	if (
+		schema.type !== "object" ||
+		!schema.properties
+	) {
+		// Return empty array or throw an error if the root is not an object with properties
+		return [];
+	}
+
+	return processSchemaProperties(schema.properties, schema.required || []);
 };
