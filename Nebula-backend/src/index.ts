@@ -31,7 +31,9 @@ const root = {
 	generateContent: async ({ prompt }: GenerateContentArgs) => {
 		try {
 			// For text-only input, use the gemini-pro model
-			const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+			const model = genAI.getGenerativeModel({
+				model: "gemini-2.5-flash",
+			});
 			const result = await model.generateContent(prompt);
 			const response = await result.response;
 			const text = response.text();
