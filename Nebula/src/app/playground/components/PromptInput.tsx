@@ -3,6 +3,7 @@ import { Box, TextField, Button, InputAdornment, Paper } from "@mui/material";
 import { Assistant, Podcasts } from "@mui/icons-material";
 import useSocket from "@/api/useSocket";
 import { SOCKET_PROTOCOL } from "../../../api/socket_protocol";
+import useNotification from "@/api/useNotification";
 
 interface PromptInputProps {
 	prompt: string;
@@ -18,11 +19,18 @@ export function PromptInput({
 	response,
 }: PromptInputProps) {
 	const socket = useSocket();
+	const notification = useNotification();
+	const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
 	React.useEffect(() => {
 		const handleConnection = (data: any) => {
 			if (data.from === "extension" && data.status === "received") {
 				console.log("Received reply from extension:", data);
+				if (timeoutRef.current) {
+					clearTimeout(timeoutRef.current);
+					timeoutRef.current = null;
+				}
+				notification.success("Extension received the message.");
 			}
 		};
 
@@ -31,7 +39,7 @@ export function PromptInput({
 		return () => {
 			socket.off(SOCKET_PROTOCOL.TYPE.CONNECTION, handleConnection);
 		};
-	}, [socket]);
+	}, [socket, notification]);
 
 	const handleEmitSend = () => {
 		if (!response) return;
@@ -44,6 +52,11 @@ export function PromptInput({
 			socket.emit(SOCKET_PROTOCOL.TYPE.CONNECTION, {
 				payload: json_response,
 			});
+			notification.info("Message sent to extension...");
+
+			timeoutRef.current = setTimeout(() => {
+				notification.error("Extension did not reply in time.");
+			}, 5000);
 		}
 	};
 

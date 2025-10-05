@@ -22,6 +22,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 
 import '@/app/globals.css';
 import { SocketProvider } from '@/api/socket';
+import { NotificationProvider } from '@/api/notification';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -166,9 +167,11 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
 				<AppRouterCacheProvider>
-					<SocketProvider url="http://192.168.9.110:7979">
-						<AppRouter>{children}</AppRouter>
-					</SocketProvider>
+					<NotificationProvider>
+						<SocketProvider url="http://192.168.9.110:7979">
+							<AppRouter>{children}</AppRouter>
+						</SocketProvider>
+					</NotificationProvider>
 				</AppRouterCacheProvider>
 			</body>
 		</html>
