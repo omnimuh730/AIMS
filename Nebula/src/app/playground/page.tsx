@@ -29,8 +29,8 @@ export default function PlaygroundPage() {
 
 	// State for the data inside the dialogs
 	const [selectedModel, setSelectedModel] = React.useState({
-		name: "Gemini 2.5 Pro",
-		id: "gemini-2.5-pro",
+		name: "Gemini 2.5 Flash Lite",
+		id: "gemini-2.5-flash-lite",
 	});
 	const [systemInstructions, setSystemInstructions] = React.useState("");
 
@@ -46,6 +46,7 @@ export default function PlaygroundPage() {
 				systemInstruction: systemInstructions,
 				temperature,
 				jsonOutput: structuredOutputEnabled,
+				modelName: selectedModel.id,
 			});
 			setResponse(result);
 		} catch (error) {

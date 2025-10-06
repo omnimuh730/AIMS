@@ -222,15 +222,14 @@ export function MainContent({
 				p: { xs: 2, md: 3 },
 			}}
 		>
-			<Grid size={{ md: 12 }}>
-				{renderResponse()}
-			</Grid>
+			<Grid size={{ md: 12 }}>{renderResponse()}</Grid>
 
 			<Grid size={{ md: 12 }}>
 				<PromptInput
 					prompt={prompt}
 					onPromptChange={onPromptChange}
 					onRun={onRun}
+					response={response}
 				/>
 			</Grid>
 		</Grid>

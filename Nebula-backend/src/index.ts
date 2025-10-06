@@ -1,3 +1,5 @@
+// Backend index.ts (Updated)
+
 import express from "express";
 import { createHandler } from "graphql-http/lib/use/express";
 import { buildSchema } from "graphql";
@@ -23,8 +25,7 @@ const schema = buildSchema(`
       systemInstruction: String,
       temperature: Float,
       jsonOutput: Boolean,
-      useGoogleSearch: Boolean,
-      urlContext: Boolean
+	  modelName: String
     ): String
   }
 `);
@@ -34,32 +35,38 @@ interface GenerateContentArgs {
 	systemInstruction?: string;
 	temperature?: number;
 	jsonOutput?: boolean;
+	modelName?: string;
 }
 
 // The root provides a resolver function for each API endpoint
 const root = {
+	// ... your root resolver remains the same
 	generateContent: async ({
 		prompt,
 		systemInstruction,
 		temperature,
 		jsonOutput,
+		modelName,
 	}: GenerateContentArgs) => {
 		try {
 			console.log("Start thinking...");
+			// ... (rest of your resolver logic)
 			const generationConfig: GenerationConfig = {
-				temperature: temperature ?? 1, // Default temperature
+				temperature: temperature ?? 1,
 				responseMimeType: jsonOutput
 					? "application/json"
 					: "text/plain",
 			};
 
 			const model = genAI.getGenerativeModel({
-				model: "gemini-2.5-pro",
+				model: modelName ?? "gemini-pro",
 				systemInstruction: systemInstruction,
 				generationConfig,
 			});
 
-			console.log(model);
+			console.log(
+				"Received model config. Generating content for prompt..."
+			);
 
 			const result = await model.generateContent(prompt);
 			const response = await result.response;
@@ -70,13 +77,26 @@ const root = {
 			return text;
 		} catch (error) {
 			console.error("Error generating content:", error);
-			return "Error generating content. Please check the server logs.";
+			// It's better to throw an error so GraphQL can format it correctly
+			// for the client, but returning a string is also fine for this setup.
+			throw new Error(
+				"Error generating content. Please check the server logs."
+			);
 		}
 	},
 };
 
 const app = express();
+
+// 1. Enable CORS for all requests
 app.use(cors());
+
+// 2. Add the JSON body parser with an increased limit.
+//    This MUST come before the graphql handler.
+//    '50mb' is a generous limit; adjust as needed.
+app.use(express.json({ limit: "Infinity" }));
+
+// 3. Set up the GraphQL handler
 app.all("/graphql", createHandler({ schema, rootValue: root }));
 
 app.listen(4000, () => {

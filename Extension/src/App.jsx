@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import useSocket from './api/useSocket';
 import useNotification from "./api/useNotification";
+import { SOCKET_PROTOCOL } from "../../configs/socket_protocol.js";
 
 import LayoutPage from "./components/layout";
 
@@ -28,6 +29,25 @@ function App() {
 			notification.success(`Socket: ${msg}`);
 		});
 		return () => socket.off("notification");
+	}, [socket, notification]);
+
+	useEffect(() => {
+		const handleConnection = (data) => {
+			console.log('Received data from backend:', data);
+			notification.success('Received data from Nebula');
+			// Reply back
+			socket.emit(SOCKET_PROTOCOL.TYPE.CONNECTION, {
+				from: 'extension',
+				status: 'received',
+				originalPayload: data.payload,
+			});
+		};
+
+		socket.on(SOCKET_PROTOCOL.TYPE.CONNECTION, handleConnection);
+
+		return () => {
+			socket.off(SOCKET_PROTOCOL.TYPE.CONNECTION, handleConnection);
+		};
 	}, [socket, notification]);
 
 	return (
