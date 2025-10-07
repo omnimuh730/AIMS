@@ -77,7 +77,6 @@ export async function createJob(req, res) {
 
 export async function getJobs(req, res) {
 	try {
-		console.log(req);
 		if (!jobsCollection) {
 			return res.status(503).json({ success: false, error: 'Database not ready' });
 		}
@@ -165,7 +164,7 @@ export async function getJobs(req, res) {
 		if (appliedBool === false) {
 			// Posted: no status entry for this applier
 			if (applierId) {
-				query.$and.push({ $or: [ { status: { $exists: false } }, { status: { $not: { $elemMatch: { applier: applierId } } } } ] });
+				query.$and.push({ $or: [{ status: { $exists: false } }, { status: { $not: { $elemMatch: { applier: applierId } } } }] });
 			} else {
 				// Without applier, fallback to no status at all
 				query.$and.push({ status: { $exists: false } });

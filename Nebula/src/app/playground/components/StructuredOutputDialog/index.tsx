@@ -27,11 +27,15 @@ import { CodeEditor } from "./CodeEditor";
 interface StructuredOutputDialogProps {
 	open: boolean;
 	onClose: () => void;
+	initialJsonSchema?: string;
+	onSave?: (jsonSchema: string) => void;
 }
 
 export function StructuredOutputDialog({
 	open,
 	onClose,
+	initialJsonSchema,
+	onSave,
 }: StructuredOutputDialogProps) {
 	const [viewMode, setViewMode] = React.useState<"visual" | "code">("visual");
 	const [properties, setProperties] =
@@ -43,6 +47,19 @@ export function StructuredOutputDialog({
 	React.useEffect(() => {
 		setJsonSchemaString(JSON.stringify(generateRootSchema(properties), null, 2));
 	}, [properties]);
+
+	// When dialog opens or initialJsonSchema changes, seed state from it if provided
+	React.useEffect(() => {
+		if (!open) return;
+		if (!initialJsonSchema) return;
+		try {
+			const parsed = JSON.parse(initialJsonSchema);
+			setProperties(schemaToProperties(parsed));
+			setJsonSchemaString(JSON.stringify(parsed, null, 2));
+		} catch (e) {
+			console.warn("Invalid initialJsonSchema passed to StructuredOutputDialog");
+		}
+	}, [open, initialJsonSchema]);
 
 	const handleAddProperty = (parentId: string | null = null) =>
 		setProperties((current) => addPropertyToTree(current, parentId));
@@ -161,7 +178,10 @@ export function StructuredOutputDialog({
 					Reset
 				</Button>
 				<Button
-					onClick={onClose}
+					onClick={() => {
+						if (onSave) onSave(jsonSchemaString);
+						onClose();
+					}}
 					variant="contained"
 					sx={{ borderRadius: "8px" }}
 				>

@@ -7,7 +7,7 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { ModelSelectionDialog } from "./components/ModelSelectionDialog";
 import { SystemInstructionsDialog } from "./components/SystemInstructionsDialog";
 import { StructuredOutputDialog } from "./components/StructuredOutputDialog";
-import { generateContent } from "@/api/graphql";
+import { generateContent } from "@/api/rest";
 
 export default function PlaygroundPage() {
 	// State for the main prompt input
@@ -35,6 +35,9 @@ export default function PlaygroundPage() {
 	const [systemInstructions, setSystemInstructions] = React.useState("");
 
 	const [response, setResponse] = React.useState("");
+	const [jsonSchema, setJsonSchema] = React.useState<string | undefined>(
+		undefined,
+	);
 	const [isLoading, setIsLoading] = React.useState(false);
 
 	const handleRun = async () => {
@@ -47,6 +50,7 @@ export default function PlaygroundPage() {
 				temperature,
 				jsonOutput: structuredOutputEnabled,
 				modelName: selectedModel.id,
+				responseSchema: structuredOutputEnabled ? jsonSchema ?? null : null,
 			});
 			setResponse(result);
 		} catch (error) {
@@ -110,6 +114,8 @@ export default function PlaygroundPage() {
 			<StructuredOutputDialog
 				open={structuredOutputOpen}
 				onClose={() => setStructuredOutputOpen(false)}
+				initialJsonSchema={jsonSchema}
+				onSave={(schema) => setJsonSchema(schema)}
 			/>
 		</Box>
 	);

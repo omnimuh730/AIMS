@@ -38,7 +38,6 @@ const JobCardActions = ({ applyLink, onViewDetails, onAskgllama, onApply, onUpda
 	const [open, setOpen] = useState(false);
 	const anchorRef = useRef(null);
 	const [selectedIndex, setSelectedIndex] = React.useState(0);
-	console.log(job.status);
 
 	const handleClick = () => {
 		if (options[selectedIndex] === 'Apply') {
@@ -148,7 +147,7 @@ const JobCardActions = ({ applyLink, onViewDetails, onAskgllama, onApply, onUpda
 								)}{options[selectedIndex]}</Button>
 							{
 								Array.isArray(job.status) && job.status.some(
-									s => !(s.declinedDate || s.scheduledDate) && s.applier !== applier?._id
+									s => !(s.declinedDate || s.scheduledDate) && s.applier === applier?._id
 								) &&
 								<>
 									<Button
