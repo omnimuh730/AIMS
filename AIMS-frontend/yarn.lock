@@ -871,29 +871,9 @@
     d3-scale-chromatic "^3.0.0"
     lodash "^4.17.21"
 
-"@nivo/core@0.99.0":
+"@nivo/core@0.99.0", "@nivo/core@^0.99.0":
   version "0.99.0"
   resolved "https://registry.npmjs.org/@nivo/core/-/core-0.99.0.tgz"
-  integrity sha512-olCItqhPG3xHL5ei+vg52aB6o+6S+xR2idpkd9RormTTUniZb8U2rOdcQojOojPY5i9kVeQyLFBpV4YfM7OZ9g==
-  dependencies:
-    "@nivo/theming" "0.99.0"
-    "@nivo/tooltip" "0.99.0"
-    "@react-spring/web" "9.4.5 || ^9.7.2 || ^10.0"
-    "@types/d3-shape" "^3.1.6"
-    d3-color "^3.1.0"
-    d3-format "^1.4.4"
-    d3-interpolate "^3.0.1"
-    d3-scale "^4.0.2"
-    d3-scale-chromatic "^3.0.0"
-    d3-shape "^3.2.0"
-    d3-time-format "^3.0.0"
-    lodash "^4.17.21"
-    react-virtualized-auto-sizer "^1.0.26"
-    use-debounce "^10.0.4"
-
-"@nivo/core@^0.99.0":
-  version "0.99.0"
-  resolved "https://registry.yarnpkg.com/@nivo/core/-/core-0.99.0.tgz#91ccf3d2419fcfb5f740dba468f0d6f059933af4"
   integrity sha512-olCItqhPG3xHL5ei+vg52aB6o+6S+xR2idpkd9RormTTUniZb8U2rOdcQojOojPY5i9kVeQyLFBpV4YfM7OZ9g==
   dependencies:
     "@nivo/theming" "0.99.0"
