@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import {
-	Badge, Button,
+	Button,
 	Divider,
 	CircularProgress,
 	Typography,
@@ -151,8 +151,17 @@ const ScrapComponent = () => {
 		Remove ` · ` from the publish time
 		*/
 		const CompanyRawComponent = await promise_companyRow;
-		const CompanyName = CompanyRawComponent?.success ? (new DOMParser().parseFromString(CompanyRawComponent.data, 'text/html')).querySelector('strong')?.innerText : null;
-		const PublishTime = CompanyRawComponent?.success ? (new DOMParser().parseFromString(CompanyRawComponent.data, 'text/html')).querySelector('span')?.innerText.replace(' · ', '') : null;
+		let CompanyName = null;
+		let PublishTime = null;
+
+		if (CompanyRawComponent?.success) {
+			const doc = new DOMParser().parseFromString(CompanyRawComponent.data, 'text/html');
+			const spans = doc.querySelectorAll('span');
+
+			CompanyName = spans[0]?.innerText || null;
+			PublishTime = spans[1]?.innerText.replace(' · ', '') || null;
+		}
+
 		setProgress(25);
 		await delay(200);
 		handleClear();
@@ -314,6 +323,7 @@ const ScrapComponent = () => {
 			setScrappedCount(prev => prev + 1);
 		} catch (err) {
 			notification.error('Failed to save job');
+			console.log('Error excuted', err);
 		}
 		setProgress(0);
 		handleClear();
