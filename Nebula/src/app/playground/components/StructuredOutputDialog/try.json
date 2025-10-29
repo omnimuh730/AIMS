@@ -1,0 +1,220 @@
+{
+	"InteractionItem": [
+		{
+			"TagName": "button",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "class",
+					"PropertyValueToFind": "_ctaButton_xd2v0_94"
+				}
+			],
+			"TagDescription": "Optional: Click to upload a resume file to autofill application fields.",
+			"Mandatory": false,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "_systemfield_name"
+				}
+			],
+			"TagDescription": "Enter your full name.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "_systemfield_email"
+				}
+			],
+			"TagDescription": "Enter your email address.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "64078db1-3b31-42bc-89ca-bc351a327107"
+				}
+			],
+			"TagDescription": "Enter your phone number, including the country code.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "6e54b0e9-cda7-4c22-bf3e-992ae12588df_b01c84c3-f4ff-4869-9b4a-2c88c2c25df4-labeled-radio-0"
+				}
+			],
+			"TagDescription": "Select your gender. This option is for 'Male'. Other options are 'Female' and 'Prefer not to say'.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "efee37e1-cfed-4949-b27d-bc28a33e175b"
+				}
+			],
+			"TagDescription": "Enter your age.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "6e54b0e9-cda7-4c22-bf3e-992ae12588df_251769c3-5ae0-4919-a053-5ce9021f262b-labeled-radio-0"
+				}
+			],
+			"TagDescription": "Select your marital status. This option is for 'Single'. Other options include 'Married', 'I prefer not to say', 'Married with kids'.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "_systemfield_resume"
+				}
+			],
+			"TagDescription": "Upload your resume file. Although the input is hidden, interacting with the 'Upload File' button or drag-and-drop area will trigger this.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "6e54b0e9-cda7-4c22-bf3e-992ae12588df_8d0ba04e-ca51-4779-adfb-95e1fdc50df9-labeled-radio-2"
+				}
+			],
+			"TagDescription": "Select your English level. This option is for 'Fluent/Native'. Other options are 'Beginner' and 'Intermediate'.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "6e54b0e9-cda7-4c22-bf3e-992ae12588df_0dfcfa20-8572-4926-bf3c-82c71d30aa59-labeled-radio-1"
+				}
+			],
+			"TagDescription": "Select the type of role you are looking for. This option is for 'Full-Time'. The other option is 'Part-Time/Summer Job'.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "6e54b0e9-cda7-4c22-bf3e-992ae12588df_e6d9aef2-7dd4-40d1-99e4-14cbeff3c967-labeled-radio-0"
+				}
+			],
+			"TagDescription": "Indicate if you graduated from University. This option is for 'Yes, I graduated'. Other options are available.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "a3ab744f-8b88-4c55-a4b9-43d472f4b9ca"
+				}
+			],
+			"TagDescription": "Enter the minimum monthly salary you would accept in British £.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "6e54b0e9-cda7-4c22-bf3e-992ae12588df_041ca91b-8a0b-4278-85ee-d51572b48589-labeled-radio-0"
+				}
+			],
+			"TagDescription": "Select how you approach difficulties. This option is for 'I take some time to think then start finding the solutions'. Other options are available.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "6e54b0e9-cda7-4c22-bf3e-992ae12588df_5b2864d3-18f6-44fa-a1d3-b7dce4d713f4-labeled-radio-1"
+				}
+			],
+			"TagDescription": "Select the type of job you are looking for. This option is for 'Secure and stable job...'. Other options are available.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "input",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "9c87fa44-411c-426b-b6b8-6d9cebbe3088"
+				}
+			],
+			"TagDescription": "Enter your current nationality.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "textarea",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "fe0bf99f-6525-462a-a366-fdd7971424fe"
+				}
+			],
+			"TagDescription": "Describe a time when you 'hacked the system' to your advantage.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "textarea",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "id",
+					"PropertyValueToFind": "69fd5f5c-8c6c-48e4-8219-730aba24f639"
+				}
+			],
+			"TagDescription": "Describe something you've done that shows exceptional ability.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": false
+		},
+		{
+			"TagName": "button",
+			"TagUniquePropertyToFind": [
+				{
+					"PropertyName": "class",
+					"PropertyValueToFind": "ashby-application-form-submit-button"
+				}
+			],
+			"TagDescription": "Click to submit your application.",
+			"Mandatory": true,
+			"Is_Completed_By_Clicking_This": true
+		}
+	]
+}

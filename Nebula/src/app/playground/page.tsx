@@ -1,19 +1,22 @@
+"use client";
+
 import * as React from "react";
-import { Box } from "@mui/material";
+import { Box, Grid } from "@mui/material";
 import { MainContent } from "./components/MainContent";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { ModelSelectionDialog } from "./components/ModelSelectionDialog";
 import { SystemInstructionsDialog } from "./components/SystemInstructionsDialog";
 import { StructuredOutputDialog } from "./components/StructuredOutputDialog";
+import { generateContent } from "@/api/rest";
 
-function App() {
+export default function PlaygroundPage() {
 	// State for the main prompt input
 	const [prompt, setPrompt] = React.useState(
 		"Explain the probability of rolling two dice and getting 7",
 	);
 
 	// State for settings controls
-	const [temperature, setTemperature] = React.useState(1);
+	const [temperature, setTemperature] = React.useState<number>(1);
 	const [structuredOutputEnabled, setStructuredOutputEnabled] =
 		React.useState(false);
 
@@ -32,16 +35,24 @@ function App() {
 	const [systemInstructions, setSystemInstructions] = React.useState("");
 
 	const [response, setResponse] = React.useState("");
-	const [jsonSchema, setJsonSchema] = React.useState(undefined);
+	const [jsonSchema, setJsonSchema] = React.useState<string | undefined>(
+		undefined,
+	);
 	const [isLoading, setIsLoading] = React.useState(false);
 
 	const handleRun = async () => {
 		setIsLoading(true);
 		setResponse("");
 		try {
-			// Mock API call - replace with actual API call
-			await new Promise(resolve => setTimeout(resolve, 1000));
-			setResponse("This is a mock response. Replace with actual API call to generate content.");
+			const result = await generateContent({
+				prompt,
+				systemInstruction: systemInstructions,
+				temperature,
+				jsonOutput: structuredOutputEnabled,
+				modelName: selectedModel.id,
+				responseSchema: structuredOutputEnabled ? jsonSchema ?? null : null,
+			});
+			setResponse(result);
 		} catch (error) {
 			console.error("Error generating content:", error);
 			setResponse(
@@ -54,8 +65,8 @@ function App() {
 
 	return (
 		<Box sx={{ display: "flex", height: "100vh" }}>
-			<Box sx={{ flexGrow: 1, display: "flex" }}>
-				<Box sx={{ flex: "0 0 75%", maxWidth: "75%" }}>
+			<Grid container sx={{ flexGrow: 1 }}>
+				<Grid size={{ lg: 9, md: 12 }}>
 					<MainContent
 						prompt={prompt}
 						onPromptChange={setPrompt}
@@ -63,8 +74,8 @@ function App() {
 						response={response}
 						isLoading={isLoading}
 					/>
-				</Box>
-				<Box sx={{ flex: "0 0 25%", maxWidth: "25%" }}>
+				</Grid>
+				<Grid size={{ lg: 3, md: 12 }}>
 					<SettingsPanel
 						selectedModel={selectedModel}
 						onModelSelectClick={() => setModelSelectionOpen(true)}
@@ -79,14 +90,14 @@ function App() {
 							setStructuredOutputOpen(true)
 						}
 					/>
-				</Box>
-			</Box>
+				</Grid>
+			</Grid>
 
 			<ModelSelectionDialog
 				open={modelSelectionOpen}
 				onClose={() => setModelSelectionOpen(false)}
 				onSelectModel={(model) => {
-					// eslint-disable-next-line no-unused-vars
+					// eslint-disable-next-line @typescript-eslint/no-unused-vars
 					const { desc, ...rest } = model;
 					setSelectedModel(rest);
 				}}
@@ -109,5 +120,3 @@ function App() {
 		</Box>
 	);
 }
-
-export default App
